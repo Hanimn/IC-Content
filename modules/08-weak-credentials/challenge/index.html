@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orion Monitor — Sign In</title>
+
+  <!--
+  ================================================================
+  CHALLENGE METADATA
+  ================================================================
+  Module:   08 — Weak Credentials
+  Title:    The Lock With No Key
+  Tier:     A — Works via file:// (no server needed)
+  Flag:     FLAG{default_creds_are_no_creds}
+  Mechanic: Login form with hardcoded credentials in JS USERS object.
+            guest  / guest      → limited dashboard + partial flag half
+            admin  / orionadmin → full dashboard + complete flag
+            anything else       → "Invalid credentials" error
+  Version:  1.0
+
+  INSTRUCTOR NOTES:
+  - To change the flag: edit FLAG and flagText constants below.
+  - To change credentials: edit the USERS object below.
+    Also update hint-2.md and solution.md if you change the admin password.
+  - The USERS object is intentionally readable in View Source — that IS
+    the challenge. Students use Module 01's skill (View Source) here.
+  - Two-tier unlock: guest shows partial flag + "try admin" hint.
+    admin shows full dashboard + complete flag.
+  ================================================================
+  -->
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #0a1614;
+      color: #cce8e0;
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+    }
+
+    /* ── Login view ── */
+    #login-view {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .login-brand {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-brand .brand-name {
+      font-size: 1.3rem;
+      letter-spacing: 0.12em;
+      color: #e0f8f2;
+      font-weight: normal;
+    }
+
+    .login-brand .brand-name span {
+      color: #00b894;
+    }
+
+    .login-brand .brand-sub {
+      font-size: 0.72rem;
+      color: #3a6a58;
+      letter-spacing: 0.1em;
+      margin-top: 0.3rem;
+    }
+
+    .login-card {
+      background: #071210;
+      border: 1px solid #1a3028;
+      padding: 2rem;
+    }
+
+    .login-card .card-title {
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #00b894;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid #1a3028;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #4a8a78;
+      margin-bottom: 0.4rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      background: #0e1e1a;
+      border: 1px solid #1a3028;
+      color: #cce8e0;
+      padding: 0.6rem 0.8rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-group input:focus {
+      border-color: #00b894;
+    }
+
+    .form-group input::placeholder {
+      color: #2a4a3a;
+    }
+
+    .login-btn {
+      width: 100%;
+      background: #00b894;
+      color: #071210;
+      border: none;
+      padding: 0.7rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.88rem;
+      font-weight: bold;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.15s;
+    }
+
+    .login-btn:hover { background: #00d4aa; }
+
+    .login-error {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.6rem 0.8rem;
+      background: #1a0a0a;
+      border: 1px solid #5a1a1a;
+      font-size: 0.78rem;
+      color: #e05252;
+      letter-spacing: 0.04em;
+    }
+
+    .login-error.visible { display: block; }
+
+    /* Shake animation for failed login */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-6px); }
+      40%       { transform: translateX(6px); }
+      60%       { transform: translateX(-4px); }
+      80%       { transform: translateX(4px); }
+    }
+
+    .login-card.shake { animation: shake 0.35s ease; }
+
+    .login-footer {
+      margin-top: 1.5rem;
+      font-size: 0.65rem;
+      color: #1a3028;
+      text-align: center;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Dashboard view ── */
+    #dashboard-view {
+      display: none;
+      min-height: 100vh;
+    }
+
+    /* Topbar */
+    .topbar {
+      background: #071210;
+      border-bottom: 1px solid #1a3028;
+      padding: 0 2rem;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar-brand {
+      font-size: 0.9rem;
+      letter-spacing: 0.1em;
+      color: #e0f8f2;
+    }
+
+    .topbar-brand span { color: #00b894; }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      font-size: 0.75rem;
+    }
+
+    .user-badge {
+      background: #0e1e1a;
+      border: 1px solid #1a3028;
+      padding: 0.2rem 0.7rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: #6abaa8;
+    }
+
+    .user-badge.admin-badge { border-color: #00b894; color: #00b894; }
+
+    .logout-link {
+      font-size: 0.7rem;
+      color: #3a6a58;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+
+    .logout-link:hover { color: #cce8e0; }
+
+    /* Dashboard body */
+    .dash-body {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #00b894;
+      margin-bottom: 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid #1a3028;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: #071210;
+      border: 1px solid #1a3028;
+      padding: 1rem;
+    }
+
+    .stat-card .stat-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #3a6a58;
+      margin-bottom: 0.4rem;
+    }
+
+    .stat-card .stat-value {
+      font-size: 1.1rem;
+      color: #e0f8f2;
+    }
+
+    .stat-card .stat-value.ok    { color: #00b894; }
+    .stat-card .stat-value.warn  { color: #e8c840; }
+    .stat-card .stat-value.crit  { color: #e05252; }
+
+    /* Host table */
+    .host-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-bottom: 2rem;
+    }
+
+    .host-table th {
+      text-align: left;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #3a6a58;
+      border-bottom: 1px solid #1a3028;
+    }
+
+    .host-table td {
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid #0e1e1a;
+      color: #9abcb0;
+    }
+
+    .host-table tr:hover td { background: #0e1e1a; }
+
+    .status-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      margin-right: 0.4rem;
+    }
+
+    .status-dot.up   { background: #00b894; }
+    .status-dot.warn { background: #e8c840; }
+    .status-dot.down { background: #e05252; }
+
+    /* Admin / Flag panel */
+    .admin-panel {
+      display: none;
+      background: #071e14;
+      border: 1px solid #1a4a2a;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .admin-panel.visible { display: block; }
+
+    .admin-panel .panel-title {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #00b894;
+      margin-bottom: 0.8rem;
+    }
+
+    .admin-panel .flag-value {
+      font-size: 1.05rem;
+      color: #5de8c0;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.6rem;
+    }
+
+    .admin-panel .panel-note {
+      font-size: 0.75rem;
+      color: #2a5a3a;
+      line-height: 1.65;
+    }
+
+    /* Guest / limited panel */
+    .guest-panel {
+      display: none;
+      background: #0e1a14;
+      border: 1px solid #2a3a2a;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .guest-panel.visible { display: block; }
+
+    .guest-panel .panel-title {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #4a8a78;
+      margin-bottom: 0.6rem;
+    }
+
+    .guest-panel .partial-flag {
+      font-size: 0.95rem;
+      color: #6abaa8;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.6rem;
+    }
+
+    .guest-panel .guest-hint {
+      font-size: 0.75rem;
+      color: #2a5a3a;
+      line-height: 1.65;
+    }
+
+    .guest-panel .guest-hint code {
+      color: #4a9a80;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── LOGIN VIEW ───────────────────────────────────────────── -->
+  <div id="login-view">
+    <div class="login-box">
+
+      <div class="login-brand">
+        <div class="brand-name">Orion<span>Monitor</span></div>
+        <div class="brand-sub">Network Operations — Internal Panel</div>
+      </div>
+
+      <div class="login-card" id="login-card">
+        <div class="card-title">Authentication Required</div>
+
+        <form id="login-form" onsubmit="attemptLogin(event)">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username"
+                   placeholder="username" autocomplete="off" required>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password"
+                   placeholder="password" autocomplete="off" required>
+          </div>
+          <button type="submit" class="login-btn">Sign In</button>
+        </form>
+
+        <div class="login-error" id="login-error">
+          Invalid credentials. Access denied.
+        </div>
+      </div>
+
+      <div class="login-footer">
+        Orion Monitor v2.1 &nbsp;·&nbsp; Default installation &nbsp;·&nbsp;
+        Internal use only
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD VIEW ──────────────────────────────────────── -->
+  <div id="dashboard-view">
+
+    <div class="topbar">
+      <span class="topbar-brand">Orion<span>Monitor</span></span>
+      <div class="topbar-right">
+        <span class="user-badge" id="user-badge">GUEST</span>
+        <button class="logout-link" onclick="logout()">Sign Out</button>
+      </div>
+    </div>
+
+    <div class="dash-body">
+
+      <p class="section-label" style="margin-top:0.5rem;">System Overview</p>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Hosts Online</div>
+          <div class="stat-value ok">47 / 50</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active Alerts</div>
+          <div class="stat-value warn">3</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Uptime</div>
+          <div class="stat-value ok" id="uptime-display">calculating...</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Last Scan</div>
+          <div class="stat-value">04:17 ago</div>
+        </div>
+      </div>
+
+      <p class="section-label">Monitored Hosts</p>
+
+      <table class="host-table" style="margin-bottom:2rem;">
+        <thead>
+          <tr>
+            <th>Hostname</th>
+            <th>IP Address</th>
+            <th>Status</th>
+            <th>Last Seen</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>gateway-01</td>
+            <td>10.0.0.1</td>
+            <td><span class="status-dot up"></span>Online</td>
+            <td>0:12 ago</td>
+          </tr>
+          <tr>
+            <td>app-server-02</td>
+            <td>10.0.1.14</td>
+            <td><span class="status-dot up"></span>Online</td>
+            <td>0:12 ago</td>
+          </tr>
+          <tr>
+            <td>db-primary</td>
+            <td>10.0.1.20</td>
+            <td><span class="status-dot warn"></span>Degraded</td>
+            <td>0:15 ago</td>
+          </tr>
+          <tr>
+            <td>backup-nas</td>
+            <td>10.0.2.5</td>
+            <td><span class="status-dot up"></span>Online</td>
+            <td>0:12 ago</td>
+          </tr>
+          <tr>
+            <td>legacy-ftp-01</td>
+            <td>10.0.3.88</td>
+            <td><span class="status-dot down"></span>Offline</td>
+            <td>2:41 ago</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="section-label">Admin — Restricted</p>
+
+      <!-- Admin panel: visible to admin only -->
+      <div class="admin-panel" id="admin-panel">
+        <div class="panel-title">Admin Access Confirmed</div>
+        <div class="flag-value" id="flag-display"></div>
+        <div class="panel-note">
+          Credentials were found in the page's JavaScript source.
+          In a production system, credentials must never be hardcoded
+          in client-side code — anyone with View Source can read them.
+          Authentication must be handled server-side.
+        </div>
+      </div>
+
+      <!-- Guest panel: visible to guest only -->
+      <div class="guest-panel" id="guest-panel">
+        <div class="panel-title">Limited Access — Guests Cannot View This Section</div>
+        <div class="partial-flag" id="partial-flag-display"></div>
+        <div class="guest-hint">
+          You're logged in as <code>guest</code>. This section requires admin privileges.<br>
+          There's another account on this system. Its credentials are in the same
+          place you found these ones.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!--
+  ================================================================
+  CHALLENGE LOGIC
+  ================================================================
+  INSTRUCTORS: To change the flag, edit FLAG and flagText below.
+  To change credentials, edit the USERS object.
+  The USERS object is intentionally readable — students find it
+  via View Source (the Module 01 skill).
+  ================================================================
+  -->
+  <script>
+    // ── Configuration ───────────────────────────────────────────
+    const FLAG      = "FLAG{default_creds_are_no_creds}";
+    const flagText  = "FLAG{default_creds_are_no_creds}";
+    const flagPart1 = "FLAG{default_creds_";
+
+    // Hardcoded credentials — intentionally visible in source.
+    // This is the vulnerability students are meant to find.
+    const USERS = {
+      admin: { password: 'orionadmin', role: 'admin' },
+      guest: { password: 'guest',      role: 'guest' },
+    };
+
+    // ── Login ───────────────────────────────────────────────────
+    function attemptLogin(event) {
+      event.preventDefault();
+
+      const username = document.getElementById('username').value.trim().toLowerCase();
+      const password = document.getElementById('password').value;
+      const errorEl  = document.getElementById('login-error');
+      const card     = document.getElementById('login-card');
+
+      const user = USERS[username];
+
+      if (user && user.password === password) {
+        showDashboard(username, user.role);
+      } else {
+        errorEl.classList.add('visible');
+        card.classList.remove('shake');
+        // Force reflow so animation re-triggers if they fail twice
+        void card.offsetWidth;
+        card.classList.add('shake');
+      }
+    }
+
+    // ── Dashboard ───────────────────────────────────────────────
+    function showDashboard(username, role) {
+      document.getElementById('login-view').style.display    = 'none';
+      document.getElementById('dashboard-view').style.display = 'block';
+
+      // User badge
+      const badge = document.getElementById('user-badge');
+      badge.textContent = username.toUpperCase() + ' (' + role + ')';
+      if (role === 'admin') badge.classList.add('admin-badge');
+
+      if (role === 'admin') {
+        document.getElementById('flag-display').textContent = flagText;
+        document.getElementById('admin-panel').classList.add('visible');
+      } else {
+        document.getElementById('partial-flag-display').textContent = flagPart1 + '...';
+        document.getElementById('guest-panel').classList.add('visible');
+      }
+
+      // Cosmetic uptime counter
+      const start = Date.now();
+      setInterval(() => {
+        const s = Math.floor((Date.now() - start) / 1000);
+        const h = Math.floor(s / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        const sec = s % 60;
+        document.getElementById('uptime-display').textContent =
+          String(h).padStart(2,'0') + ':' +
+          String(m).padStart(2,'0') + ':' +
+          String(sec).padStart(2,'0');
+      }, 1000);
+    }
+
+    // ── Logout ──────────────────────────────────────────────────
+    function logout() {
+      document.getElementById('dashboard-view').style.display = 'none';
+      document.getElementById('login-view').style.display     = 'flex';
+      document.getElementById('login-form').reset();
+      document.getElementById('login-error').classList.remove('visible');
+      document.getElementById('admin-panel').classList.remove('visible');
+      document.getElementById('guest-panel').classList.remove('visible');
+      document.getElementById('user-badge').classList.remove('admin-badge');
+    }
+  </script>
+
+</body>
+</html>

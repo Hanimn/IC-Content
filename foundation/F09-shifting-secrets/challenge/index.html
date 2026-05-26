@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>F09 — Shifting Secrets | Cipher Wheel Challenge</title>
+
+  <!--
+  ================================================================
+  CHALLENGE METADATA
+  ================================================================
+  Module:   F09 — Shifting Secrets
+  Title:    Cipher Wheel Challenge
+  Tier:     A (pure JS, file:// works — no server needed)
+  Author:   IC-Content curriculum
+  Version:  1.0
+
+  INSTRUCTOR NOTES:
+  - To change the flag: edit the FLAG constant in the <script> below
+  - Both ciphertexts are ROT13 (shift 13) encoded
+  - CT1 decodes to mission briefing plaintext
+  - CT2 is the ROT13-encoded flag — decodes to FLAG{rotate_and_reveal_13}
+  - Tier A: works when opened directly from the filesystem
+  ================================================================
+  -->
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:        #0e0a06;
+      --bg-panel:  #1a1408;
+      --bg-panel2: #211a0c;
+      --border:    #3d2e12;
+      --accent:    #c8a870;
+      --accent-dim:#8a6e3e;
+      --text:      #e8d5b0;
+      --text-dim:  #a09070;
+      --green:     #5aab6e;
+      --red:       #c0604a;
+      --font-mono: 'Courier New', Courier, monospace;
+      --font-serif: Georgia, 'Times New Roman', serif;
+    }
+
+    body {
+      font-family: var(--font-serif);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      max-width: 760px;
+      margin: 0 auto 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header .module-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      color: var(--accent-dim);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      margin-bottom: 0.4rem;
+    }
+
+    header .tagline {
+      color: var(--text-dim);
+      font-style: italic;
+      font-size: 0.95rem;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    /* ── Panels ── */
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .panel h2 {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel p {
+      line-height: 1.7;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    /* ── Mission text ── */
+    .classified-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      color: var(--red);
+      border: 1px solid var(--red);
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      margin-bottom: 0.75rem;
+      opacity: 0.85;
+    }
+
+    /* ── Cipher Wheel ── */
+    .wheel-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .wheel-wrapper {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      flex-shrink: 0;
+    }
+
+    .ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .ring-outer {
+      width: 300px;
+      height: 300px;
+      background: var(--bg-panel2);
+      border: 2px solid var(--accent);
+    }
+
+    .ring-inner {
+      width: 200px;
+      height: 200px;
+      background: var(--bg-panel);
+      border: 2px solid var(--accent-dim);
+      transition: transform 0.15s ease;
+    }
+
+    .ring-hub {
+      width: 60px;
+      height: 60px;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+    }
+
+    .wheel-letter {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      font-family: var(--font-mono);
+      font-weight: bold;
+      transform-origin: 0 0;
+      user-select: none;
+    }
+
+    .wheel-letter.outer-letter {
+      font-size: 0.72rem;
+      color: var(--accent);
+    }
+
+    .wheel-letter.inner-letter {
+      font-size: 0.68rem;
+      color: #7ecfa8;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      width: 100%;
+      max-width: 340px;
+    }
+
+    .shift-display {
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .shift-label {
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      margin-bottom: 0.75rem;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--bg);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--bg);
+    }
+
+    .slider-ticks {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--text-dim);
+      margin-top: 0.3rem;
+      padding: 0 2px;
+    }
+
+    /* ── Ciphertext display ── */
+    .ciphertext-block {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent-dim);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      margin: 0.75rem 0;
+      word-break: break-all;
+      line-height: 1.6;
+      letter-spacing: 0.05em;
+    }
+
+    .decoded-block {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      margin: 0.75rem 0;
+      word-break: break-all;
+      line-height: 1.6;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      min-height: 3rem;
+      transition: color 0.2s;
+    }
+
+    .decoded-block.looks-real {
+      color: var(--green);
+    }
+
+    .field-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.3rem;
+    }
+
+    /* ── Frequency chart ── */
+    .freq-chart {
+      display: none;
+      margin-top: 1rem;
+    }
+
+    .freq-chart.visible {
+      display: block;
+    }
+
+    .freq-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 3px;
+    }
+
+    .freq-row .letter {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      width: 14px;
+      flex-shrink: 0;
+      text-align: right;
+    }
+
+    .freq-row .bar-wrap {
+      flex: 1;
+      background: var(--border);
+      border-radius: 2px;
+      height: 12px;
+      overflow: hidden;
+    }
+
+    .freq-row .bar {
+      height: 100%;
+      background: var(--accent-dim);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    .freq-row .bar.top-bar {
+      background: var(--accent);
+    }
+
+    .freq-row .count {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      width: 20px;
+      text-align: left;
+    }
+
+    .freq-note {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-top: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-left: 2px solid var(--accent-dim);
+      line-height: 1.5;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      padding: 0.55rem 1.2rem;
+      transition: background 0.15s, opacity 0.15s;
+    }
+
+    .btn-primary {
+      background: var(--accent-dim);
+      color: var(--bg);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent);
+    }
+
+    .btn-submit {
+      background: #2a4a30;
+      color: var(--green);
+      border: 1px solid #3a6040;
+    }
+
+    .btn-submit:hover {
+      background: #345a3c;
+    }
+
+    /* ── Flag input ── */
+    .flag-input-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    .flag-input {
+      flex: 1;
+      min-width: 200px;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      padding: 0.55rem 0.8rem;
+      outline: none;
+    }
+
+    .flag-input:focus {
+      border-color: var(--accent-dim);
+    }
+
+    /* ── Status messages ── */
+    .status-msg {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      margin-top: 0.75rem;
+      min-height: 1.2em;
+    }
+
+    .status-msg.error  { color: var(--red); }
+    .status-msg.success { color: var(--green); }
+
+    .flag-display {
+      display: none;
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      background: var(--bg);
+      border: 1px solid var(--green);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      margin-top: 0.75rem;
+      color: var(--green);
+      word-break: break-all;
+      letter-spacing: 0.04em;
+    }
+
+    .second-cipher-note {
+      font-size: 0.88rem;
+      color: var(--text-dim);
+      line-height: 1.65;
+      margin-bottom: 0.75rem;
+    }
+
+    .panel-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1rem 0;
+    }
+
+    @media (min-width: 600px) {
+      .wheel-area {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="module-label">Foundation · Module F09 · Cryptography</div>
+    <h1>Shifting Secrets</h1>
+    <p class="tagline">Julius Caesar encrypted his battle plans with a shift. Modern computers crack it in milliseconds.</p>
+  </header>
+
+  <div class="container">
+
+    <!-- ─── SECTION 1: MISSION BRIEFING ─── -->
+    <div class="panel">
+      <h2>Mission Briefing</h2>
+      <div class="classified-tag">CLASSIFIED // EYES ONLY</div>
+      <p>
+        Your surveillance team has intercepted two encrypted transmissions from an unknown operative.
+        Both appear to use the same classic shift cipher — a method almost as old as writing itself.
+        <br><br>
+        Your mission: identify the shift, decode the first transmission to read the mission intel, then
+        apply the same shift to the second transmission to extract the credentials hidden inside.
+        <br><br>
+        Use the cipher wheel below. Rotate the inner ring until the decoded text looks like real English.
+      </p>
+    </div>
+
+    <!-- ─── SECTION 2: CIPHER WHEEL + DECODER ─── -->
+    <div class="panel">
+      <h2>Cipher Wheel &amp; Decoder</h2>
+
+      <div class="wheel-area">
+
+        <!-- THE WHEEL -->
+        <div class="wheel-wrapper" id="wheelWrapper">
+          <div class="ring ring-outer" id="outerRing"></div>
+          <div class="ring ring-inner" id="innerRing"></div>
+          <div class="ring ring-hub">KEY</div>
+        </div>
+
+        <!-- CONTROLS + DECODE OUTPUT -->
+        <div class="controls">
+          <div class="shift-display" id="shiftDisplay">0</div>
+          <div class="shift-label">SHIFT / KEY VALUE</div>
+
+          <input
+            type="range"
+            id="shiftSlider"
+            min="0"
+            max="25"
+            value="0"
+            aria-label="Shift value"
+          >
+          <div class="slider-ticks">
+            <span>0</span><span>5</span><span>10</span>
+            <span>13</span><span>15</span><span>20</span><span>25</span>
+          </div>
+
+          <hr class="panel-divider">
+
+          <div class="field-label">Active Ciphertext (Transmission 1)</div>
+          <div class="ciphertext-block" id="activeCiphertext">
+            PBATENGHYNGVBAF NTRAG LBHE SVEFG ZVFFVBA VF PBZCYRGR GUR PVCURE FUVSG VF GUVEGRRA
+          </div>
+
+          <div class="field-label">Decoded Output</div>
+          <div class="decoded-block" id="decodedOutput">(move the slider to begin decoding)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── SECTION 3: FREQUENCY ANALYSIS ─── -->
+    <div class="panel">
+      <h2>Frequency Analysis</h2>
+      <p id="freqIntro" style="font-size:0.88rem; color:var(--text-dim); margin-bottom:0.75rem; line-height:1.65;">
+        In English, the letter E appears more often than any other letter (~13%).
+        A Caesar shift does not change how often letters appear — just which letter is most common.
+        Find the most frequent letter in the ciphertext; it is probably the encrypted form of E.
+      </p>
+
+      <button class="btn btn-primary" id="analyzeBtn">Analyze Ciphertext</button>
+
+      <div class="freq-chart" id="freqChart"></div>
+
+      <div class="freq-note" id="freqNote" style="display:none;"></div>
+    </div>
+
+    <!-- ─── SECTION 4: SECOND TRANSMISSION ─── -->
+    <div class="panel">
+      <h2>Second Transmission — Credentials</h2>
+      <p class="second-cipher-note">
+        After decoding the first message you should know the shift. Apply the same shift to this
+        second transmission to extract the operative credentials. The flag is encoded here.
+      </p>
+
+      <div class="field-label">Ciphertext (Transmission 2)</div>
+      <div class="ciphertext-block" id="secondCiphertext">SYNT{ebgngr_naq_erirny_13}</div>
+
+      <div class="field-label">Decoded at current shift</div>
+      <div class="decoded-block" id="decodedSecond">(adjust slider above)</div>
+
+      <p style="font-size:0.78rem; color:var(--text-dim); margin-top:0.6rem; font-family: var(--font-mono);">
+        Note: only letters shift — punctuation, digits, and braces pass through unchanged.
+      </p>
+    </div>
+
+    <!-- ─── SECTION 5: FLAG SUBMISSION ─── -->
+    <div class="panel">
+      <h2>Submit Credentials</h2>
+      <p style="font-size:0.88rem; color:var(--text-dim); margin-bottom:0.75rem;">
+        Enter the flag you decoded from Transmission 2.
+      </p>
+
+      <div class="flag-input-row">
+        <input
+          type="text"
+          class="flag-input"
+          id="flagInput"
+          placeholder="FLAG{...}"
+          aria-label="Flag input"
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <button class="btn btn-submit" id="submitBtn">Submit</button>
+      </div>
+
+      <div class="status-msg" id="statusMsg"></div>
+      <div class="flag-display" id="flagDisplay"></div>
+    </div>
+
+  </div><!-- /.container -->
+
+  <!--
+  ================================================================
+  CHALLENGE LOGIC
+  ================================================================
+  INSTRUCTORS: Edit ONLY the FLAG constant value below.
+  ================================================================
+  -->
+  <script>
+    // ============================================================
+    // CONFIGURATION — instructors edit this value only
+    // ============================================================
+    const FLAG = "FLAG{rotate_and_reveal_13}";
+
+    // ============================================================
+    // CIPHER WHEEL SETUP
+    // ============================================================
+    const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    function buildRing(ringEl, radiusPx, letterClass) {
+      for (var i = 0; i < 26; i++) {
+        var angleDeg = (i / 26) * 360;
+        var span = document.createElement('span');
+        span.className = 'wheel-letter ' + letterClass;
+        span.textContent = ALPHABET[i];
+        span.style.transform =
+          'rotate(' + angleDeg + 'deg) translate(-50%, -' + radiusPx + 'px)';
+        ringEl.appendChild(span);
+      }
+    }
+
+    buildRing(document.getElementById('outerRing'), 128, 'outer-letter');
+    buildRing(document.getElementById('innerRing'), 82, 'inner-letter');
+
+    // ============================================================
+    // CAESAR CIPHER
+    // ============================================================
+    function caesarDecode(text, shift) {
+      var result = '';
+      for (var i = 0; i < text.length; i++) {
+        var c = text[i];
+        if (c >= 'A' && c <= 'Z') {
+          result += String.fromCharCode(((c.charCodeAt(0) - 65 - shift + 260) % 26) + 65);
+        } else if (c >= 'a' && c <= 'z') {
+          result += String.fromCharCode(((c.charCodeAt(0) - 97 - shift + 260) % 26) + 97);
+        } else {
+          result += c;
+        }
+      }
+      return result;
+    }
+
+    // ============================================================
+    // SLIDER + LIVE DECODE
+    // ============================================================
+    var slider       = document.getElementById('shiftSlider');
+    var shiftDisplay = document.getElementById('shiftDisplay');
+    var innerRing    = document.getElementById('innerRing');
+    var decodedOut   = document.getElementById('decodedOutput');
+    var decodedSec   = document.getElementById('decodedSecond');
+
+    var CT1 = 'PBATENGHYNGVBAF NTRAG LBHE SVEFG ZVFFVBA VF PBZCYRGR GUR PVCURE FUVSG VF GUVEGRRA';
+    var CT2 = 'SYNT{ebgngr_naq_erirny_13}';
+
+    var COMMON_WORDS = ['THE','IS','AND','YOUR','ARE','HAVE','FOR','YOU','WITH',
+                        'NOT','FLAG','MISSION','AGENT','COMPLETE','CIPHER','SHIFT',
+                        'THIRTEEN','FIRST','SECOND','CODE'];
+
+    function looksLikeEnglish(decoded) {
+      var upper = decoded.toUpperCase();
+      for (var wi = 0; wi < COMMON_WORDS.length; wi++) {
+        if (upper.indexOf(COMMON_WORDS[wi]) !== -1) return true;
+      }
+      return false;
+    }
+
+    function updateDecoder() {
+      var shift = parseInt(slider.value, 10);
+      shiftDisplay.textContent = shift;
+
+      // Rotate inner ring: 360/26 degrees per shift unit
+      var deg = (shift * 360) / 26;
+      innerRing.style.transform = 'translate(-50%, -50%) rotate(' + deg + 'deg)';
+
+      var pt1 = caesarDecode(CT1, shift);
+      decodedOut.textContent = pt1;
+      if (looksLikeEnglish(pt1)) {
+        decodedOut.classList.add('looks-real');
+      } else {
+        decodedOut.classList.remove('looks-real');
+      }
+
+      var pt2 = caesarDecode(CT2, shift);
+      decodedSec.textContent = pt2;
+      if (pt2.toUpperCase().indexOf('FLAG{') === 0) {
+        decodedSec.classList.add('looks-real');
+      } else {
+        decodedSec.classList.remove('looks-real');
+      }
+    }
+
+    slider.addEventListener('input', updateDecoder);
+    updateDecoder();
+
+    // ============================================================
+    // FREQUENCY ANALYSIS
+    // ============================================================
+    document.getElementById('analyzeBtn').addEventListener('click', function () {
+      var chart  = document.getElementById('freqChart');
+      var note   = document.getElementById('freqNote');
+      var counts = [];
+      var total  = 0;
+
+      for (var ci = 0; ci < 26; ci++) { counts[ci] = 0; }
+
+      for (var ti = 0; ti < CT1.length; ti++) {
+        var ch = CT1[ti];
+        if (ch >= 'A' && ch <= 'Z') {
+          counts[ch.charCodeAt(0) - 65]++;
+          total++;
+        }
+      }
+
+      var maxCount = 0;
+      for (var mi = 0; mi < 26; mi++) {
+        if (counts[mi] > maxCount) maxCount = counts[mi];
+      }
+
+      var topIdx = 0;
+      for (var ti2 = 0; ti2 < 26; ti2++) {
+        if (counts[ti2] === maxCount) { topIdx = ti2; break; }
+      }
+
+      var topLetter = ALPHABET[topIdx];
+
+      // Build chart using DOM methods (no innerHTML)
+      while (chart.firstChild) { chart.removeChild(chart.firstChild); }
+
+      for (var li = 0; li < 26; li++) {
+        var row = document.createElement('div');
+        row.className = 'freq-row';
+
+        var letterSpan = document.createElement('span');
+        letterSpan.className = 'letter';
+        letterSpan.textContent = ALPHABET[li];
+
+        var barWrap = document.createElement('div');
+        barWrap.className = 'bar-wrap';
+
+        var bar = document.createElement('div');
+        var pct = maxCount > 0 ? (counts[li] / maxCount) * 100 : 0;
+        bar.className = counts[li] === maxCount ? 'bar top-bar' : 'bar';
+        bar.style.width = pct.toFixed(1) + '%';
+
+        barWrap.appendChild(bar);
+
+        var countSpan = document.createElement('span');
+        countSpan.className = 'count';
+        countSpan.textContent = counts[li];
+
+        row.appendChild(letterSpan);
+        row.appendChild(barWrap);
+        row.appendChild(countSpan);
+        chart.appendChild(row);
+      }
+
+      chart.classList.add('visible');
+
+      // Guidance note — build with DOM
+      var impliedShift = ((topIdx - 4) + 26) % 26;
+
+      while (note.firstChild) { note.removeChild(note.firstChild); }
+
+      var line1 = document.createTextNode(
+        'Most frequent ciphertext letter: '
+      );
+      var highlightLetter = document.createElement('strong');
+      highlightLetter.style.color = 'var(--accent)';
+      highlightLetter.textContent = topLetter;
+      var line1b = document.createTextNode(
+        ' (appears ' + maxCount + ' times).'
+      );
+
+      var br1 = document.createElement('br');
+
+      var line2 = document.createTextNode(
+        'In English, E is usually most common. If ' + topLetter + ' = E, the shift would be '
+      );
+      var highlightShift = document.createElement('strong');
+      highlightShift.style.color = 'var(--accent)';
+      highlightShift.textContent = impliedShift;
+      var line2b = document.createTextNode(
+        '. Try setting the slider to ' + impliedShift + ' — does the decoded text look like English?'
+      );
+
+      note.appendChild(line1);
+      note.appendChild(highlightLetter);
+      note.appendChild(line1b);
+      note.appendChild(br1);
+      note.appendChild(line2);
+      note.appendChild(highlightShift);
+      note.appendChild(line2b);
+
+      note.style.display = 'block';
+    });
+
+    // ============================================================
+    // FLAG SUBMISSION
+    // ============================================================
+    function checkFlag() {
+      var input   = document.getElementById('flagInput').value.trim();
+      var status  = document.getElementById('statusMsg');
+      var display = document.getElementById('flagDisplay');
+
+      if (input === FLAG) {
+        status.textContent = 'Access granted. Credentials verified. Mission complete.';
+        status.className   = 'status-msg success';
+        display.textContent = FLAG;
+        display.style.display = 'block';
+      } else if (input.toUpperCase() === FLAG.toUpperCase()) {
+        status.textContent = 'Almost — check capitalisation. Flags are case-sensitive.';
+        status.className   = 'status-msg error';
+        display.style.display = 'none';
+      } else if (input === '') {
+        status.textContent = 'Enter the flag from Transmission 2.';
+        status.className   = 'status-msg error';
+      } else {
+        status.textContent = 'Incorrect. Have you found the right shift value?';
+        status.className   = 'status-msg error';
+        display.style.display = 'none';
+      }
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', checkFlag);
+
+    document.getElementById('flagInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { checkFlag(); }
+    });
+
+  </script>
+
+</body>
+</html>

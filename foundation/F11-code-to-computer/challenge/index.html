@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>F11 — From Code to Computer | Agency Training</title>
+<style>
+  /* ── Cool steel blue palette ── */
+  :root {
+    --bg:           #0d0d12;
+    --panel-bg:     #14141c;
+    --panel-bg-alt: #181822;
+    --border:       #23232f;
+    --border-soft:  #1a1a24;
+    --accent:       #7fb8ff;
+    --accent-dim:   #4a78b3;
+    --accent-bright:#a8d4ff;
+    --accent-glow:  rgba(127, 184, 255, 0.25);
+    --highlight-bg: rgba(127, 184, 255, 0.16);
+    --highlight-bg-strong: rgba(127, 184, 255, 0.28);
+    --text:         #c8cfd9;
+    --text-dim:     #6a7488;
+    --muted:        #2a3340;
+    --success:      #6ee0b0;
+    --error:        #ff7080;
+    --font:         'Courier New', Courier, monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: linear-gradient(180deg, #10101a 0%, var(--bg) 100%);
+  }
+
+  .header-label {
+    font-size: 11px;
+    color: var(--accent-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: 20px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  /* ── Main layout ── */
+  main {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* ── Section panels ── */
+  .panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 24px;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    color: var(--accent-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title .meta {
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Intro / brief ── */
+  .brief {
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--text);
+  }
+
+  .brief p { margin-bottom: 10px; }
+  .brief p:last-child { margin-bottom: 0; }
+
+  .inline-code {
+    color: var(--accent-bright);
+    background: rgba(127, 184, 255, 0.08);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-family: var(--font);
+  }
+
+  /* ── Filter controls ── */
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .control-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .control-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    min-width: 130px;
+  }
+
+  /* Toggle switch */
+  .toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .toggle input { display: none; }
+
+  .toggle-track {
+    width: 42px;
+    height: 22px;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    position: relative;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: var(--text-dim);
+    border-radius: 50%;
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  .toggle input:checked + .toggle-track {
+    background: rgba(127, 184, 255, 0.25);
+    border-color: var(--accent-dim);
+  }
+
+  .toggle input:checked + .toggle-track .toggle-thumb {
+    transform: translateX(20px);
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  .toggle-text {
+    margin-left: 10px;
+    color: var(--text);
+    font-size: 13px;
+  }
+
+  /* Min length buttons */
+  .minlen-buttons {
+    display: inline-flex;
+    gap: 6px;
+  }
+
+  .minlen-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 6px 14px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.15s ease;
+    min-width: 44px;
+  }
+
+  .minlen-btn:hover {
+    border-color: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  .minlen-btn.active {
+    border-color: var(--accent);
+    color: var(--accent-bright);
+    background: rgba(127, 184, 255, 0.1);
+    box-shadow: 0 0 6px var(--accent-glow);
+  }
+
+  /* ── Hex dump ── */
+  .hex-table-wrap {
+    overflow-x: auto;
+  }
+
+  #hex-dump {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 13px;
+  }
+
+  #hex-dump th {
+    color: var(--accent-dim);
+    text-align: left;
+    padding: 4px 10px 8px 10px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #hex-dump td {
+    padding: 3px 10px;
+    vertical-align: top;
+  }
+
+  /* zebra stripe */
+  #hex-dump tbody tr:nth-child(even) td {
+    background: var(--panel-bg-alt);
+  }
+
+  .td-offset {
+    color: var(--text-dim);
+    padding-right: 18px !important;
+    user-select: none;
+    font-family: var(--font);
+    white-space: pre;
+  }
+
+  .td-hex {
+    font-family: var(--font);
+    white-space: pre;
+    letter-spacing: 0.04em;
+  }
+
+  .td-ascii {
+    font-family: var(--font);
+    padding-left: 18px !important;
+    white-space: pre;
+  }
+
+  /* Byte styling — default mode (no filter) */
+  .byte-printable     { color: var(--accent); }
+  .byte-nonprintable  { color: var(--text-dim); }
+  .byte-null          { color: var(--muted); }
+  .ascii-printable    { color: var(--accent); }
+  .ascii-nonprintable { color: var(--muted); }
+
+  /* Highlight mode (filter on) */
+  .filter-on .byte-printable,
+  .filter-on .ascii-printable     { color: var(--text-dim); opacity: 0.45; }
+  .filter-on .byte-nonprintable,
+  .filter-on .ascii-nonprintable  { color: var(--text-dim); opacity: 0.20; }
+  .filter-on .byte-null           { color: var(--muted); opacity: 0.20; }
+
+  .filter-on .byte-in-run {
+    color: var(--accent-bright) !important;
+    background: var(--highlight-bg);
+    opacity: 1 !important;
+    border-radius: 2px;
+  }
+  .filter-on .ascii-in-run {
+    color: var(--accent-bright) !important;
+    background: var(--highlight-bg);
+    opacity: 1 !important;
+    border-radius: 2px;
+  }
+
+  /* ── Extracted strings panel ── */
+  #extracted {
+    font-family: var(--font);
+    font-size: 13px;
+    background: var(--bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 3px;
+    padding: 14px 16px;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+
+  .extracted-row {
+    display: grid;
+    grid-template-columns: 80px 50px 1fr;
+    gap: 12px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border-soft);
+    line-height: 1.7;
+  }
+
+  .extracted-row:last-child { border-bottom: none; }
+
+  .extracted-row .ext-offset {
+    color: var(--text-dim);
+  }
+
+  .extracted-row .ext-len {
+    color: var(--accent-dim);
+    text-align: right;
+  }
+
+  .extracted-row .ext-string {
+    color: var(--accent-bright);
+    word-break: break-all;
+  }
+
+  #extracted-summary {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 10px;
+    line-height: 1.6;
+  }
+
+  .extracted-empty {
+    color: var(--text-dim);
+    font-style: italic;
+    text-align: center;
+    padding: 20px 0;
+  }
+
+  /* ── Flag submission ── */
+  .flag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .flag-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: var(--font);
+    font-size: 14px;
+    padding: 9px 14px;
+    outline: none;
+    border-radius: 3px;
+    min-width: 360px;
+    flex: 1;
+    max-width: 480px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .flag-input:focus {
+    border-color: var(--accent-dim);
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  .flag-input.correct {
+    border-color: var(--success);
+    color: var(--success);
+  }
+
+  .flag-input.wrong {
+    border-color: var(--error);
+    color: var(--error);
+    animation: shake 0.4s ease;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-4px); }
+    40%, 80% { transform: translateX(4px); }
+  }
+
+  .btn-submit {
+    background: transparent;
+    border: 1px solid var(--accent-dim);
+    color: var(--accent);
+    font-family: var(--font);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 9px 22px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.15s ease;
+  }
+
+  .btn-submit:hover {
+    background: rgba(127, 184, 255, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  /* ── Result block ── */
+  #result {
+    display: none;
+    border: 1px solid var(--success);
+    background: var(--panel-bg);
+    border-radius: 4px;
+    padding: 22px 26px;
+    margin-top: 4px;
+  }
+
+  #result.show { display: block; }
+
+  #result-banner {
+    font-family: var(--font);
+    font-size: 13px;
+    color: var(--success);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    margin-bottom: 14px;
+  }
+
+  #result-flag {
+    font-family: var(--font);
+    font-size: 16px;
+    color: var(--accent-bright);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 12px 16px;
+    border-radius: 3px;
+    text-align: center;
+    margin: 14px 0;
+    letter-spacing: 0.05em;
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+
+  #result-note {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+    margin-top: 14px;
+  }
+
+  #result-note a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  #result-note a:hover { text-decoration: underline; }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+    padding: 18px 32px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  footer a {
+    color: var(--text-dim);
+    text-decoration: none;
+    margin: 0 6px;
+  }
+  footer a:hover { color: var(--accent); }
+
+  @media (max-width: 700px) {
+    .control-row { gap: 10px; }
+    .control-label { min-width: auto; flex: 1 0 100%; }
+    .flag-input { min-width: 100%; }
+    main { padding: 20px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">Agency Training // Foundation Module F11</div>
+  <h1>From Code to Computer</h1>
+  <div class="subtitle">Be the strings tool — by hand</div>
+</header>
+
+<main>
+
+  <!-- Brief -->
+  <div class="panel">
+    <div class="panel-title">
+      <span>The Brief</span>
+      <span class="meta">target: orion (584 bytes)</span>
+    </div>
+    <div class="brief">
+      <p>
+        A captured device dropped a small executable on your bench: a binary called <span class="inline-code">orion</span>.
+        You don't have the source code. All you have is the bytes.
+      </p>
+      <p>
+        Below is a hex dump of the full file. Most of it is opaque machine code — bytes that mean something
+        to a CPU but nothing to a human. But the program also contains <strong style="color:var(--accent)">strings</strong>:
+        runs of printable ASCII bytes that survived compilation. Error messages, URLs, copyright text, version
+        numbers — and somewhere in there, a flag.
+      </p>
+      <p>
+        Toggle <strong style="color:var(--accent)">Show only printable runs</strong> to dim the noise and
+        highlight the readable islands. Use <strong style="color:var(--accent)">Min length</strong> to
+        filter out coincidental short runs — the higher you go, the more noise drops away.
+        Read the extracted list, find the flag, and submit it.
+      </p>
+    </div>
+  </div>
+
+  <!-- Filter controls -->
+  <div class="panel">
+    <div class="panel-title"><span>Filters</span></div>
+    <div class="controls">
+      <div class="control-row">
+        <span class="control-label">Highlight mode</span>
+        <label class="toggle">
+          <input type="checkbox" id="filter-toggle" />
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          <span class="toggle-text">Show only printable runs</span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Min length</span>
+        <span class="minlen-buttons" id="minlen-buttons">
+          <button class="minlen-btn active" data-len="4">4</button>
+          <button class="minlen-btn" data-len="6">6</button>
+          <button class="minlen-btn" data-len="8">8</button>
+          <button class="minlen-btn" data-len="10">10</button>
+        </span>
+        <span style="color:var(--text-dim); font-size:12px;">
+          (4 = default; raise to filter coincidental noise)
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hex dump -->
+  <div class="panel">
+    <div class="panel-title">
+      <span>Hex Dump</span>
+      <span class="meta" id="dump-meta">offset | bytes | ASCII</span>
+    </div>
+    <div class="hex-table-wrap">
+      <table id="hex-dump" aria-label="Hex dump of orion binary">
+        <thead>
+          <tr>
+            <th scope="col">Offset</th>
+            <th scope="col">Hex Bytes</th>
+            <th scope="col">ASCII</th>
+          </tr>
+        </thead>
+        <tbody id="hex-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Extracted strings -->
+  <div class="panel">
+    <div class="panel-title">
+      <span>Extracted Strings</span>
+      <span class="meta" id="extracted-count">— strings found</span>
+    </div>
+    <div id="extracted"></div>
+    <div id="extracted-summary"></div>
+  </div>
+
+  <!-- Flag submission -->
+  <div class="panel">
+    <div class="panel-title"><span>Submit Flag</span></div>
+    <div class="flag-row">
+      <input type="text" class="flag-input" id="flag-input"
+        placeholder="FLAG{...}"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+      <button class="btn-submit" id="btn-submit">[ Submit ]</button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div id="result" role="alert">
+    <pre id="result-banner"></pre>
+    <div id="result-flag"></div>
+    <div id="result-note"></div>
+  </div>
+
+</main>
+
+<footer>
+  F11 — From Code to Computer &nbsp;|&nbsp; Foundation Track &nbsp;|&nbsp;
+  <a href="hint-1.md">Hint 1</a>
+  <a href="hint-2.md">Hint 2</a>
+  <a href="solution.md">Solution</a>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =====================================================================
+     BYTE ARRAY — fake compiled binary "orion" (584 bytes)
+     Embedded strings (in order of appearance):
+       0x020  "Welcome to OrionScan v1.0"
+       0x060  "Usage: orion [options]"
+       0x086  "init"          (decoy, length 4)
+       0x093  "DEBUG"         (decoy, length 5)
+       0x0E0  "FLAG{strings_survive_compilation}"   <-- the flag
+       0x118  "__main"
+       0x140  "ERROR: file not found"
+       0x17A  "v1.0"          (decoy, length 4)
+       0x1A0  "https://debug.orion.local/api"
+       0x1F0  "(c) 2024 Orion Systems"
+     Everything else is non-printable noise (or null padding at the end).
+     ===================================================================== */
+  var BYTES = [
+    0x7F, 0x45, 0x4C, 0x46, 0x02, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x03, 0x00, 0x3E, 0x00, 0x01, 0x00, 0x00, 0x00, 0xD0, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x57, 0x65, 0x6C, 0x63, 0x6F, 0x6D, 0x65, 0x20, 0x74, 0x6F, 0x20, 0x4F, 0x72, 0x69, 0x6F, 0x6E,
+    0x53, 0x63, 0x61, 0x6E, 0x20, 0x76, 0x31, 0x2E, 0x30, 0x00, 0x0C, 0x8C, 0xD8, 0x10, 0x0F, 0x0D,
+    0xD6, 0xE5, 0x8E, 0x03, 0xD8, 0xAE, 0x8E, 0xAC, 0xC2, 0xB7, 0xB0, 0x87, 0x16, 0xEB, 0xC1, 0x96,
+    0xB9, 0x17, 0x94, 0xC2, 0x8E, 0xE8, 0xBA, 0xBD, 0xB5, 0x88, 0xEC, 0xC2, 0x8A, 0xA6, 0x1C, 0x10,
+    0x55, 0x73, 0x61, 0x67, 0x65, 0x3A, 0x20, 0x6F, 0x72, 0x69, 0x6F, 0x6E, 0x20, 0x5B, 0x6F, 0x70,
+    0x74, 0x69, 0x6F, 0x6E, 0x73, 0x5D, 0x00, 0xA1, 0xCD, 0x89, 0xA1, 0xFF, 0xCA, 0xEA, 0x87, 0x86,
+    0xDB, 0xCC, 0xB9, 0xFC, 0x18, 0xD8, 0x69, 0x6E, 0x69, 0x74, 0x00, 0xC5, 0xC3, 0xEF, 0x80, 0x05,
+    0x88, 0xAE, 0x96, 0x44, 0x45, 0x42, 0x55, 0x47, 0x00, 0xDE, 0xE8, 0x01, 0x86, 0x98, 0xBF, 0x00,
+    0xA5, 0xFA, 0x09, 0xB9, 0x9D, 0x1D, 0xF8, 0xF3, 0x87, 0xD8, 0x9F, 0xCC, 0xBF, 0xE0, 0xE7, 0xAD,
+    0x0A, 0x03, 0x1E, 0x10, 0xA9, 0x8E, 0xF8, 0xF2, 0xF2, 0xD0, 0xDC, 0xB5, 0xD8, 0xD2, 0xEF, 0x1B,
+    0x1F, 0xCE, 0xAD, 0x7F, 0xE5, 0xD8, 0x8E, 0xEC, 0x7F, 0xE2, 0x19, 0x07, 0xD0, 0xF8, 0xF6, 0xCD,
+    0x1E, 0xC2, 0x01, 0xC7, 0x87, 0xE8, 0x92, 0xD8, 0xF9, 0x97, 0x1D, 0x1F, 0xA0, 0x1D, 0x19, 0xF4,
+    0x46, 0x4C, 0x41, 0x47, 0x7B, 0x73, 0x74, 0x72, 0x69, 0x6E, 0x67, 0x73, 0x5F, 0x73, 0x75, 0x72,
+    0x76, 0x69, 0x76, 0x65, 0x5F, 0x63, 0x6F, 0x6D, 0x70, 0x69, 0x6C, 0x61, 0x74, 0x69, 0x6F, 0x6E,
+    0x7D, 0x00, 0x1D, 0xCE, 0x14, 0xD6, 0xA1, 0x85, 0xA0, 0x87, 0xCA, 0x99, 0xEA, 0xA1, 0x04, 0xEA,
+    0x87, 0xB2, 0xBD, 0x91, 0xE0, 0x9A, 0x04, 0x99, 0x5F, 0x5F, 0x6D, 0x61, 0x69, 0x6E, 0x00, 0x87,
+    0x8B, 0x90, 0xAF, 0x87, 0xFA, 0x80, 0x1A, 0xD8, 0x8D, 0x16, 0x01, 0xAA, 0x86, 0xE2, 0xDA, 0x04,
+    0x12, 0xBD, 0xDC, 0x15, 0x9D, 0xBA, 0x14, 0xB7, 0x7F, 0xB5, 0xD0, 0xD3, 0x0C, 0xAA, 0xD2, 0x7F,
+    0x45, 0x52, 0x52, 0x4F, 0x52, 0x3A, 0x20, 0x66, 0x69, 0x6C, 0x65, 0x20, 0x6E, 0x6F, 0x74, 0x20,
+    0x66, 0x6F, 0x75, 0x6E, 0x64, 0x00, 0x88, 0xC3, 0x13, 0xF0, 0xEB, 0xB3, 0x9C, 0x0C, 0xCC, 0xA8,
+    0x8E, 0x8E, 0xB3, 0xCC, 0xA9, 0x0E, 0x85, 0x87, 0x13, 0xDE, 0xB0, 0xA0, 0xDF, 0xC5, 0x82, 0x16,
+    0xDF, 0x00, 0xBA, 0xDC, 0xA9, 0xA0, 0x99, 0x9E, 0xD1, 0xA7, 0x76, 0x31, 0x2E, 0x30, 0x00, 0xCE,
+    0x97, 0xD7, 0xC2, 0x9A, 0xCF, 0x00, 0x9B, 0x92, 0xDC, 0xA4, 0xEE, 0xE2, 0xE2, 0xF2, 0x91, 0xAB,
+    0x9E, 0x0C, 0x17, 0xF3, 0xE9, 0xD4, 0xC4, 0xFD, 0xCC, 0x02, 0xD9, 0xED, 0x19, 0x7F, 0xE9, 0xED,
+    0x68, 0x74, 0x74, 0x70, 0x73, 0x3A, 0x2F, 0x2F, 0x64, 0x65, 0x62, 0x75, 0x67, 0x2E, 0x6F, 0x72,
+    0x69, 0x6F, 0x6E, 0x2E, 0x6C, 0x6F, 0x63, 0x61, 0x6C, 0x2F, 0x61, 0x70, 0x69, 0x00, 0xA2, 0xE2,
+    0xDA, 0xE4, 0xF3, 0xE6, 0x84, 0x8D, 0xF8, 0x8C, 0xE1, 0x92, 0x8B, 0xAB, 0xA3, 0xC4, 0xD4, 0xD0,
+    0xA9, 0xEE, 0xD4, 0x1F, 0xD7, 0xC7, 0x0A, 0xC2, 0xF4, 0x03, 0xB4, 0x98, 0xC7, 0xD6, 0xF9, 0x8B,
+    0xDF, 0xF8, 0x0E, 0xC7, 0xAC, 0xCF, 0xEF, 0x0D, 0xC9, 0x0D, 0xDB, 0xEC, 0x19, 0x85, 0xC2, 0xA7,
+    0x28, 0x63, 0x29, 0x20, 0x32, 0x30, 0x32, 0x34, 0x20, 0x4F, 0x72, 0x69, 0x6F, 0x6E, 0x20, 0x53,
+    0x79, 0x73, 0x74, 0x65, 0x6D, 0x73, 0x00, 0xE8, 0xA7, 0xAC, 0xC2, 0x8E, 0xD7, 0x81, 0xF0, 0x09,
+    0x1A, 0xB3, 0x14, 0x0F, 0x0A, 0xF2, 0xEE, 0x83, 0xBC, 0x9F, 0x0D, 0x9F, 0xC0, 0xCB, 0x9A, 0x15,
+    0xB1, 0xDB, 0xBD, 0xAE, 0x06, 0xD7, 0xFA, 0xDD, 0xB9, 0xEB, 0xDE, 0x8A, 0xF7, 0xEE, 0xDF, 0x89,
+    0xA5, 0x8E, 0xE6, 0xED, 0xC2, 0xAC, 0x0E, 0xFD, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+  ];
+
+  var FLAG = 'FLAG{strings_survive_compilation}';
+  var BYTES_PER_ROW = 16;
+
+  /* ---------- self-test: confirm flag is in the byte array ---------- */
+  (function selfTest() {
+    var asciiOnly = '';
+    for (var i = 0; i < BYTES.length; i++) {
+      var b = BYTES[i];
+      asciiOnly += (b >= 0x20 && b <= 0x7E) ? String.fromCharCode(b) : ' ';
+    }
+    if (asciiOnly.indexOf(FLAG) === -1) {
+      console.error('SELF-TEST FAILED: flag not present in byte array');
+    }
+  })();
+
+  /* ---------- helpers ---------- */
+  function isPrintable(b) {
+    return b >= 0x20 && b <= 0x7E;
+  }
+
+  function findRuns(bytes, minLen) {
+    var runs = [];
+    var startIdx = -1;
+    var curChars = [];
+    for (var i = 0; i < bytes.length; i++) {
+      var b = bytes[i];
+      if (isPrintable(b)) {
+        if (startIdx === -1) {
+          startIdx = i;
+          curChars = [];
+        }
+        curChars.push(String.fromCharCode(b));
+      } else {
+        if (startIdx !== -1 && curChars.length >= minLen) {
+          runs.push({ offset: startIdx, length: curChars.length, text: curChars.join('') });
+        }
+        startIdx = -1;
+        curChars = [];
+      }
+    }
+    if (startIdx !== -1 && curChars.length >= minLen) {
+      runs.push({ offset: startIdx, length: curChars.length, text: curChars.join('') });
+    }
+    return runs;
+  }
+
+  // For each byte index, return true if it's part of a run of >= minLen printable bytes.
+  function buildInRunSet(bytes, minLen) {
+    var inRun = new Array(bytes.length);
+    for (var i = 0; i < bytes.length; i++) inRun[i] = false;
+    var runs = findRuns(bytes, minLen);
+    for (var r = 0; r < runs.length; r++) {
+      var run = runs[r];
+      for (var k = 0; k < run.length; k++) {
+        inRun[run.offset + k] = true;
+      }
+    }
+    return inRun;
+  }
+
+  /* ---------- state ---------- */
+  var state = {
+    filterOn: false,
+    minLen: 4,
+    inRun: null  // array of bools, length === BYTES.length
+  };
+
+  /* ---------- rendering: hex dump ---------- */
+  // Each cell stores references to its byte spans so we can update classes in-place
+  // without reflowing the whole table. byteEls[i] = { hexSpan, asciiSpan }
+  var byteEls = new Array(BYTES.length);
+
+  function buildHexDump() {
+    var tbody = document.getElementById('hex-body');
+    var frag = document.createDocumentFragment();
+
+    for (var rowStart = 0; rowStart < BYTES.length; rowStart += BYTES_PER_ROW) {
+      var chunk = BYTES.slice(rowStart, rowStart + BYTES_PER_ROW);
+      var tr = document.createElement('tr');
+
+      // Offset cell
+      var tdOffset = document.createElement('td');
+      tdOffset.className = 'td-offset';
+      tdOffset.textContent = rowStart.toString(16).toUpperCase().padStart(8, '0');
+      tr.appendChild(tdOffset);
+
+      // Hex cell — one span per byte, with text-node separators
+      var tdHex = document.createElement('td');
+      tdHex.className = 'td-hex';
+      for (var i = 0; i < chunk.length; i++) {
+        if (i > 0) {
+          tdHex.appendChild(document.createTextNode(i === 8 ? '  ' : ' '));
+        }
+        var b = chunk[i];
+        var hexSpan = document.createElement('span');
+        hexSpan.textContent = b.toString(16).toUpperCase().padStart(2, '0');
+        tdHex.appendChild(hexSpan);
+        if (!byteEls[rowStart + i]) byteEls[rowStart + i] = {};
+        byteEls[rowStart + i].hexSpan = hexSpan;
+      }
+      // Pad short last row so ASCII column stays aligned
+      if (chunk.length < BYTES_PER_ROW) {
+        var missing = BYTES_PER_ROW - chunk.length;
+        var padSpaces = missing * 3 + (chunk.length <= 8 ? 2 : 0);
+        tdHex.appendChild(document.createTextNode(new Array(padSpaces + 1).join(' ')));
+      }
+      tr.appendChild(tdHex);
+
+      // ASCII cell
+      var tdAscii = document.createElement('td');
+      tdAscii.className = 'td-ascii';
+      for (var j = 0; j < chunk.length; j++) {
+        var bb = chunk[j];
+        var asciiSpan = document.createElement('span');
+        asciiSpan.textContent = isPrintable(bb) ? String.fromCharCode(bb) : '.';
+        tdAscii.appendChild(asciiSpan);
+        if (!byteEls[rowStart + j]) byteEls[rowStart + j] = {};
+        byteEls[rowStart + j].asciiSpan = asciiSpan;
+      }
+      tr.appendChild(tdAscii);
+
+      frag.appendChild(tr);
+    }
+
+    tbody.appendChild(frag);
+  }
+
+  // Apply per-byte CSS classes based on state.
+  function applyByteStyles() {
+    var inRun = state.inRun;
+    for (var i = 0; i < BYTES.length; i++) {
+      var b = BYTES[i];
+      var els = byteEls[i];
+      if (!els) continue;
+      var hexCls, asciiCls;
+      if (b === 0x00) {
+        hexCls = 'byte-null';
+      } else if (isPrintable(b)) {
+        hexCls = 'byte-printable';
+      } else {
+        hexCls = 'byte-nonprintable';
+      }
+      asciiCls = isPrintable(b) ? 'ascii-printable' : 'ascii-nonprintable';
+
+      if (state.filterOn && inRun && inRun[i]) {
+        hexCls += ' byte-in-run';
+        asciiCls += ' ascii-in-run';
+      }
+      els.hexSpan.className = hexCls;
+      els.asciiSpan.className = asciiCls;
+    }
+
+    // Toggle filter-on class on table for CSS to react to
+    var dump = document.getElementById('hex-dump');
+    if (state.filterOn) {
+      dump.classList.add('filter-on');
+    } else {
+      dump.classList.remove('filter-on');
+    }
+  }
+
+  /* ---------- rendering: extracted strings list ---------- */
+  function clearChildren(el) {
+    while (el.firstChild) el.removeChild(el.firstChild);
+  }
+
+  function renderExtracted() {
+    var runs = findRuns(BYTES, state.minLen);
+    var container = document.getElementById('extracted');
+    clearChildren(container);
+
+    if (runs.length === 0) {
+      var empty = document.createElement('div');
+      empty.className = 'extracted-empty';
+      empty.textContent = 'No printable runs of length >= ' + state.minLen + ' found.';
+      container.appendChild(empty);
+    } else {
+      // Header row
+      var head = document.createElement('div');
+      head.className = 'extracted-row';
+      head.style.borderBottom = '1px solid var(--border)';
+      head.style.color = 'var(--text-dim)';
+      head.style.fontSize = '11px';
+      head.style.letterSpacing = '0.08em';
+      head.style.textTransform = 'uppercase';
+      var h1 = document.createElement('span'); h1.textContent = 'Offset';
+      var h2 = document.createElement('span'); h2.textContent = 'Len'; h2.style.textAlign = 'right';
+      var h3 = document.createElement('span'); h3.textContent = 'String';
+      head.appendChild(h1); head.appendChild(h2); head.appendChild(h3);
+      container.appendChild(head);
+
+      for (var i = 0; i < runs.length; i++) {
+        var r = runs[i];
+        var row = document.createElement('div');
+        row.className = 'extracted-row';
+
+        var cOffset = document.createElement('span');
+        cOffset.className = 'ext-offset';
+        cOffset.textContent = '0x' + r.offset.toString(16).toUpperCase().padStart(4, '0');
+
+        var cLen = document.createElement('span');
+        cLen.className = 'ext-len';
+        cLen.textContent = String(r.length);
+
+        var cText = document.createElement('span');
+        cText.className = 'ext-string';
+        cText.textContent = r.text;
+
+        row.appendChild(cOffset);
+        row.appendChild(cLen);
+        row.appendChild(cText);
+        container.appendChild(row);
+      }
+    }
+
+    document.getElementById('extracted-count').textContent =
+      runs.length + ' string' + (runs.length === 1 ? '' : 's') + ' found';
+
+    var sum = document.getElementById('extracted-summary');
+    sum.textContent =
+      'Algorithm: walk the byte array; emit every run of consecutive printable ASCII bytes ' +
+      '(0x20 to 0x7E) of length >= ' + state.minLen + '. ' +
+      'This is exactly what the Unix `strings -n ' + state.minLen + '` does.';
+  }
+
+  /* ---------- update everything ---------- */
+  function refresh() {
+    state.inRun = state.filterOn ? buildInRunSet(BYTES, state.minLen) : null;
+    applyByteStyles();
+    renderExtracted();
+  }
+
+  /* ---------- wire up controls ---------- */
+  function wireControls() {
+    var toggle = document.getElementById('filter-toggle');
+    toggle.addEventListener('change', function () {
+      state.filterOn = toggle.checked;
+      refresh();
+    });
+
+    var btns = document.querySelectorAll('#minlen-buttons .minlen-btn');
+    btns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var len = parseInt(btn.getAttribute('data-len'), 10);
+        if (isNaN(len)) return;
+        state.minLen = len;
+        btns.forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        refresh();
+      });
+    });
+
+    var input = document.getElementById('flag-input');
+    var submit = document.getElementById('btn-submit');
+    submit.addEventListener('click', checkFlag);
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') checkFlag();
+    });
+    input.addEventListener('input', function () {
+      input.classList.remove('correct', 'wrong');
+    });
+  }
+
+  function checkFlag() {
+    var input = document.getElementById('flag-input');
+    var raw = input.value.trim();
+    var resultEl = document.getElementById('result');
+    var bannerEl = document.getElementById('result-banner');
+    var flagEl   = document.getElementById('result-flag');
+    var noteEl   = document.getElementById('result-note');
+
+    if (raw === FLAG) {
+      input.classList.remove('wrong');
+      input.classList.add('correct');
+      input.disabled = true;
+      resultEl.classList.add('show');
+      bannerEl.textContent =
+        'STRING EXTRACTED.\n' +
+        'A compiled program is not a black box — it has windows. You just looked through one.';
+      flagEl.textContent = FLAG;
+      // Build note via DOM nodes (innerHTML-free)
+      clearChildren(noteEl);
+      var p1 = document.createElement('div');
+      p1.textContent =
+        'In a real reverse-engineering challenge, this is exactly the workflow: run `strings` on the binary, ' +
+        'skim for anything that looks like a flag, URL, or suspicious token, and submit. ' +
+        'The fancy techniques (disassembly, debugging, decompiling) come AFTER you have already grabbed the free lunch.';
+      var p2 = document.createElement('div');
+      p2.style.marginTop = '12px';
+      var contLink = document.createElement('a');
+      contLink.href = '../../F12-the-computers-notebook/README.md';
+      contLink.textContent = 'Continue to F12 →';
+      p2.appendChild(contLink);
+      noteEl.appendChild(p1);
+      noteEl.appendChild(p2);
+    } else {
+      input.classList.remove('correct');
+      // restart shake animation
+      input.classList.remove('wrong');
+      void input.offsetWidth;
+      input.classList.add('wrong');
+    }
+  }
+
+  /* ---------- init ---------- */
+  buildHexDump();
+  refresh();
+  wireControls();
+})();
+</script>
+
+</body>
+</html>

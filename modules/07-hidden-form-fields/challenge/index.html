@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Helix Commerce — Checkout</title>
+
+  <!--
+  ================================================================
+  CHALLENGE METADATA
+  ================================================================
+  Module:   07 — Hidden Form Fields
+  Title:    The Form's Secret Life
+  Tier:     A — Works via file:// (no server needed)
+  Flag:     FLAG{hidden_fields_are_not_hidden}
+  Mechanic: Form has two hidden inputs:
+              <input type="hidden" name="price" value="4999">
+              <input type="hidden" name="role"  value="customer">
+            Part 1: Change price to 0, submit → first flag half revealed
+                    + hint that role=admin unlocks more
+            Part 2: Change role to "admin", submit → full flag revealed
+            Normal submit (unchanged): "Thank you" message, no flag.
+  Version:  1.0
+
+  INSTRUCTOR NOTES:
+  - To change the flag: edit FLAG and flagText constants below.
+  - The two hidden inputs are the only mechanism — no URL params, no cookies.
+  - Students use DevTools → Elements → Ctrl+F → search type="hidden"
+  - The "price" field is in pence (4999 = £49.99) — a deliberate detail
+    that matches how real e-commerce systems store prices as integers.
+  ================================================================
+  -->
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #0e0c1a;
+      color: #d6d0e8;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      background: #07060f;
+      border-bottom: 1px solid #2a2240;
+      padding: 0 2rem;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar-brand {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #e8e4f8;
+      letter-spacing: 0.02em;
+    }
+
+    .topbar-brand span {
+      color: #9b7dff;
+    }
+
+    .topbar-secure {
+      font-size: 0.75rem;
+      color: #5cb85c;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .topbar-secure::before {
+      content: '🔒';
+      font-size: 0.7rem;
+    }
+
+    /* ── Layout ── */
+    .page {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem;
+    }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      font-size: 0.75rem;
+      color: #4a4268;
+      margin-bottom: 2rem;
+      letter-spacing: 0.04em;
+    }
+
+    .breadcrumb span { color: #9b7dff; }
+
+    /* ── Two-col layout ── */
+    .checkout-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    /* ── Order summary ── */
+    .order-summary {
+      background: #130f24;
+      border: 1px solid #2a2240;
+      padding: 1.5rem;
+    }
+
+    .order-summary .summary-heading {
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #9b7dff;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid #2a2240;
+    }
+
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid #1a1630;
+      font-size: 0.88rem;
+    }
+
+    .order-item:last-of-type {
+      border-bottom: none;
+    }
+
+    .order-item .item-name { color: #d6d0e8; }
+    .order-item .item-price { color: #e8e4f8; font-weight: 600; }
+
+    .order-item .item-meta {
+      font-size: 0.72rem;
+      color: #5a4f78;
+      margin-top: 0.2rem;
+    }
+
+    .order-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.8rem 0 0;
+      margin-top: 0.4rem;
+      border-top: 1px solid #2a2240;
+      font-size: 0.95rem;
+    }
+
+    .order-total .total-label { color: #9b87c0; }
+    .order-total .total-price { color: #e8e4f8; font-size: 1.1rem; font-weight: 700; }
+
+    /* ── Form panel ── */
+    .form-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .form-heading {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #e8e4f8;
+      margin-bottom: 0.2rem;
+    }
+
+    .form-subheading {
+      font-size: 0.8rem;
+      color: #5a4f78;
+      margin-bottom: 0.5rem;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .field-group label {
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #6a5ca8;
+    }
+
+    .field-group input[type="email"],
+    .field-group input[type="text"] {
+      background: #130f24;
+      border: 1px solid #2a2240;
+      color: #d6d0e8;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+
+    .field-group input:focus {
+      border-color: #9b7dff;
+    }
+
+    .field-group input::placeholder {
+      color: #3a3258;
+    }
+
+    /* ── Submit button ── */
+    .submit-btn {
+      background: #7c5cde;
+      color: #fff;
+      border: none;
+      padding: 0.85rem 1.5rem;
+      font-size: 0.92rem;
+      font-family: inherit;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.15s;
+      margin-top: 0.4rem;
+    }
+
+    .submit-btn:hover { background: #9b7dff; }
+
+    .form-legal {
+      font-size: 0.7rem;
+      color: #3a3258;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    /* ── Result panels (hidden by default) ── */
+    .result-panel {
+      display: none;
+      padding: 1.2rem 1.4rem;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      line-height: 1.65;
+    }
+
+    .result-panel.visible { display: block; }
+
+    /* Normal purchase */
+    .result-normal {
+      background: #0d1a0d;
+      border: 1px solid #2a4a2a;
+      color: #7ab87a;
+    }
+
+    .result-normal .result-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #5cb85c;
+      margin-bottom: 0.4rem;
+    }
+
+    /* Price manipulation */
+    .result-price {
+      background: #1a1200;
+      border: 1px solid #4a3800;
+      color: #c8a840;
+    }
+
+    .result-price .result-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #e8c840;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-price .flag-partial {
+      font-family: 'Courier New', monospace;
+      color: #e8c840;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      margin: 0.4rem 0;
+    }
+
+    .result-price .role-hint {
+      margin-top: 0.6rem;
+      padding-top: 0.6rem;
+      border-top: 1px solid #3a2a00;
+      font-size: 0.78rem;
+      color: #8a7030;
+    }
+
+    .result-price .role-hint code {
+      color: #e8c840;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Admin / flag unlock */
+    .result-admin {
+      background: #0a1a0a;
+      border: 1px solid #2a5a2a;
+    }
+
+    .result-admin .result-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #5cb85c;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-admin .flag-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #5cb85c;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-admin .flag-value {
+      font-family: 'Courier New', monospace;
+      font-size: 1.05rem;
+      color: #7dd87d;
+      letter-spacing: 0.04em;
+    }
+
+    .result-admin .flag-note {
+      margin-top: 0.8rem;
+      font-size: 0.75rem;
+      color: #3d6b3d;
+      line-height: 1.6;
+    }
+
+    /* ── Trust badges ── */
+    .trust-badges {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .trust-badge {
+      font-size: 0.68rem;
+      color: #4a4268;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <span class="topbar-brand">Helix<span>Commerce</span></span>
+    <span class="topbar-secure">Secure Checkout</span>
+  </div>
+
+  <div class="page">
+
+    <div class="breadcrumb">Cart &rsaquo; <span>Checkout</span> &rsaquo; Confirmation</div>
+
+    <div class="checkout-grid">
+
+      <!-- Left: form -->
+      <div class="form-panel">
+        <div>
+          <div class="form-heading">Complete your order</div>
+          <div class="form-subheading">You're one step away from Helix Pro.</div>
+        </div>
+
+        <form id="checkout-form" onsubmit="processOrder(event)">
+
+          <div class="field-group" style="margin-bottom:0.8rem;">
+            <label for="email">Email address</label>
+            <input type="email" id="email" name="email"
+                   placeholder="you@example.com" required>
+          </div>
+
+          <div class="field-group" style="margin-bottom:0.8rem;">
+            <label for="name">Cardholder name</label>
+            <input type="text" id="name" name="name"
+                   placeholder="Name on card" required>
+          </div>
+
+          <!--
+            These two hidden fields control what the server (or in this case,
+            the client-side JS) receives when the form is submitted.
+
+            Students must find these with DevTools → Elements → search type="hidden"
+            and edit their values to unlock the flag.
+          -->
+          <input type="hidden" name="price" value="4999">
+          <input type="hidden" name="role"  value="customer">
+
+          <button type="submit" class="submit-btn">Complete Purchase — £49.99</button>
+
+        </form>
+
+        <div class="form-legal">
+          By completing this purchase you agree to our Terms of Service and Privacy Policy.
+          Your payment is encrypted and processed securely.
+        </div>
+
+        <!-- Result panels — shown after form submission -->
+        <div class="result-panel result-normal" id="result-normal">
+          <div class="result-title">Thank you for your purchase!</div>
+          A confirmation email has been sent to your address.
+          Your Helix Pro subscription is now active.
+        </div>
+
+        <div class="result-panel result-price" id="result-price">
+          <div class="result-title">Order processed — Total charged: £0.00</div>
+          Your order was accepted. The server trusted the price field.
+          <div class="flag-partial" id="flag-partial"></div>
+          <div class="role-hint">
+            Interesting. The price check passed — but there's more here.
+            Look at the other hidden field. What happens if <code>role</code>
+            isn't <code>customer</code>?
+          </div>
+        </div>
+
+        <div class="result-panel result-admin" id="result-admin">
+          <div class="result-title">Admin access granted.</div>
+          <div class="flag-label">Flag</div>
+          <div class="flag-value" id="flag-display"></div>
+          <div class="flag-note">
+            The form submitted <code>role=admin</code>. The application
+            trusted it. In a real system, role and price must be verified
+            server-side — never read from a form field.
+          </div>
+        </div>
+
+        <div class="trust-badges">
+          <span class="trust-badge">256-bit SSL</span>
+          <span class="trust-badge">PCI Compliant</span>
+          <span class="trust-badge">Money-back guarantee</span>
+        </div>
+
+      </div>
+
+      <!-- Right: order summary -->
+      <div class="order-summary">
+        <div class="summary-heading">Order Summary</div>
+
+        <div class="order-item">
+          <div>
+            <div class="item-name">Helix Pro — Annual</div>
+            <div class="item-meta">12 months · Renews 2027-05-24</div>
+          </div>
+          <div class="item-price">£49.99</div>
+        </div>
+
+        <div class="order-item">
+          <div>
+            <div class="item-name">Discount</div>
+          </div>
+          <div class="item-price" style="color:#5cb85c;">—</div>
+        </div>
+
+        <div class="order-total">
+          <span class="total-label">Total due today</span>
+          <span class="total-price">£49.99</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!--
+  ================================================================
+  CHALLENGE LOGIC
+  ================================================================
+  INSTRUCTORS: To change the flag, edit FLAG and flagText below.
+  The partial flag shown at price-manipulation step is flagPart1.
+  ================================================================
+  -->
+  <script>
+    // ── Configuration ───────────────────────────────────────────
+    const FLAG      = "FLAG{hidden_fields_are_not_hidden}";
+    const flagText  = "FLAG{hidden_fields_are_not_hidden}";
+    const flagPart1 = "FLAG{hidden_fields_";
+
+    // ── Form submission handler ─────────────────────────────────
+    function processOrder(event) {
+      event.preventDefault();
+
+      const form  = document.getElementById('checkout-form');
+      const price = parseInt(form.elements['price'].value, 10);
+      const role  = form.elements['role'].value.trim().toLowerCase();
+
+      // Hide all result panels first
+      document.getElementById('result-normal').classList.remove('visible');
+      document.getElementById('result-price').classList.remove('visible');
+      document.getElementById('result-admin').classList.remove('visible');
+
+      if (role === 'admin') {
+        // Full unlock — show flag
+        document.getElementById('flag-display').textContent = flagText;
+        document.getElementById('result-admin').classList.add('visible');
+      } else if (price <= 0) {
+        // Price manipulation — show first flag half + role hint
+        document.getElementById('flag-partial').textContent = flagPart1 + '...';
+        document.getElementById('result-price').classList.add('visible');
+      } else {
+        // Normal submission — no flag
+        document.getElementById('result-normal').classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

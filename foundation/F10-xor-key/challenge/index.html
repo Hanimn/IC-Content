@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>F10 — The XOR Key | Agency Training</title>
+
+  <!--
+  ================================================================
+  CHALLENGE METADATA
+  ================================================================
+  Module:   F10 — The XOR Key
+  Title:    The XOR Key
+  Tier:     A (pure JS, file:// works)
+  Version:  1.0
+
+  INSTRUCTOR NOTES:
+  - Flag is embedded in the ciphertext as XOR(FLAG, 0x21).
+  - To change the flag: re-encode plaintext with the new key and
+    update CIPHER_BYTES in the <script> below.
+  - All three levels must be completed in sequence.
+  - Level 3 key: '!' (ASCII 33, 0x21). Accepts '!', '33', '0x21'.
+  ================================================================
+  -->
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #0e0a06;
+      --panel:        #160e04;
+      --panel2:       #1e1408;
+      --panel-border: #3a2808;
+      --gold:         #c8a870;
+      --gold-bright:  #f0d090;
+      --gold-dim:     #7a5828;
+      --text:         #e8d5b0;
+      --text-dim:     #8a6e40;
+      --green:        #5fba72;
+      --red:          #c05050;
+      --bit-off:      #2a1f0e;
+      --bit-on:       #c8a870;
+      --bit-border:   #5a3e18;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .site-header {
+      background: var(--panel);
+      border-bottom: 2px solid var(--gold);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .header-badge {
+      background: var(--gold);
+      color: var(--bg);
+      font-size: 11px;
+      font-weight: bold;
+      padding: 3px 8px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .header-title {
+      color: var(--gold);
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 44px 24px 32px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .hero-tag {
+      color: var(--gold-dim);
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .hero h1 {
+      color: var(--gold-bright);
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: clamp(22px, 4vw, 36px);
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .hero-sub {
+      color: var(--text-dim);
+      font-size: 13px;
+      max-width: 560px;
+      line-height: 1.5;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+
+    /* ── LEVEL CARDS ── */
+    .level-card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+    .level-card.unlocked { border-color: var(--gold-dim); }
+    .level-card.complete { border-color: var(--green); }
+
+    .level-header {
+      background: var(--panel2);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .level-num   { color: var(--gold); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+    .level-title { color: var(--gold-bright); font-family: Georgia, serif; font-size: 16px; }
+    .level-badge { margin-left: auto; font-size: 11px; padding: 2px 10px; border-radius: 2px; letter-spacing: 0.1em; text-transform: uppercase; }
+    .badge-locked   { color: var(--text-dim); background: var(--bit-off); }
+    .badge-active   { color: var(--gold);     background: #2c1c04; border: 1px solid var(--gold-dim); }
+    .badge-complete { color: var(--green);    background: #0c2014; border: 1px solid #305840; }
+
+    .level-body { padding: 20px; }
+
+    /* ── LOCKED OVERLAY ── */
+    .locked-overlay {
+      text-align: center;
+      padding: 32px 20px;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+    .locked-overlay .lock-icon { font-size: 28px; display: block; margin-bottom: 10px; opacity: 0.5; }
+
+    /* ── COMPLETION BANNER ── */
+    .completion-banner {
+      display: none;
+      background: #0c2014;
+      border: 1px solid var(--green);
+      border-radius: 3px;
+      padding: 12px 16px;
+      color: var(--green);
+      font-size: 13px;
+      margin-top: 18px;
+      text-align: center;
+      letter-spacing: 0.06em;
+      animation: fadeSlideIn 0.4s ease;
+    }
+    .completion-banner.show { display: block; }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── TRUTH TABLE ── */
+    .truth-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .truth-table th {
+      color: var(--gold-dim);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      text-align: center;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .truth-table td { text-align: center; padding: 10px 8px; vertical-align: middle; }
+    .truth-table tr:not(:last-child) td { border-bottom: 1px solid var(--panel-border); }
+
+    /* ── BIT LIGHTS ── */
+    .bit-light {
+      display: inline-block;
+      width: 42px; height: 42px;
+      line-height: 42px;
+      text-align: center;
+      background: var(--bit-off);
+      border: 1px solid var(--bit-border);
+      border-radius: 3px;
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--text-dim);
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      user-select: none;
+    }
+    .bit-light.on {
+      background: var(--bit-on);
+      color: var(--bg);
+      border-color: var(--gold-bright);
+      box-shadow: 0 0 8px 2px rgba(200,168,112,0.45), 0 0 2px rgba(240,208,144,0.9);
+    }
+    .bit-light.clickable { cursor: pointer; }
+    .bit-light.clickable:hover { border-color: var(--gold); filter: brightness(1.15); }
+    .bit-light.correct { box-shadow: 0 0 10px 3px rgba(95,186,114,0.5); border-color: var(--green) !important; }
+    .bit-light.wrong   { box-shadow: 0 0 8px  2px rgba(192,80,80,0.5);  border-color: var(--red)   !important; }
+
+    .xor-sym { display: inline-block; color: var(--gold-dim);  font-size: 20px; padding: 0 8px; vertical-align: middle; }
+    .eq-sym  { display: inline-block; color: var(--text-dim);  font-size: 16px; padding: 0 6px; vertical-align: middle; }
+
+    /* ── BYTE XOR DISPLAY ── */
+    .byte-display   { display: flex; flex-direction: column; gap: 4px; margin: 16px 0; }
+    .byte-row       { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .byte-label     { width: 60px; color: var(--gold-dim); font-size: 12px; flex-shrink: 0; }
+    .xor-row-label  { width: 60px; color: var(--gold);     font-size: 12px; flex-shrink: 0; }
+    .byte-sep       { width: 100%; height: 1px; background: var(--panel-border); margin: 4px 0; }
+    .bit-group-gap  { width: 6px; }
+
+    .result-note {
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: var(--panel2);
+      border-left: 3px solid var(--gold-dim);
+      color: var(--text-dim);
+      font-size: 12px;
+      display: none;
+      line-height: 1.7;
+    }
+    .result-note.show { display: block; }
+    .result-note strong { color: var(--gold); }
+    .result-note em     { color: var(--text); }
+
+    /* ── CIPHER BOX ── */
+    .cipher-box {
+      background: var(--panel2);
+      border: 1px solid var(--panel-border);
+      border-radius: 3px;
+      padding: 14px 16px;
+      margin: 12px 0;
+      word-break: break-all;
+      letter-spacing: 0.08em;
+      color: var(--gold-dim);
+      font-size: 13px;
+      line-height: 2;
+    }
+    .cipher-byte { display: inline-block; margin-right: 6px; }
+
+    /* ── KEY INPUT ROW ── */
+    .key-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .key-input {
+      background: var(--bit-off);
+      border: 1px solid var(--panel-border);
+      border-radius: 3px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      padding: 8px 12px;
+      width: 180px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .key-input:focus { border-color: var(--gold-dim); }
+
+    .decode-btn {
+      background: var(--panel2);
+      border: 1px solid var(--gold-dim);
+      border-radius: 3px;
+      color: var(--gold);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 8px 18px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .decode-btn:hover { background: #2a1c08; border-color: var(--gold); color: var(--gold-bright); }
+
+    /* ── DECODE OUTPUT ── */
+    .decode-output { margin-top: 14px; display: none; }
+    .decode-output.show { display: block; }
+
+    .decode-hex, .decode-ascii {
+      background: var(--panel2);
+      border: 1px solid var(--panel-border);
+      border-radius: 3px;
+      padding: 10px 14px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      word-break: break-all;
+      line-height: 2;
+      margin-bottom: 6px;
+    }
+    .decode-hex   { color: var(--text-dim); }
+    .decode-ascii { color: var(--gold-bright); font-size: 15px; }
+
+    .decode-label { color: var(--text-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 4px; }
+    .decode-label.mt { margin-top: 14px; }
+
+    .key-clue {
+      background: var(--panel2);
+      border-left: 3px solid var(--gold-dim);
+      padding: 10px 14px;
+      margin: 14px 0;
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+    .key-clue strong { color: var(--gold); }
+    .inline-code {
+      background: var(--bit-off);
+      padding: 1px 5px;
+      border-radius: 2px;
+      color: var(--gold-bright);
+      font-size: 12px;
+    }
+
+    /* ── FLAG SECTION ── */
+    .flag-section {
+      display: none;
+      margin-top: 18px;
+      padding: 16px;
+      background: #0c1e10;
+      border: 1px solid #305840;
+      border-radius: 3px;
+    }
+    .flag-section.show { display: block; animation: fadeSlideIn 0.4s ease; }
+    .flag-label { color: var(--green); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 8px; }
+
+    .flag-input {
+      background: var(--bit-off);
+      border: 1px solid #305840;
+      border-radius: 3px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      padding: 8px 12px;
+      width: 100%;
+      max-width: 420px;
+      outline: none;
+      margin-bottom: 10px;
+      transition: border-color 0.2s;
+    }
+    .flag-input:focus { border-color: var(--green); }
+
+    .submit-btn {
+      background: #0c2014;
+      border: 1px solid var(--green);
+      border-radius: 3px;
+      color: var(--green);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 8px 18px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: background 0.2s;
+    }
+    .submit-btn:hover { background: #142a1c; }
+    .flag-result { margin-top: 10px; font-size: 13px; min-height: 1.4em; }
+    .flag-result.ok  { color: var(--green); }
+    .flag-result.err { color: var(--red); }
+
+    /* ── VICTORY ── */
+    .victory {
+      display: none;
+      margin-top: 32px;
+      padding: 24px;
+      background: #0a1c10;
+      border: 2px solid var(--green);
+      border-radius: 4px;
+      text-align: center;
+      animation: fadeSlideIn 0.5s ease;
+    }
+    .victory.show { display: block; }
+    .victory h2 { color: var(--green); font-family: Georgia, serif; font-size: 22px; margin-bottom: 10px; letter-spacing: 0.06em; }
+    .victory p  { color: var(--text-dim); font-size: 12px; max-width: 500px; margin: 0 auto; line-height: 1.6; }
+    .victory .flag-value {
+      display: inline-block;
+      margin: 14px 0;
+      color: var(--gold-bright);
+      background: var(--panel2);
+      border: 1px solid var(--gold-dim);
+      padding: 8px 16px;
+      border-radius: 3px;
+      font-size: 14px;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── PROSE ── */
+    .prose { color: var(--text-dim); font-size: 13px; line-height: 1.65; margin-bottom: 14px; }
+    .prose strong { color: var(--gold); }
+    .prose em     { color: var(--text); }
+    .prose code   { color: var(--gold-bright); background: var(--bit-off); padding: 1px 5px; border-radius: 2px; font-size: 12px; }
+
+    /* ── CHECK BUTTON ── */
+    .check-btn {
+      background: var(--panel2);
+      border: 1px solid var(--gold-dim);
+      border-radius: 3px;
+      color: var(--gold);
+      font-family: inherit;
+      font-size: 12px;
+      padding: 7px 16px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 14px;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .check-btn:hover { background: #2a1c08; border-color: var(--gold); color: var(--gold-bright); }
+    .check-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .check-msg { margin-top: 8px; font-size: 12px; min-height: 1.4em; }
+    .check-msg.ok  { color: var(--green); }
+    .check-msg.err { color: var(--red); }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <span class="header-badge">F10</span>
+    <span class="header-title">Agency Training — Foundation Track</span>
+  </header>
+
+  <div class="hero">
+    <div class="hero-tag">Cryptography / XOR</div>
+    <h1>The XOR Key</h1>
+    <p class="hero-sub">
+      An intercepted message. A scrambled payload. The analyst says it was XOR'd with a
+      single character before transmission — the same key that locked it will unlock it.
+      Complete all three training levels to earn access to the decoder.
+    </p>
+  </div>
+
+  <main class="main">
+
+    <!-- ══════════════ LEVEL 1 ══════════════ -->
+    <div class="level-card unlocked" id="card-1">
+      <div class="level-header">
+        <span class="level-num">Level 1</span>
+        <span class="level-title">Bit Switches — Fill the Truth Table</span>
+        <span class="level-badge badge-active" id="badge-1">Active</span>
+      </div>
+      <div class="level-body" id="body-1">
+        <p class="prose">
+          XOR compares two bits at a time.
+          The rule: <strong>output is 1 when the inputs differ, 0 when they match</strong>.
+          Click each output square (showing <strong>?</strong>) to toggle between 0 and 1.
+          Fill in all four rows correctly to unlock Level 2.
+        </p>
+
+        <table class="truth-table">
+          <thead>
+            <tr>
+              <th>Input A</th>
+              <th></th>
+              <th>Input B</th>
+              <th></th>
+              <th>Output (A ⊕ B)</th>
+            </tr>
+          </thead>
+          <tbody id="truth-rows"></tbody>
+        </table>
+
+        <button class="check-btn" id="check-1">Check Answers</button>
+        <div class="check-msg" id="msg-1"></div>
+        <div class="completion-banner" id="banner-1">
+          ✓ Level 1 complete — the truth table is yours. XOR: different → 1, same → 0.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ LEVEL 2 ══════════════ -->
+    <div class="level-card" id="card-2">
+      <div class="level-header">
+        <span class="level-num">Level 2</span>
+        <span class="level-title">Byte XOR — 0x48 ⊕ 0x21</span>
+        <span class="level-badge badge-locked" id="badge-2">Locked</span>
+      </div>
+      <div class="level-body" id="body-2">
+        <div class="locked-overlay" id="lock-2">
+          <span class="lock-icon">🔒</span>
+          Complete Level 1 to unlock
+        </div>
+        <div id="content-2" style="display:none">
+          <p class="prose">
+            Apply XOR <em>bit-by-bit</em> across two bytes.
+            Below you see <code>H = 0x48</code> and the key <code>! = 0x21</code> in binary.
+            Click each <strong>output bit</strong> (marked <strong>?</strong>) to toggle it.
+            Compute <code>0x48 ⊕ 0x21</code> one column at a time — same rule as Level 1.
+          </p>
+          <div class="byte-display" id="byte-display"></div>
+          <button class="check-btn" id="check-2">Check Answers</button>
+          <div class="check-msg" id="msg-2"></div>
+          <div class="result-note" id="result-note">
+            <strong>0x48 ⊕ 0x21 = 0x69</strong> — the letter <strong style="color:var(--gold-bright)">'i'</strong>.<br>
+            Now notice: <span style="color:var(--gold-bright)">0x69 ⊕ 0x21 = 0x48</span> — back to <strong style="color:var(--gold-bright)">'H'</strong>.<br>
+            The key undoes itself. <em>That is the self-inverse property.</em>
+          </div>
+          <div class="completion-banner" id="banner-2">
+            ✓ Level 2 complete — you can XOR two bytes. The key that scrambles also unscrambles.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ LEVEL 3 ══════════════ -->
+    <div class="level-card" id="card-3">
+      <div class="level-header">
+        <span class="level-num">Level 3</span>
+        <span class="level-title">Decrypt the Message</span>
+        <span class="level-badge badge-locked" id="badge-3">Locked</span>
+      </div>
+      <div class="level-body" id="body-3">
+        <div class="locked-overlay" id="lock-3">
+          <span class="lock-icon">🔒</span>
+          Complete Level 2 to unlock
+        </div>
+        <div id="content-3" style="display:none">
+          <p class="prose">
+            The intercepted ciphertext is shown below as hex bytes.
+            Each byte was XOR'd with a <strong>single ASCII character key</strong>.
+            Enter the key and click <strong>Decode</strong> — XOR will undo itself.
+          </p>
+
+          <div class="decode-label">Ciphertext (hex)</div>
+          <div class="cipher-box" id="cipher-display"></div>
+
+          <div class="key-clue">
+            <strong>Key clue:</strong> The key is a single ASCII character.
+            Its decimal value is <strong>33</strong>. It is a punctuation mark used to show excitement.<br>
+            You may enter the character itself, its decimal value
+            (<span class="inline-code">33</span>), or its hex value
+            (<span class="inline-code">0x21</span>).
+          </div>
+
+          <div class="key-row">
+            <input class="key-input" id="key-input" type="text"
+                   placeholder="Enter key, e.g. !" autocomplete="off" spellcheck="false">
+            <button class="decode-btn" id="decode-btn">Decode</button>
+          </div>
+
+          <div class="decode-output" id="decode-output">
+            <div class="decode-label mt">Result (hex)</div>
+            <div class="decode-hex" id="decode-hex"></div>
+            <div class="decode-label mt">Result (ASCII)</div>
+            <div class="decode-ascii" id="decode-ascii"></div>
+          </div>
+
+          <div class="flag-section" id="flag-section">
+            <div class="flag-label">Flag found — enter it below to confirm</div>
+            <input class="flag-input" id="flag-input" type="text"
+                   placeholder="FLAG{...}" autocomplete="off" spellcheck="false">
+            <br>
+            <button class="submit-btn" id="submit-btn">Submit Flag</button>
+            <div class="flag-result" id="flag-result"></div>
+          </div>
+
+          <div class="completion-banner" id="banner-3">
+            ✓ Level 3 complete — you decrypted the message. The self-inverse property in action.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ VICTORY ══════════════ -->
+    <div class="victory" id="victory">
+      <h2>Mission Complete</h2>
+      <div class="flag-value" id="victory-flag"></div>
+      <p>
+        You mapped the XOR truth table, computed a byte XOR bit-by-bit, and decrypted a
+        real ciphertext by applying the self-inverse property.
+        The key that locked the message unlocked it — because A ⊕ K ⊕ K = A, always.
+        <br><br>
+        Single-byte XOR is trivially broken by trying all 256 keys. Real encryption uses
+        XOR as a building block inside systems with 128-bit keys, key freshness guarantees,
+        and authentication. The logic is the same. Key management is everything.
+      </p>
+    </div>
+
+  </main>
+
+  <!--
+  ================================================================
+  CHALLENGE LOGIC
+  ================================================================
+  INSTRUCTORS: To change the flag:
+    1. Choose a new key byte (KEY_BYTE below)
+    2. Encode: each char ASCII code XOR KEY_BYTE gives one cipher byte
+    3. Replace CIPHER_BYTES with the new array
+  ================================================================
+  -->
+  <script>
+    // ── CONFIGURATION ──────────────────────────────────────────
+    const FLAG         = "FLAG{xor_undoes_itself_0x21}";
+    const KEY_BYTE     = 0x21;
+    const CIPHER_BYTES = [
+      0x67, 0x6D, 0x60, 0x66, 0x5A, 0x59, 0x4E, 0x53,
+      0x7E, 0x54, 0x4F, 0x45, 0x4E, 0x44, 0x52, 0x7E,
+      0x48, 0x55, 0x52, 0x44, 0x4D, 0x47, 0x7E, 0x11,
+      0x59, 0x13, 0x10, 0x5C
+    ];
+
+    // ── STATE ───────────────────────────────────────────────────
+    let level1Done = false;
+    let level2Done = false;
+    let level3Done = false;
+
+    const l1Outputs  = [0, 0, 0, 0];
+    const l2Outputs  = new Array(8).fill(0);
+
+    const L1_CORRECT = [0, 1, 1, 0];
+    const L1_PAIRS   = [[0,0],[0,1],[1,0],[1,1]];
+    const L2_A_BITS  = [0,1,0,0, 1,0,0,0];
+    const L2_B_BITS  = [0,0,1,0, 0,0,0,1];
+    const L2_CORRECT = L2_A_BITS.map((a, i) => a ^ L2_B_BITS[i]);
+
+    // ── HELPERS ─────────────────────────────────────────────────
+    function makeBitLight(value, clickable) {
+      const el = document.createElement('span');
+      el.className = 'bit-light';
+      if (clickable) el.classList.add('clickable');
+      if (value === 1) el.classList.add('on');
+      el.textContent = clickable ? '?' : String(value);
+      return el;
+    }
+
+    function makeText(tag, text, cls) {
+      const el = document.createElement(tag);
+      if (cls) el.className = cls;
+      el.textContent = text;
+      return el;
+    }
+
+    // ── LEVEL 1 ─────────────────────────────────────────────────
+    function buildLevel1() {
+      const tbody = document.getElementById('truth-rows');
+      L1_PAIRS.forEach(([a, b], idx) => {
+        const tr = document.createElement('tr');
+
+        const tdA = document.createElement('td');
+        tdA.appendChild(makeBitLight(a, false));
+
+        const tdXor = document.createElement('td');
+        tdXor.appendChild(makeText('span', '⊕', 'xor-sym'));
+
+        const tdB = document.createElement('td');
+        tdB.appendChild(makeBitLight(b, false));
+
+        const tdEq = document.createElement('td');
+        tdEq.appendChild(makeText('span', '=', 'eq-sym'));
+
+        const tdOut = document.createElement('td');
+        const outEl = makeBitLight(0, true);
+        outEl.id = 'l1-out-' + idx;
+        outEl.addEventListener('click', () => toggleL1(idx));
+        tdOut.appendChild(outEl);
+
+        tr.appendChild(tdA);
+        tr.appendChild(tdXor);
+        tr.appendChild(tdB);
+        tr.appendChild(tdEq);
+        tr.appendChild(tdOut);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function toggleL1(idx) {
+      if (level1Done) return;
+      l1Outputs[idx] = l1Outputs[idx] === 0 ? 1 : 0;
+      const el = document.getElementById('l1-out-' + idx);
+      const v  = l1Outputs[idx];
+      el.textContent = String(v);
+      el.classList.toggle('on', v === 1);
+      el.classList.remove('correct', 'wrong');
+      document.getElementById('msg-1').textContent = '';
+    }
+
+    function checkLevel1() {
+      if (level1Done) return;
+      let allCorrect = true;
+      L1_PAIRS.forEach((_, idx) => {
+        const el = document.getElementById('l1-out-' + idx);
+        const ok = l1Outputs[idx] === L1_CORRECT[idx];
+        el.classList.remove('correct', 'wrong');
+        el.classList.add(ok ? 'correct' : 'wrong');
+        if (!ok) allCorrect = false;
+      });
+      const msg = document.getElementById('msg-1');
+      if (allCorrect) {
+        msg.textContent = 'All four rows correct!';
+        msg.className = 'check-msg ok';
+        completeLevel1();
+      } else {
+        msg.textContent = 'Some rows are wrong — toggle and try again.';
+        msg.className = 'check-msg err';
+      }
+    }
+
+    function completeLevel1() {
+      level1Done = true;
+      document.getElementById('banner-1').classList.add('show');
+      const b1 = document.getElementById('badge-1');
+      b1.textContent = 'Complete';
+      b1.className   = 'level-badge badge-complete';
+      document.getElementById('card-1').classList.add('complete');
+      document.getElementById('check-1').disabled = true;
+      setTimeout(unlockLevel2, 600);
+    }
+
+    // ── LEVEL 2 ─────────────────────────────────────────────────
+    function buildLevel2() {
+      const container = document.getElementById('byte-display');
+
+      function makeByteRow(labelText, bits, clickable, idPrefix, labelClass) {
+        const row  = document.createElement('div');
+        row.className = 'byte-row';
+        const lbl  = document.createElement('span');
+        lbl.className   = labelClass || 'byte-label';
+        lbl.textContent = labelText;
+        row.appendChild(lbl);
+        bits.forEach((bit, i) => {
+          if (i === 4) {
+            const gap = document.createElement('span');
+            gap.className = 'bit-group-gap';
+            row.appendChild(gap);
+          }
+          const sq = makeBitLight(clickable ? 0 : bit, clickable);
+          if (clickable) {
+            sq.id = idPrefix + '-' + i;
+            sq.addEventListener('click', () => toggleL2(i));
+          }
+          row.appendChild(sq);
+        });
+        return row;
+      }
+
+      container.appendChild(makeByteRow('H = 0x48', L2_A_BITS, false, ''));
+      container.appendChild(makeByteRow('! = 0x21', L2_B_BITS, false, ''));
+
+      const sep = document.createElement('div');
+      sep.className = 'byte-sep';
+      container.appendChild(sep);
+
+      container.appendChild(makeByteRow('XOR  = ?', new Array(8).fill(0), true, 'l2-xor', 'xor-row-label'));
+    }
+
+    function toggleL2(idx) {
+      if (level2Done) return;
+      l2Outputs[idx] = l2Outputs[idx] === 0 ? 1 : 0;
+      const el = document.getElementById('l2-xor-' + idx);
+      const v  = l2Outputs[idx];
+      el.textContent = String(v);
+      el.classList.toggle('on', v === 1);
+      el.classList.remove('correct', 'wrong');
+      document.getElementById('msg-2').textContent = '';
+    }
+
+    function checkLevel2() {
+      if (level2Done) return;
+      let allCorrect = true;
+      for (let i = 0; i < 8; i++) {
+        const el = document.getElementById('l2-xor-' + i);
+        const ok = l2Outputs[i] === L2_CORRECT[i];
+        el.classList.remove('correct', 'wrong');
+        el.classList.add(ok ? 'correct' : 'wrong');
+        if (!ok) allCorrect = false;
+      }
+      const msg = document.getElementById('msg-2');
+      if (allCorrect) {
+        msg.textContent = "All 8 bits correct — 0x48 ⊕ 0x21 = 0x69 = 'i'!";
+        msg.className = 'check-msg ok';
+        completeLevel2();
+      } else {
+        msg.textContent = 'Some bits are wrong — same inputs → 0, different → 1.';
+        msg.className = 'check-msg err';
+      }
+    }
+
+    function completeLevel2() {
+      level2Done = true;
+      document.getElementById('result-note').classList.add('show');
+      document.getElementById('banner-2').classList.add('show');
+      const b2 = document.getElementById('badge-2');
+      b2.textContent = 'Complete';
+      b2.className   = 'level-badge badge-complete';
+      document.getElementById('card-2').classList.add('complete');
+      document.getElementById('check-2').disabled = true;
+      setTimeout(unlockLevel3, 700);
+    }
+
+    // ── LEVEL 3 ─────────────────────────────────────────────────
+    function buildLevel3() {
+      const box = document.getElementById('cipher-display');
+      CIPHER_BYTES.forEach(b => {
+        const sp = document.createElement('span');
+        sp.className   = 'cipher-byte';
+        sp.textContent = b.toString(16).toUpperCase().padStart(2, '0');
+        box.appendChild(sp);
+      });
+    }
+
+    function parseKey(raw) {
+      raw = raw.trim();
+      if (!raw) return null;
+      if (/^0x[0-9a-fA-F]{1,2}$/i.test(raw)) return parseInt(raw, 16);
+      if (/^\d{1,3}$/.test(raw)) {
+        const n = parseInt(raw, 10);
+        return (n >= 0 && n <= 255) ? n : null;
+      }
+      if (raw.length === 1) return raw.charCodeAt(0);
+      return null;
+    }
+
+    function decodeMessage() {
+      const raw  = document.getElementById('key-input').value;
+      const keyV = parseKey(raw);
+
+      if (keyV === null) {
+        setDecodeOutput('Could not parse key — try:  !  or  33  or  0x21', '');
+        return;
+      }
+
+      const decoded = CIPHER_BYTES.map(b => b ^ keyV);
+      const hexStr  = decoded.map(b => b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      const ascStr  = decoded.map(b => (b >= 32 && b <= 126) ? String.fromCharCode(b) : '·').join('');
+
+      setDecodeOutput(hexStr, ascStr);
+
+      if (ascStr.replace(/·/g, '').startsWith('FLAG{') && ascStr.replace(/·/g, '').endsWith('}')) {
+        const flagInput = document.getElementById('flag-input');
+        flagInput.value = ascStr.replace(/·/g, '');
+        document.getElementById('flag-section').classList.add('show');
+      }
+    }
+
+    function setDecodeOutput(hexText, ascText) {
+      document.getElementById('decode-hex').textContent   = hexText;
+      document.getElementById('decode-ascii').textContent = ascText;
+      document.getElementById('decode-output').classList.add('show');
+    }
+
+    function submitFlag() {
+      const entered = document.getElementById('flag-input').value.trim();
+      const res     = document.getElementById('flag-result');
+      if (entered === FLAG) {
+        res.textContent = '✓ Correct! The self-inverse property in action.';
+        res.className   = 'flag-result ok';
+        completeLevel3();
+      } else {
+        res.textContent = '✗ Not quite — copy the decoded ASCII output exactly.';
+        res.className   = 'flag-result err';
+      }
+    }
+
+    function completeLevel3() {
+      if (level3Done) return;
+      level3Done = true;
+      document.getElementById('banner-3').classList.add('show');
+      const b3 = document.getElementById('badge-3');
+      b3.textContent = 'Complete';
+      b3.className   = 'level-badge badge-complete';
+      document.getElementById('card-3').classList.add('complete');
+      setTimeout(showVictory, 700);
+    }
+
+    function showVictory() {
+      const v = document.getElementById('victory');
+      document.getElementById('victory-flag').textContent = FLAG;
+      v.classList.add('show');
+      v.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // ── UNLOCK GATES ────────────────────────────────────────────
+    function unlockLevel2() {
+      document.getElementById('card-2').classList.add('unlocked');
+      const b2 = document.getElementById('badge-2');
+      b2.textContent = 'Active';
+      b2.className   = 'level-badge badge-active';
+      document.getElementById('lock-2').style.display    = 'none';
+      document.getElementById('content-2').style.display = 'block';
+    }
+
+    function unlockLevel3() {
+      document.getElementById('card-3').classList.add('unlocked');
+      const b3 = document.getElementById('badge-3');
+      b3.textContent = 'Active';
+      b3.className   = 'level-badge badge-active';
+      document.getElementById('lock-3').style.display    = 'none';
+      document.getElementById('content-3').style.display = 'block';
+    }
+
+    // ── INIT ─────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      buildLevel1();
+      buildLevel2();
+      buildLevel3();
+
+      document.getElementById('check-1').addEventListener('click', checkLevel1);
+      document.getElementById('check-2').addEventListener('click', checkLevel2);
+      document.getElementById('decode-btn').addEventListener('click', decodeMessage);
+      document.getElementById('submit-btn').addEventListener('click', submitFlag);
+      document.getElementById('key-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter') decodeMessage();
+      });
+    });
+  </script>
+
+</body>
+</html>

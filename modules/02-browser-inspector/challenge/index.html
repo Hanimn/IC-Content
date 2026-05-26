@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harrington Museum — Digital Archive</title>
+
+  <!--
+  ================================================================
+  CHALLENGE METADATA
+  ================================================================
+  Module:   02 — Browser Inspector
+  Title:    The X-Ray Machine
+  Tier:     A (pure HTML/JS — works via file://, no server needed)
+  Flag:     See FLAG constant in <script> below
+  Version:  1.0
+
+  INSTRUCTOR NOTES:
+  - To change the flag: edit the FLAG constant in the <script> at
+    the bottom of this file. Also update the two data-* attribute
+    values and the hidden div text to match your new flag halves.
+  - Flag is split across TWO locations:
+      Part 1: text inside <div class="archive-note"> (display:none)
+      Part 2: data-curator attribute on the <figure> element
+    Students must find both and combine them.
+  - Current flag: FLAG{inspect_beyond_the_surface}
+      Part 1: "inspect_beyond"  (inside archive-note div)
+      Part 2: "the_surface}"    (in data-curator attribute)
+    Combined with prefix: FLAG{inspect_beyond_the_surface}
+  ================================================================
+  -->
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #1a1714;
+      color: #d4c9b0;
+      font-family: Georgia, 'Times New Roman', serif;
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      background: #111;
+      border-bottom: 1px solid #3a3228;
+      padding: 1.2rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .site-header .museum-name {
+      font-size: 0.85rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #c8a96e;
+    }
+
+    .site-header nav {
+      font-size: 0.78rem;
+      color: #7a6e5e;
+      letter-spacing: 0.05em;
+    }
+
+    .site-header nav span {
+      margin: 0 0.8rem;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: #141210;
+      border-bottom: 1px solid #3a3228;
+      padding: 3rem 2rem 2.5rem;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 1.9rem;
+      color: #e8dcc4;
+      font-weight: normal;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.6rem;
+    }
+
+    .hero p {
+      color: #7a6e5e;
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+
+    /* ── Main layout ── */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem;
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #c8a96e;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #3a3228;
+    }
+
+    /* ── Gallery grid ── */
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .exhibit-card {
+      background: #211e1a;
+      border: 1px solid #3a3228;
+      padding: 1.2rem;
+    }
+
+    /* The figure element — the data-curator attribute is here.
+       Students using the Inspector will see it on this tag.
+       The attribute is not referenced by any CSS or JS — it
+       was left behind by a curator and never cleaned up. */
+    .exhibit-card figure {
+      margin: 0 0 0.8rem 0;
+    }
+
+    .exhibit-card .artwork-placeholder {
+      width: 100%;
+      height: 140px;
+      background: #2e2924;
+      border: 1px solid #3a3228;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .artwork-placeholder span {
+      font-size: 2rem;
+      opacity: 0.25;
+    }
+
+    .exhibit-card h3 {
+      font-size: 0.95rem;
+      color: #e8dcc4;
+      font-weight: normal;
+      margin-bottom: 0.3rem;
+    }
+
+    .exhibit-card .meta {
+      font-size: 0.78rem;
+      color: #7a6e5e;
+      font-style: italic;
+    }
+
+    /* ── Hidden element ── */
+    /* This div is the challenge's first hiding mechanism.
+       It exists in the DOM but is invisible on screen.
+       Students using DevTools will find it between the
+       gallery section and the blockquote below.
+       The class name "archive-note" is intentionally generic —
+       it doesn't scream "flag" or "hidden". */
+    .archive-note {
+      display: none;
+    }
+
+    /* ── Quote section ── */
+    .collection-quote {
+      border-left: 2px solid #c8a96e;
+      padding: 1rem 1.5rem;
+      margin: 2rem 0;
+      color: #a89880;
+      font-style: italic;
+      font-size: 0.95rem;
+    }
+
+    .collection-quote cite {
+      display: block;
+      margin-top: 0.5rem;
+      font-size: 0.78rem;
+      color: #7a6e5e;
+      font-style: normal;
+    }
+
+    /* ── Footer ── */
+    .site-footer {
+      border-top: 1px solid #3a3228;
+      padding: 1.5rem 2rem;
+      text-align: center;
+      font-size: 0.72rem;
+      color: #4a4035;
+      letter-spacing: 0.05em;
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <span class="museum-name">Harrington Museum of Art</span>
+    <nav>
+      <span>Collection</span>
+      <span>Exhibitions</span>
+      <span>Visit</span>
+      <span>About</span>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <h1>Digital Archive — Permanent Collection</h1>
+    <p>Browse selected works from the Harrington collection, 1840–1960</p>
+  </div>
+
+  <div class="container">
+
+    <p class="section-label">Featured Works</p>
+
+    <div class="gallery">
+
+      <!-- The data-curator attribute on this figure element is the
+           second flag half. It doesn't display anywhere on screen.
+           A curator added it as an internal reference and it was
+           never removed before the page went live. -->
+      <div class="exhibit-card">
+        <figure data-curator="the_surface}" data-accession="HMA-1923-07">
+          <div class="artwork-placeholder"><span>🖼</span></div>
+        </figure>
+        <h3>The Weaver's Cottage</h3>
+        <p class="meta">Oil on canvas, 1923. Donated 2019.</p>
+      </div>
+
+      <div class="exhibit-card">
+        <figure data-accession="HMA-1887-02">
+          <div class="artwork-placeholder"><span>🖼</span></div>
+        </figure>
+        <h3>Autumn on the Millstream</h3>
+        <p class="meta">Watercolour, 1887. Bequest of E. Harrington.</p>
+      </div>
+
+      <div class="exhibit-card">
+        <figure data-accession="HMA-1951-15">
+          <div class="artwork-placeholder"><span>🖼</span></div>
+        </figure>
+        <h3>Portrait of a Young Botanist</h3>
+        <p class="meta">Oil on canvas, 1951. Acquired 2003.</p>
+      </div>
+
+    </div>
+
+    <!-- Archive note — internal use only. Not intended for public.
+         Set display:none before launch — R. Calloway, 2023-11-04
+         NOTE: verify authenticity of Weaver's Cottage before publishing -->
+    <div class="archive-note">
+      <p>Curator's working note: FLAG{inspect_beyond</p>
+    </div>
+
+    <blockquote class="collection-quote">
+      "Art is not what you see, but what you make others see."
+      <cite>— Edgar Degas</cite>
+    </blockquote>
+
+    <p class="section-label">About This Archive</p>
+    <p style="font-size:0.88rem; color:#7a6e5e; line-height:1.7;">
+      The Harrington Digital Archive provides online access to selected works from
+      the museum's permanent collection. High-resolution images and provenance
+      records are available for research purposes. Contact the collections
+      department for licensing enquiries.
+    </p>
+
+  </div>
+
+  <footer class="site-footer">
+    Harrington Museum of Art &nbsp;·&nbsp; Digital Archive v2.1 &nbsp;·&nbsp;
+    Collections Department
+  </footer>
+
+  <!--
+  ================================================================
+  CHALLENGE LOGIC
+  ================================================================
+  INSTRUCTORS: Edit the FLAG constant and update the two hidden
+  locations above to match your new flag value:
+    1. The text inside <div class="archive-note"> — Part 1
+    2. The data-curator attribute on the first <figure> — Part 2
+  ================================================================
+  -->
+  <script>
+    // ============================================================
+    // CONFIGURATION — instructors edit this value and update the
+    // two hidden locations in the HTML to match when changing flag
+    // ============================================================
+    const FLAG = "FLAG{inspect_beyond_the_surface}";
+
+    // ============================================================
+    // No active challenge logic needed for this module.
+    // The flag is discovered by reading the DOM directly using
+    // the browser's DevTools Elements panel.
+    // Part 1: <div class="archive-note"> (display:none)
+    // Part 2: data-curator attribute on the first <figure>
+    // Combined: FLAG{inspect_beyond_the_surface}
+    // ============================================================
+  </script>
+
+</body>
+</html>

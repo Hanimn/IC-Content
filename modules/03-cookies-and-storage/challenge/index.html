@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thornwood Coffee — Members Portal</title>
+
+  <!--
+  ================================================================
+  CHALLENGE METADATA
+  ================================================================
+  Module:   03 — Cookies & Storage
+  Title:    Digital Breadcrumbs
+  Tier:     A (pure HTML/JS — works via file://, no server needed)
+  Flag:     See FLAG constant in <script> below
+  Version:  1.0
+
+  INSTRUCTOR NOTES:
+  - To change the flag: edit the FLAG constant in the <script> below.
+    Also update the two hidden locations:
+      Part 1: the flagPart1 constant (revealed when membership=premium)
+      Part 2: the SESSION_DATA constant (base64 string — re-encode with btoa())
+  - The challenge has TWO parts:
+      Part 1: change membership cookie from "basic" → "premium", reload
+              → premium dashboard appears showing FLAG{cookies_
+      Part 2: decode the session_data cookie value using atob() in Console
+              → reveals {"role":"guest","secret":"are_not_secrets}"}
+              → the "secret" field holds the second flag half
+  - Combined flag: FLAG{cookies_are_not_secrets}
+  - session_data value: eyJyb2xlIjoiZ3Vlc3QiLCJzZWNyZXQiOiJhcmVfbm90X3NlY3JldHN9In0=
+    (base64 of: {"role":"guest","secret":"are_not_secrets}"})
+  ================================================================
+  -->
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #1c1410;
+      color: #e8ddd0;
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      background: #120e0b;
+      border-bottom: 1px solid #3a2e24;
+      padding: 0 2rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #c47a2a;
+      letter-spacing: 0.03em;
+    }
+
+    .nav-brand span {
+      color: #e8ddd0;
+      font-weight: 300;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.82rem;
+      color: #8b6a4a;
+    }
+
+    .nav-links .active {
+      color: #c47a2a;
+    }
+
+    /* ── Page layout ── */
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem;
+    }
+
+    /* ── Tier badge ── */
+    .tier-badge {
+      display: inline-block;
+      background: #2e2218;
+      border: 1px solid #3a2e24;
+      border-radius: 4px;
+      padding: 0.2rem 0.7rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #8b6a4a;
+      margin-bottom: 1.5rem;
+    }
+
+    .tier-badge.premium {
+      border-color: #c47a2a;
+      color: #c47a2a;
+    }
+
+    /* ── Welcome heading ── */
+    .page h1 {
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: #e8ddd0;
+      margin-bottom: 0.4rem;
+    }
+
+    .page .subhead {
+      font-size: 0.88rem;
+      color: #8b6a4a;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── Cards grid ── */
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: #231a12;
+      border: 1px solid #3a2e24;
+      border-radius: 8px;
+      padding: 1.4rem;
+    }
+
+    .card h3 {
+      font-size: 0.82rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #8b6a4a;
+      margin-bottom: 0.6rem;
+    }
+
+    .card .value {
+      font-size: 1.6rem;
+      font-weight: 300;
+      color: #c47a2a;
+    }
+
+    .card .label {
+      font-size: 0.78rem;
+      color: #6a5040;
+      margin-top: 0.3rem;
+    }
+
+    /* ── Premium section ── */
+    .premium-section {
+      background: #231a12;
+      border: 1px solid #3a2e24;
+      border-radius: 8px;
+      padding: 1.8rem;
+      margin-top: 1.5rem;
+    }
+
+    .premium-section h2 {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #c47a2a;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Locked state — shown when membership is basic */
+    #locked-message {
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+
+    #locked-message .lock-icon {
+      font-size: 2rem;
+      margin-bottom: 0.8rem;
+    }
+
+    #locked-message p {
+      font-size: 0.88rem;
+      color: #8b6a4a;
+      line-height: 1.6;
+    }
+
+    #locked-message strong {
+      color: #c47a2a;
+    }
+
+    /* Premium content — hidden until membership cookie = premium */
+    #premium-content {
+      display: none;
+    }
+
+    #premium-content .flag-reveal {
+      background: #120e0b;
+      border: 1px solid #c47a2a;
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      margin-top: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      color: #c47a2a;
+      word-break: break-all;
+    }
+
+    #premium-content p {
+      font-size: 0.88rem;
+      color: #8b6a4a;
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      border-top: 1px solid #2a2018;
+      padding: 1.5rem 2rem;
+      margin-top: 3rem;
+      font-size: 0.72rem;
+      color: #3a2e24;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <span class="nav-brand">Thornwood<span> Coffee</span></span>
+    <div class="nav-links">
+      <span class="active">Dashboard</span>
+      <span>Orders</span>
+      <span>Rewards</span>
+      <span>Account</span>
+    </div>
+  </nav>
+
+  <div class="page">
+
+    <div class="tier-badge" id="tier-badge">Basic Member</div>
+
+    <h1>Welcome back.</h1>
+    <p class="subhead">Your membership dashboard — manage your rewards and account details.</p>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Reward Points</h3>
+        <div class="value">340</div>
+        <div class="label">Redeemable at checkout</div>
+      </div>
+      <div class="card">
+        <h3>Orders This Month</h3>
+        <div class="value">7</div>
+        <div class="label">Last order: 2 days ago</div>
+      </div>
+    </div>
+
+    <div class="premium-section">
+      <h2>Premium Members Area</h2>
+
+      <!-- Shown when membership cookie is "basic" (default) -->
+      <div id="locked-message">
+        <div class="lock-icon">🔒</div>
+        <p>
+          This area is reserved for <strong>Premium</strong> members.<br>
+          Upgrade your account to unlock exclusive rewards, early access to seasonal blends,
+          and priority ordering.
+        </p>
+      </div>
+
+      <!-- Revealed when membership cookie is changed to "premium" -->
+      <div id="premium-content">
+        <p>
+          Welcome to the Premium dashboard. You have access to exclusive member benefits,
+          priority support, and the following internal reference for our security audit:
+        </p>
+        <div class="flag-reveal" id="flag-part1"></div>
+        <p style="margin-top:0.75rem; font-size:0.78rem; color:#6a5040;">
+          Note: a second piece of information is stored in your session data.
+          Check your cookies carefully — not everything is what it appears to be.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    Thornwood Coffee &nbsp;·&nbsp; Members Portal v1.4 &nbsp;·&nbsp;
+    &copy; 2024 Thornwood Coffee Co.
+  </footer>
+
+  <!--
+  ================================================================
+  CHALLENGE LOGIC
+  ================================================================
+  INSTRUCTORS: To change the flag:
+    1. Edit FLAG below
+    2. Edit flagPart1 (first half — shown on screen when premium)
+    3. Re-encode your second half: btoa(JSON.stringify({role:"guest",secret:"YOUR_PART2"}))
+       and update SESSION_DATA_VALUE
+  ================================================================
+  -->
+  <script>
+    // ============================================================
+    // CONFIGURATION — instructors edit these values
+    // ============================================================
+    const FLAG = "FLAG{cookies_are_not_secrets}";
+    const flagPart1 = "FLAG{cookies_";
+    // session_data cookie value (base64 of {"role":"guest","secret":"are_not_secrets}"})
+    // Decode with: atob("eyJyb2xlIjoiZ3Vlc3QiLCJzZWNyZXQiOiJhcmVfbm90X3NlY3JldHN9In0=")
+    const SESSION_DATA_VALUE = "eyJyb2xlIjoiZ3Vlc3QiLCJzZWNyZXQiOiJhcmVfbm90X3NlY3JldHN9In0=";
+
+    // ============================================================
+    // CHALLENGE LOGIC
+    // ============================================================
+
+    function getCookie(name) {
+      const cookies = document.cookie.split('; ');
+      const found = cookies.find(c => c.startsWith(name + '='));
+      return found ? found.split('=').slice(1).join('=') : null;
+    }
+
+    function initCookies() {
+      // Set default cookies only if not already present
+      // (so students who have changed them to "premium" don't get reset on reload)
+      if (!getCookie('membership')) {
+        document.cookie = "membership=basic; path=/";
+      }
+      if (!getCookie('session_data')) {
+        document.cookie = "session_data=" + SESSION_DATA_VALUE + "; path=/";
+      }
+    }
+
+    function checkMembership() {
+      const tier = getCookie('membership') || 'basic';
+
+      if (tier === 'premium') {
+        // Unlock the premium area
+        document.getElementById('locked-message').style.display = 'none';
+        document.getElementById('premium-content').style.display = 'block';
+        document.getElementById('flag-part1').textContent = flagPart1;
+
+        // Update tier badge
+        const badge = document.getElementById('tier-badge');
+        badge.textContent = 'Premium Member';
+        badge.classList.add('premium');
+      }
+      // If basic (or anything else), locked state is shown by default via CSS
+    }
+
+    // Run on page load
+    initCookies();
+    checkMembership();
+
+  </script>
+
+</body>
+</html>

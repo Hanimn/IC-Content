@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>F12 — The Computer's Notebook | Agency Training</title>
+<style>
+  /* Cool steel blue palette — Group E */
+  :root {
+    --bg:           #0d0d12;
+    --panel-bg:     #14141c;
+    --panel-bg-alt: #181822;
+    --border:       #23232f;
+    --border-soft:  #1a1a24;
+    --accent:       #7fb8ff;
+    --accent-dim:   #4a78b3;
+    --accent-bright:#a8d4ff;
+    --accent-glow:  rgba(127, 184, 255, 0.25);
+    --highlight-bg: rgba(127, 184, 255, 0.16);
+    --highlight-bg-strong: rgba(127, 184, 255, 0.28);
+    --text:         #c8cfd9;
+    --text-dim:     #6a7488;
+    --muted:        #2a3340;
+    --success:      #6ee0b0;
+    --error:        #ff7080;
+    --warn:         #ffb070;
+    --spill:        rgba(255, 112, 128, 0.18);
+    --spill-strong: rgba(255, 112, 128, 0.32);
+    --font:         'Courier New', Courier, monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* Header */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: linear-gradient(180deg, #10101a 0%, var(--bg) 100%);
+  }
+
+  .header-label {
+    font-size: 11px;
+    color: var(--accent-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: 20px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  /* Main layout */
+  main {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Panels */
+  .panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 24px;
+    position: relative;
+    transition: opacity 0.3s, filter 0.3s;
+  }
+
+  .panel.locked {
+    opacity: 0.42;
+    filter: saturate(0.5);
+    pointer-events: none;
+  }
+
+  .panel.locked::after {
+    content: 'LOCKED — finish the previous panel to unlock';
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 10px;
+    color: var(--warn);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: rgba(255, 176, 112, 0.08);
+    border: 1px solid var(--warn);
+    border-radius: 2px;
+    padding: 3px 8px;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    color: var(--accent-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title .meta {
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .panel-title .meta.complete {
+    color: var(--success);
+  }
+
+  /* Brief / instructions */
+  .brief {
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+
+  .brief p { margin-bottom: 10px; }
+  .brief p:last-child { margin-bottom: 0; }
+
+  .inline-code {
+    color: var(--accent-bright);
+    background: rgba(127, 184, 255, 0.08);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-family: var(--font);
+  }
+
+  .status-line {
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+    padding: 6px 10px;
+    border-left: 2px solid var(--accent-dim);
+    background: rgba(127, 184, 255, 0.04);
+  }
+
+  .status-line.success {
+    color: var(--success);
+    border-left-color: var(--success);
+    background: rgba(110, 224, 176, 0.06);
+  }
+
+  /* PANEL 1 — Memory grid */
+  .grid-wrap {
+    overflow-x: auto;
+    padding: 6px 0 14px 0;
+  }
+
+  #memory-grid {
+    display: grid;
+    grid-template-columns: 50px repeat(16, 1fr);
+    gap: 2px;
+    min-width: 720px;
+    font-size: 12px;
+  }
+
+  .col-header, .row-header {
+    color: var(--text-dim);
+    font-size: 10px;
+    text-align: center;
+    padding: 4px 2px;
+    letter-spacing: 0.05em;
+  }
+
+  .row-header { text-align: right; padding-right: 8px; }
+
+  .mem-cell {
+    background: var(--panel-bg-alt);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 7px 0;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.12s ease;
+    user-select: none;
+    font-family: var(--font);
+    letter-spacing: 0.04em;
+  }
+
+  .mem-cell:hover {
+    border-color: var(--accent-dim);
+    color: var(--accent);
+    box-shadow: 0 0 6px var(--accent-glow);
+  }
+
+  .mem-cell.written {
+    color: var(--accent-bright);
+    border-color: var(--accent);
+    background: rgba(127, 184, 255, 0.1);
+  }
+
+  .mem-cell.editing {
+    border-color: var(--accent);
+    background: rgba(127, 184, 255, 0.18);
+  }
+
+  .mem-cell input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--accent-bright);
+    font-family: var(--font);
+    font-size: 12px;
+    text-align: center;
+    outline: none;
+    text-transform: uppercase;
+    padding: 0;
+    letter-spacing: 0.04em;
+  }
+
+  /* PANEL 2 — stack */
+  .stack-target {
+    background: var(--bg);
+    border: 1px solid var(--border-soft);
+    padding: 12px 14px;
+    border-radius: 3px;
+    margin-bottom: 14px;
+    font-family: var(--font);
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.8;
+  }
+
+  .stack-target .label {
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-right: 10px;
+  }
+
+  .target-plate {
+    display: inline-block;
+    background: rgba(127, 184, 255, 0.06);
+    border: 1px solid var(--border);
+    color: var(--accent-bright);
+    padding: 3px 12px;
+    margin: 0 3px;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+  }
+
+  .stack-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+
+  .stack-tower {
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    padding: 14px;
+    min-height: 280px;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .stack-tower-label {
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .stack-tower-bottom {
+    color: var(--text-dim);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border);
+  }
+
+  .plate {
+    background: rgba(127, 184, 255, 0.08);
+    border: 1px solid var(--accent-dim);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-family: var(--font);
+    font-size: 12px;
+    color: var(--accent-bright);
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  .plate.fresh {
+    animation: plate-in 0.25s ease;
+  }
+
+  @keyframes plate-in {
+    from { transform: translateY(-12px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+
+  .plate-name {
+    font-weight: bold;
+    letter-spacing: 0.06em;
+  }
+
+  .plate-meta {
+    color: var(--text-dim);
+    font-size: 11px;
+    margin-top: 2px;
+  }
+
+  .plate-meta .ret-addr {
+    color: var(--accent);
+  }
+
+  .stack-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .call-btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .stack-btn {
+    background: transparent;
+    border: 1px solid var(--accent-dim);
+    color: var(--accent);
+    font-family: var(--font);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    padding: 8px 14px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.15s ease;
+    flex: 1;
+    min-width: 90px;
+  }
+
+  .stack-btn:hover {
+    background: rgba(127, 184, 255, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 6px var(--accent-glow);
+  }
+
+  .stack-btn.muted {
+    border-color: var(--border);
+    color: var(--text-dim);
+  }
+
+  .stack-btn.muted:hover {
+    border-color: var(--text-dim);
+    color: var(--text);
+    box-shadow: none;
+  }
+
+  .stack-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .stack-btn:disabled:hover {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  /* PANEL 3 — overflow */
+  .overflow-input-row {
+    margin-bottom: 18px;
+  }
+
+  .overflow-input-row label {
+    display: block;
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .overflow-input-row input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: var(--font);
+    font-size: 14px;
+    padding: 9px 14px;
+    outline: none;
+    border-radius: 3px;
+    width: 100%;
+    max-width: 360px;
+    letter-spacing: 0.06em;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .overflow-input-row input:focus {
+    border-color: var(--accent-dim);
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  .slots {
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .slot {
+    flex: 1;
+    min-width: 200px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 14px;
+    transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+  }
+
+  .slot-title {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .slot-title .size {
+    color: var(--accent-dim);
+  }
+
+  .slot-bytes {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .byte-cell {
+    flex: 1;
+    background: var(--panel-bg-alt);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    text-align: center;
+    padding: 9px 0;
+    border-radius: 2px;
+    font-family: var(--font);
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
+  }
+
+  .byte-cell.written {
+    color: var(--accent-bright);
+    border-color: var(--accent-dim);
+    background: rgba(127, 184, 255, 0.1);
+  }
+
+  .byte-cell.spilled {
+    color: #ff9eaa;
+    border-color: var(--error);
+    background: var(--spill-strong);
+    box-shadow: 0 0 6px rgba(255, 112, 128, 0.3);
+  }
+
+  .slot-ascii {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    letter-spacing: 0.1em;
+    margin-top: 4px;
+  }
+
+  .slot-ascii .printable { color: var(--accent); }
+  .slot-ascii .spilled-ascii { color: #ff9eaa; }
+
+  .slot.return-addr.spilling {
+    background: var(--spill);
+    border-color: var(--error);
+  }
+
+  .arrow-spill {
+    color: var(--text-dim);
+    font-size: 22px;
+    align-self: center;
+    padding: 0 4px;
+    transition: color 0.2s;
+  }
+
+  .arrow-spill.active { color: var(--error); }
+
+  .overflow-status {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    border-left: 2px solid var(--border);
+    background: var(--bg);
+  }
+
+  .overflow-status.spilling {
+    color: var(--warn);
+    border-left-color: var(--warn);
+    background: rgba(255, 176, 112, 0.05);
+  }
+
+  .overflow-status.fully-overwritten {
+    color: var(--error);
+    border-left-color: var(--error);
+    background: rgba(255, 112, 128, 0.06);
+  }
+
+  .secret-link-row {
+    margin-top: 12px;
+    text-align: center;
+    min-height: 26px;
+  }
+
+  .secret-link {
+    display: none;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px dashed var(--border);
+    padding: 6px 14px;
+    border-radius: 3px;
+    font-family: var(--font);
+    font-size: 12px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: all 0.2s;
+    animation: link-fade-in 0.6s ease;
+  }
+
+  .secret-link.show {
+    display: inline-block;
+  }
+
+  .secret-link:hover {
+    color: var(--accent-bright);
+    border-color: var(--accent);
+    background: rgba(127, 184, 255, 0.08);
+  }
+
+  @keyframes link-fade-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Flag fragment displays */
+  .fragment-box {
+    display: none;
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: rgba(110, 224, 176, 0.06);
+    border: 1px solid var(--success);
+    border-radius: 3px;
+    font-family: var(--font);
+  }
+
+  .fragment-box.show { display: block; }
+
+  .fragment-label {
+    font-size: 11px;
+    color: var(--success);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .fragment-value {
+    font-size: 16px;
+    color: var(--accent-bright);
+    letter-spacing: 0.04em;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 2px;
+    text-align: center;
+  }
+
+  /* Flag submission */
+  .flag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .flag-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: var(--font);
+    font-size: 14px;
+    padding: 9px 14px;
+    outline: none;
+    border-radius: 3px;
+    min-width: 360px;
+    flex: 1;
+    max-width: 480px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .flag-input:focus {
+    border-color: var(--accent-dim);
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  .flag-input.correct {
+    border-color: var(--success);
+    color: var(--success);
+  }
+
+  .flag-input.wrong {
+    border-color: var(--error);
+    color: var(--error);
+    animation: shake 0.4s ease;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-4px); }
+    40%, 80% { transform: translateX(4px); }
+  }
+
+  .btn-submit {
+    background: transparent;
+    border: 1px solid var(--accent-dim);
+    color: var(--accent);
+    font-family: var(--font);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 9px 22px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.15s ease;
+  }
+
+  .btn-submit:hover {
+    background: rgba(127, 184, 255, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  /* Result */
+  #result {
+    display: none;
+    border: 1px solid var(--success);
+    background: var(--panel-bg);
+    border-radius: 4px;
+    padding: 22px 26px;
+    margin-top: 4px;
+  }
+
+  #result.show { display: block; }
+
+  #result-banner {
+    font-family: var(--font);
+    font-size: 13px;
+    color: var(--success);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    margin-bottom: 14px;
+  }
+
+  #result-flag {
+    font-family: var(--font);
+    font-size: 16px;
+    color: var(--accent-bright);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 12px 16px;
+    border-radius: 3px;
+    text-align: center;
+    margin: 14px 0;
+    letter-spacing: 0.05em;
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+
+  #result-note {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+    margin-top: 14px;
+  }
+
+  #result-note a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  #result-note a:hover { text-decoration: underline; }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+    padding: 18px 32px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  footer a {
+    color: var(--text-dim);
+    text-decoration: none;
+    margin: 0 6px;
+  }
+  footer a:hover { color: var(--accent); }
+
+  @media (max-width: 760px) {
+    .stack-area { grid-template-columns: 1fr; }
+    .flag-input { min-width: 100%; }
+    main { padding: 20px 14px; }
+    #memory-grid { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">Agency Training // Foundation Module F12</div>
+  <h1>The Computer's Notebook</h1>
+  <div class="subtitle">Memory, the stack, and the picture of an overflow</div>
+</header>
+
+<main>
+
+  <!-- Brief -->
+  <div class="panel">
+    <div class="panel-title">
+      <span>The Brief</span>
+      <span class="meta">three panels // gated</span>
+    </div>
+    <div class="brief">
+      <p>
+        Three panels, in order. Each one teaches one idea about how a computer remembers things,
+        and each one unlocks the next.
+      </p>
+      <p>
+        <strong style="color:var(--accent)">Panel 1</strong> — the memory grid. Click any cell to write a byte.
+        <strong style="color:var(--accent)">Panel 2</strong> — the stack. Push and pop function frames; match a target stack to earn the first half of the flag.
+        <strong style="color:var(--accent)">Panel 3</strong> — the overflow demo. Type into a 4-byte slot. See what happens past the 4th character. Find the second half of the flag.
+      </p>
+      <p>
+        Submit the full flag at the bottom when you have both halves.
+      </p>
+    </div>
+  </div>
+
+  <!-- PANEL 1: Memory Grid -->
+  <div class="panel" id="panel-1">
+    <div class="panel-title">
+      <span>Panel 1 — Memory Grid (256 bytes)</span>
+      <span class="meta" id="panel-1-status">click any cell to write a byte</span>
+    </div>
+    <div class="brief">
+      <p>
+        Below is 256 bytes of memory laid out in a 16×16 grid. Each cell is one byte — its address is shown by
+        its row and column. The cell at row <span class="inline-code">0x30</span> column
+        <span class="inline-code">0x4</span> has address <span class="inline-code">0x34</span>.
+      </p>
+      <p>
+        Click any cell, type a two-digit hex value (<span class="inline-code">00</span>–<span class="inline-code">FF</span>),
+        and press Enter. The cell updates. Memory is just numbered desks holding numbered slips —
+        you are the CPU now.
+      </p>
+    </div>
+    <div class="status-line" id="grid-status">
+      Write to any 3 distinct cells to confirm you've got the picture. Panel 2 will unlock.
+    </div>
+    <div class="grid-wrap">
+      <div id="memory-grid" aria-label="256-byte memory grid"></div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: Stack Visualizer -->
+  <div class="panel locked" id="panel-2">
+    <div class="panel-title">
+      <span>Panel 2 — The Stack</span>
+      <span class="meta" id="panel-2-status">match the target stack</span>
+    </div>
+    <div class="brief">
+      <p>
+        Each <span class="inline-code">call</span> pushes a fresh plate (a stack frame) onto the top of the stack.
+        Each plate carries a fake return address, which is what the CPU would jump to when the function returns.
+        <span class="inline-code">return</span> pops the top plate.
+      </p>
+      <p>
+        Your job: build the target stack below. The target shows the stack from bottom to top — the leftmost plate
+        is the bottom (oldest), the rightmost is the top (newest, most recently called).
+        <span class="inline-code">main</span> is already on the stack for you.
+      </p>
+    </div>
+
+    <div class="stack-target">
+      <span class="label">Target stack (bottom → top):</span>
+      <span id="target-plates"></span>
+    </div>
+
+    <div class="stack-area">
+      <div>
+        <div class="stack-tower-label">Live stack (top of tower)</div>
+        <div class="stack-tower" id="stack-tower" aria-label="current stack tower"></div>
+        <div class="stack-tower-bottom">↑ top of stack &nbsp;|&nbsp; bottom ↓</div>
+      </div>
+      <div class="stack-controls">
+        <div class="status-line" id="stack-status">
+          press call A, B, or C to push a frame. press return to pop the top.
+        </div>
+        <div class="call-btn-row">
+          <button class="stack-btn" id="btn-call-a">call A()</button>
+          <button class="stack-btn" id="btn-call-b">call B()</button>
+          <button class="stack-btn" id="btn-call-c">call C()</button>
+        </div>
+        <div class="call-btn-row">
+          <button class="stack-btn muted" id="btn-return">return</button>
+          <button class="stack-btn muted" id="btn-stack-reset">reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="fragment-box" id="fragment-1-box">
+      <div class="fragment-label">Flag fragment 1 — captured</div>
+      <div class="fragment-value" id="fragment-1-value"></div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: Overflow Demo -->
+  <div class="panel locked" id="panel-3">
+    <div class="panel-title">
+      <span>Panel 3 — The Overflow</span>
+      <span class="meta" id="panel-3-status">type into the 4-byte slot</span>
+    </div>
+    <div class="brief">
+      <p>
+        Two slots side by side: a 4-byte input slot and the 4-byte return-address slot. They sit next to each
+        other in memory. The return address starts as <span class="inline-code">0x00DEAD00</span>.
+      </p>
+      <p>
+        Type into the input below. The first 4 characters fill the input slot byte-by-byte. ASCII values appear
+        in hex inside each byte cell. The 5th and beyond have nowhere to go inside the input slot — so they spill
+        into the next slot. That next slot is the return address.
+      </p>
+      <p style="color:var(--text-dim); font-size:12px;">
+        This isn't a hack — that's just where the slots happen to be next to each other in memory. Try it.
+      </p>
+    </div>
+
+    <div class="overflow-input-row">
+      <label for="overflow-input">Type into the 4-byte input slot:</label>
+      <input type="text" id="overflow-input" autocomplete="off" autocorrect="off"
+        autocapitalize="off" spellcheck="false" maxlength="32"
+        placeholder="start typing — try 5, 6, 8 characters" />
+    </div>
+
+    <div class="slots">
+      <div class="slot input-slot" id="slot-input">
+        <div class="slot-title"><span>input slot</span><span class="size">4 bytes</span></div>
+        <div class="slot-bytes" id="input-bytes"></div>
+        <div class="slot-ascii" id="input-ascii">. . . .</div>
+      </div>
+      <div class="arrow-spill" id="spill-arrow">→</div>
+      <div class="slot return-addr" id="slot-retaddr">
+        <div class="slot-title"><span>return_addr (the bookmark)</span><span class="size">4 bytes</span></div>
+        <div class="slot-bytes" id="retaddr-bytes"></div>
+        <div class="slot-ascii" id="retaddr-ascii">. . . .</div>
+      </div>
+    </div>
+
+    <div class="overflow-status" id="overflow-status">
+      typed 0 chars · 0 bytes spilled into return_addr
+    </div>
+
+    <div class="secret-link-row">
+      <button class="secret-link" id="secret-link" type="button">
+        [ secret debug panel — appears once return_addr is fully overwritten ]
+      </button>
+    </div>
+
+    <div class="fragment-box" id="fragment-2-box">
+      <div class="fragment-label">Flag fragment 2 — captured</div>
+      <div class="fragment-value" id="fragment-2-value"></div>
+    </div>
+  </div>
+
+  <!-- Flag submission -->
+  <div class="panel">
+    <div class="panel-title"><span>Submit Flag</span></div>
+    <div class="brief">
+      <p>
+        Glue fragment 1 and fragment 2 together (no space) and submit the full string.
+      </p>
+    </div>
+    <div class="flag-row">
+      <input type="text" class="flag-input" id="flag-input"
+        placeholder="FLAG{...}"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+      <button class="btn-submit" id="btn-submit">[ Submit ]</button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div id="result" role="alert">
+    <pre id="result-banner"></pre>
+    <div id="result-flag"></div>
+    <div id="result-note"></div>
+  </div>
+
+</main>
+
+<footer>
+  F12 — The Computer's Notebook &nbsp;|&nbsp; Foundation Track &nbsp;|&nbsp;
+  <a href="hint-1.md">Hint 1</a>
+  <a href="hint-2.md">Hint 2</a>
+  <a href="solution.md">Solution</a>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =====================================================================
+     Flag fragments — concatenated, this is the full flag.
+     Fragment 1 from Panel 2 + Fragment 2 from Panel 3.
+     ===================================================================== */
+  var FRAGMENT_1 = 'FLAG{the_stack_';
+  var FRAGMENT_2 = 'remembers_where_to_go_back}';
+  var FULL_FLAG  = FRAGMENT_1 + FRAGMENT_2;
+
+  /* Self-test: confirm full flag matches the spec */
+  (function selfTest() {
+    var expected = 'FLAG{the_stack_remembers_where_to_go_back}';
+    if (FULL_FLAG !== expected) {
+      console.error('SELF-TEST FAILED: flag mismatch. Got:', FULL_FLAG);
+    }
+  })();
+
+  /* ---------- helpers ---------- */
+  function byId(id) { return document.getElementById(id); }
+  function clearChildren(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+  function isPrintable(b) { return b >= 0x20 && b <= 0x7E; }
+  function hex2(n) { return n.toString(16).toUpperCase().padStart(2, '0'); }
+
+  /* =====================================================================
+     PANEL 1 — Memory Grid
+     ===================================================================== */
+  var GRID_SIZE = 16;
+  var memory = new Array(GRID_SIZE * GRID_SIZE);
+  for (var i = 0; i < memory.length; i++) memory[i] = 0x00;
+  var writtenCells = {};   // address -> byte value (only for distinct user writes)
+  var panel1Complete = false;
+
+  function buildMemoryGrid() {
+    var grid = byId('memory-grid');
+    clearChildren(grid);
+
+    // Top-left corner cell (empty)
+    var corner = document.createElement('div');
+    corner.className = 'col-header';
+    corner.textContent = '';
+    grid.appendChild(corner);
+
+    // Column headers 0..F
+    for (var c = 0; c < GRID_SIZE; c++) {
+      var ch = document.createElement('div');
+      ch.className = 'col-header';
+      ch.textContent = '+' + c.toString(16).toUpperCase();
+      grid.appendChild(ch);
+    }
+
+    // Rows
+    for (var r = 0; r < GRID_SIZE; r++) {
+      var rh = document.createElement('div');
+      rh.className = 'row-header';
+      rh.textContent = '0x' + (r * 16).toString(16).toUpperCase().padStart(2, '0');
+      grid.appendChild(rh);
+
+      for (var c2 = 0; c2 < GRID_SIZE; c2++) {
+        var addr = r * GRID_SIZE + c2;
+        var cell = document.createElement('div');
+        cell.className = 'mem-cell';
+        cell.dataset.addr = String(addr);
+        cell.textContent = hex2(memory[addr]);
+        cell.title = 'address 0x' + hex2(addr);
+        cell.addEventListener('click', onCellClick);
+        grid.appendChild(cell);
+      }
+    }
+  }
+
+  function onCellClick(e) {
+    var cell = e.currentTarget;
+    if (cell.querySelector('input')) return;
+    if (cell.classList.contains('editing')) return;
+
+    var addr = parseInt(cell.dataset.addr, 10);
+    var current = memory[addr];
+
+    cell.classList.add('editing');
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.maxLength = 2;
+    input.value = hex2(current);
+    input.spellcheck = false;
+    input.autocomplete = 'off';
+
+    clearChildren(cell);
+    cell.appendChild(input);
+    input.focus();
+    input.select();
+
+    function commit() {
+      var raw = input.value.trim().toUpperCase();
+      var v = parseInt(raw, 16);
+      cell.classList.remove('editing');
+      if (raw.length > 0 && /^[0-9A-F]{1,2}$/.test(raw) && !isNaN(v) && v >= 0 && v <= 0xFF) {
+        memory[addr] = v;
+        clearChildren(cell);
+        cell.textContent = hex2(v);
+        if (v !== 0x00) {
+          cell.classList.add('written');
+          writtenCells[addr] = v;
+        } else {
+          cell.classList.remove('written');
+          delete writtenCells[addr];
+        }
+      } else {
+        // Invalid input — restore previous display.
+        clearChildren(cell);
+        cell.textContent = hex2(memory[addr]);
+        if (memory[addr] !== 0x00) cell.classList.add('written');
+      }
+      checkPanel1Progress();
+    }
+
+    function cancel() {
+      cell.classList.remove('editing');
+      clearChildren(cell);
+      cell.textContent = hex2(memory[addr]);
+      if (memory[addr] !== 0x00) cell.classList.add('written');
+    }
+
+    input.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        commit();
+      } else if (ev.key === 'Escape') {
+        ev.preventDefault();
+        cancel();
+      }
+    });
+    input.addEventListener('blur', commit);
+  }
+
+  function checkPanel1Progress() {
+    var distinctAddresses = Object.keys(writtenCells);
+    var distinctValues = {};
+    for (var i = 0; i < distinctAddresses.length; i++) {
+      distinctValues[writtenCells[distinctAddresses[i]]] = true;
+    }
+    var distinctValueCount = Object.keys(distinctValues).length;
+
+    var status = byId('grid-status');
+    var meta = byId('panel-1-status');
+    var n = distinctAddresses.length;
+
+    if (n >= 3 && distinctValueCount >= 3) {
+      if (!panel1Complete) {
+        panel1Complete = true;
+        status.classList.add('success');
+        status.textContent = 'Three distinct cells written. You are the CPU. Panel 2 unlocked.';
+        meta.textContent = 'complete';
+        meta.classList.add('complete');
+        unlockPanel2();
+      }
+    } else {
+      status.textContent =
+        'Cells written: ' + n + '/3 distinct addresses, ' +
+        distinctValueCount + '/3 distinct values. Click any cell to write.';
+    }
+  }
+
+  /* =====================================================================
+     PANEL 2 — Stack Visualizer
+     ===================================================================== */
+  // Target stack from bottom to top.
+  var STACK_TARGET = ['main', 'A', 'C', 'B'];
+  var FAKE_RET_ADDRS = {
+    main: '0x4011A0',
+    A:    '0x401234',
+    B:    '0x4012F8',
+    C:    '0x401370'
+  };
+  var stack = ['main'];
+  var panel2Unlocked = false;
+  var panel2Complete = false;
+
+  function unlockPanel2() {
+    if (panel2Unlocked) return;
+    panel2Unlocked = true;
+    byId('panel-2').classList.remove('locked');
+  }
+
+  function renderTargetPlates() {
+    var host = byId('target-plates');
+    clearChildren(host);
+    for (var i = 0; i < STACK_TARGET.length; i++) {
+      var p = document.createElement('span');
+      p.className = 'target-plate';
+      p.textContent = STACK_TARGET[i];
+      host.appendChild(p);
+      if (i < STACK_TARGET.length - 1) {
+        host.appendChild(document.createTextNode(' '));
+      }
+    }
+  }
+
+  function renderStackTower(freshIndex) {
+    var tower = byId('stack-tower');
+    clearChildren(tower);
+    // Render in stack order (bottom -> top). Because the container is
+    // flex column-reverse, the LAST DOM child appears at the bottom
+    // visually — but that's the bottom of the stack, which is correct.
+    for (var i = 0; i < stack.length; i++) {
+      var name = stack[i];
+      var plate = document.createElement('div');
+      plate.className = 'plate';
+      if (freshIndex === i) plate.classList.add('fresh');
+
+      var nameLine = document.createElement('div');
+      nameLine.className = 'plate-name';
+      nameLine.textContent = name + '()' + (i === 0 ? '  (bottom)' : '');
+      plate.appendChild(nameLine);
+
+      var meta = document.createElement('div');
+      meta.className = 'plate-meta';
+      var ra = document.createElement('span');
+      ra.className = 'ret-addr';
+      ra.textContent = FAKE_RET_ADDRS[name] || '0x????';
+      meta.appendChild(document.createTextNode('return → '));
+      meta.appendChild(ra);
+      plate.appendChild(meta);
+
+      tower.appendChild(plate);
+    }
+  }
+
+  function pushFrame(name) {
+    if (panel2Complete) return;
+    stack.push(name);
+    renderStackTower(stack.length - 1);
+    checkStackMatch();
+  }
+
+  function popFrame() {
+    if (panel2Complete) return;
+    if (stack.length <= 1) {
+      // Don't allow popping main.
+      flashStackStatus('cannot return from main — that is the bottom of the stack.');
+      return;
+    }
+    stack.pop();
+    renderStackTower(-1);
+    checkStackMatch();
+  }
+
+  function resetStack() {
+    if (panel2Complete) return;
+    stack = ['main'];
+    renderStackTower(-1);
+    checkStackMatch();
+  }
+
+  function flashStackStatus(msg) {
+    var s = byId('stack-status');
+    s.textContent = msg;
+  }
+
+  function checkStackMatch() {
+    var status = byId('stack-status');
+    var meta = byId('panel-2-status');
+
+    if (stack.length === STACK_TARGET.length) {
+      var match = true;
+      for (var i = 0; i < stack.length; i++) {
+        if (stack[i] !== STACK_TARGET[i]) { match = false; break; }
+      }
+      if (match) {
+        panel2Complete = true;
+        status.classList.add('success');
+        status.textContent =
+          'Stack matches target. Each plate carries a return address — that is the bookmark.';
+        meta.textContent = 'fragment 1 captured';
+        meta.classList.add('complete');
+        revealFragment1();
+        unlockPanel3();
+        return;
+      }
+    }
+    status.classList.remove('success');
+    status.textContent =
+      'current depth ' + stack.length + ' / target depth ' + STACK_TARGET.length +
+      '. press call X, return, or reset.';
+  }
+
+  function revealFragment1() {
+    var box = byId('fragment-1-box');
+    var val = byId('fragment-1-value');
+    val.textContent = FRAGMENT_1;
+    box.classList.add('show');
+  }
+
+  function wireStackControls() {
+    byId('btn-call-a').addEventListener('click', function () { pushFrame('A'); });
+    byId('btn-call-b').addEventListener('click', function () { pushFrame('B'); });
+    byId('btn-call-c').addEventListener('click', function () { pushFrame('C'); });
+    byId('btn-return').addEventListener('click', popFrame);
+    byId('btn-stack-reset').addEventListener('click', resetStack);
+  }
+
+  /* =====================================================================
+     PANEL 3 — Overflow Demo
+     ===================================================================== */
+  var INPUT_SLOT_SIZE = 4;
+  var RETADDR_SLOT_SIZE = 4;
+  // Each "byte cell" stores a hex byte (number 0–255) that we render.
+  var inputBytes = [0, 0, 0, 0];
+  // Original return address bytes — 0x00 0xDE 0xAD 0x00 (just visuals).
+  var ORIG_RETADDR = [0x00, 0xDE, 0xAD, 0x00];
+  var retaddrBytes = ORIG_RETADDR.slice();
+  var panel3Unlocked = false;
+  var fragment2Revealed = false;
+
+  function unlockPanel3() {
+    if (panel3Unlocked) return;
+    panel3Unlocked = true;
+    byId('panel-3').classList.remove('locked');
+  }
+
+  function buildOverflowSlots() {
+    var inputHost = byId('input-bytes');
+    clearChildren(inputHost);
+    for (var i = 0; i < INPUT_SLOT_SIZE; i++) {
+      var c = document.createElement('div');
+      c.className = 'byte-cell';
+      c.id = 'in-byte-' + i;
+      c.textContent = '00';
+      inputHost.appendChild(c);
+    }
+
+    var retHost = byId('retaddr-bytes');
+    clearChildren(retHost);
+    for (var j = 0; j < RETADDR_SLOT_SIZE; j++) {
+      var c2 = document.createElement('div');
+      c2.className = 'byte-cell';
+      c2.id = 'ret-byte-' + j;
+      c2.textContent = hex2(ORIG_RETADDR[j]);
+      retHost.appendChild(c2);
+    }
+  }
+
+  function asciiSpan(b, spilled) {
+    var span = document.createElement('span');
+    if (b === 0x00) {
+      span.textContent = '.';
+    } else if (isPrintable(b)) {
+      span.textContent = String.fromCharCode(b);
+      span.className = spilled ? 'spilled-ascii' : 'printable';
+    } else {
+      span.textContent = '.';
+    }
+    return span;
+  }
+
+  function renderOverflow(typedLength, spilledCount) {
+    // Render input slot bytes.
+    for (var i = 0; i < INPUT_SLOT_SIZE; i++) {
+      var cell = byId('in-byte-' + i);
+      cell.textContent = hex2(inputBytes[i]);
+      cell.classList.toggle('written', i < Math.min(typedLength, INPUT_SLOT_SIZE) && inputBytes[i] !== 0);
+    }
+
+    // Render retaddr slot bytes.
+    for (var j = 0; j < RETADDR_SLOT_SIZE; j++) {
+      var cell2 = byId('ret-byte-' + j);
+      cell2.textContent = hex2(retaddrBytes[j]);
+      var isSpilled = j < spilledCount;
+      cell2.classList.toggle('spilled', isSpilled);
+      cell2.classList.toggle('written', !isSpilled && retaddrBytes[j] !== ORIG_RETADDR[j]);
+    }
+
+    // ASCII rows
+    var ia = byId('input-ascii');
+    clearChildren(ia);
+    for (var k = 0; k < INPUT_SLOT_SIZE; k++) {
+      ia.appendChild(asciiSpan(inputBytes[k], false));
+      if (k < INPUT_SLOT_SIZE - 1) ia.appendChild(document.createTextNode(' '));
+    }
+
+    var ra = byId('retaddr-ascii');
+    clearChildren(ra);
+    for (var m = 0; m < RETADDR_SLOT_SIZE; m++) {
+      ra.appendChild(asciiSpan(retaddrBytes[m], m < spilledCount));
+      if (m < RETADDR_SLOT_SIZE - 1) ra.appendChild(document.createTextNode(' '));
+    }
+
+    // Spill-state styling
+    var slotRet = byId('slot-retaddr');
+    var arrow = byId('spill-arrow');
+    var statusEl = byId('overflow-status');
+
+    statusEl.classList.remove('spilling', 'fully-overwritten');
+    slotRet.classList.toggle('spilling', spilledCount > 0);
+    arrow.classList.toggle('active', spilledCount > 0);
+
+    if (spilledCount === 0) {
+      statusEl.textContent = 'typed ' + typedLength + ' char' +
+        (typedLength === 1 ? '' : 's') + ' · 0 bytes spilled into return_addr';
+    } else if (spilledCount < RETADDR_SLOT_SIZE) {
+      statusEl.classList.add('spilling');
+      statusEl.textContent =
+        'typed ' + typedLength + ' chars · ' + spilledCount +
+        ' / ' + RETADDR_SLOT_SIZE + ' bytes of the return address overwritten. keep typing.';
+    } else {
+      statusEl.classList.add('fully-overwritten');
+      statusEl.textContent =
+        'return_addr fully overwritten. the bookmark is gone. (a debug link just appeared below.)';
+    }
+  }
+
+  function onOverflowInput() {
+    var inp = byId('overflow-input');
+    var raw = inp.value;
+    var typedLength = raw.length;
+
+    // Reset slots
+    inputBytes = [0, 0, 0, 0];
+    retaddrBytes = ORIG_RETADDR.slice();
+
+    // Fill input slot with up to first 4 chars (their ASCII byte values).
+    for (var i = 0; i < INPUT_SLOT_SIZE && i < raw.length; i++) {
+      inputBytes[i] = raw.charCodeAt(i) & 0xFF;
+    }
+
+    // Spill bytes 5+ (1-indexed) into retaddr slot.
+    var spilledCount = 0;
+    for (var j = INPUT_SLOT_SIZE; j < raw.length && j < INPUT_SLOT_SIZE + RETADDR_SLOT_SIZE; j++) {
+      var idx = j - INPUT_SLOT_SIZE;
+      retaddrBytes[idx] = raw.charCodeAt(j) & 0xFF;
+      spilledCount++;
+    }
+
+    renderOverflow(typedLength, spilledCount);
+
+    // Reveal the secret link only when ALL 4 bytes of return_addr have spilled.
+    if (spilledCount >= RETADDR_SLOT_SIZE) {
+      var link = byId('secret-link');
+      if (!link.classList.contains('show')) {
+        link.classList.add('show');
+      }
+    }
+  }
+
+  function revealFragment2() {
+    if (fragment2Revealed) return;
+    fragment2Revealed = true;
+    var box = byId('fragment-2-box');
+    var val = byId('fragment-2-value');
+    val.textContent = FRAGMENT_2;
+    box.classList.add('show');
+
+    var meta = byId('panel-3-status');
+    meta.textContent = 'fragment 2 captured';
+    meta.classList.add('complete');
+  }
+
+  function wireOverflow() {
+    byId('overflow-input').addEventListener('input', onOverflowInput);
+    byId('secret-link').addEventListener('click', revealFragment2);
+  }
+
+  /* =====================================================================
+     Flag submission
+     ===================================================================== */
+  function checkFlag() {
+    var input = byId('flag-input');
+    var raw = input.value.trim();
+    var resultEl = byId('result');
+    var bannerEl = byId('result-banner');
+    var flagEl = byId('result-flag');
+    var noteEl = byId('result-note');
+
+    if (raw === FULL_FLAG) {
+      input.classList.remove('wrong');
+      input.classList.add('correct');
+      input.disabled = true;
+      resultEl.classList.add('show');
+      bannerEl.textContent =
+        'BOOKMARK RECOVERED.\n' +
+        'You just simulated a buffer overflow. In a real binary, the next slot might be a function\'s\n' +
+        'return address. You see how dangerous a slot too small can be.';
+      flagEl.textContent = FULL_FLAG;
+      clearChildren(noteEl);
+
+      var p1 = document.createElement('div');
+      p1.textContent =
+        'Memory is just numbered desks. The stack is plates of frames. Each frame carries a return ' +
+        'address — the bookmark for getting back to the caller. If a buffer next to that bookmark is ' +
+        'too small for the input written to it, the spillover bytes overwrite the bookmark. The CPU ' +
+        'then jumps wherever the new bytes point. That is the picture every binary exploitation ' +
+        'challenge starts with.';
+      var p2 = document.createElement('div');
+      p2.style.marginTop = '12px';
+      var contLink = document.createElement('a');
+      contLink.href = '../../F13-three-languages/README.md';
+      contLink.textContent = 'Continue to F13 →';
+      p2.appendChild(contLink);
+      noteEl.appendChild(p1);
+      noteEl.appendChild(p2);
+    } else {
+      input.classList.remove('correct');
+      input.classList.remove('wrong');
+      void input.offsetWidth; // restart shake animation
+      input.classList.add('wrong');
+    }
+  }
+
+  function wireFlagSubmit() {
+    var input = byId('flag-input');
+    byId('btn-submit').addEventListener('click', checkFlag);
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') checkFlag();
+    });
+    input.addEventListener('input', function () {
+      input.classList.remove('correct', 'wrong');
+    });
+  }
+
+  /* =====================================================================
+     Init
+     ===================================================================== */
+  buildMemoryGrid();
+  renderTargetPlates();
+  renderStackTower(-1);
+  buildOverflowSlots();
+  renderOverflow(0, 0);
+  wireStackControls();
+  wireOverflow();
+  wireFlagSubmit();
+})();
+</script>
+
+</body>
+</html>

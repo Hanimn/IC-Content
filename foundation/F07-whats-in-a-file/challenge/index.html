@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>F07 — What's in a File?</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #100c04;
+      --panel:     #1a1200;
+      --border:    #3a2a00;
+      --amber:     #e8a820;
+      --amber-dim: #a87010;
+      --amber-soft:#c48018;
+      --green:     #4caf50;
+      --red:       #e05050;
+      --text:      #d4c090;
+      --muted:     #7a6040;
+      --font:      'Courier New', Courier, monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0 0 60px 0;
+    }
+
+    /* HEADER */
+    header {
+      border-bottom: 2px solid var(--amber);
+      padding: 28px 32px 20px;
+    }
+    .agency-tag {
+      color: var(--amber-dim);
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    header h1 {
+      color: var(--amber);
+      font-size: 22px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    header p.subtitle {
+      color: var(--text);
+      margin-top: 6px;
+      font-size: 13px;
+    }
+    .badge-row {
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border: 1px solid var(--border);
+      color: var(--amber-dim);
+      letter-spacing: 1px;
+    }
+
+    /* LAYOUT */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 24px;
+      padding: 28px 32px;
+      max-width: 1100px;
+    }
+    @media (max-width: 800px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* PANELS */
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 20px;
+    }
+    .panel-title {
+      color: var(--amber);
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* REFERENCE TABLE */
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .ref-table th {
+      color: var(--amber-dim);
+      text-align: left;
+      padding: 4px 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+    .ref-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #2a1e00;
+      font-family: var(--font);
+    }
+    .ref-table tr:last-child td { border-bottom: none; }
+    .ref-table .fmt   { color: var(--amber); font-weight: bold; }
+    .ref-table .bytes { color: #c8b070; letter-spacing: 1px; }
+    .ref-table .ascii { color: var(--muted); }
+
+    /* FILE CARDS */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 600px) {
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+
+    .file-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 16px;
+      transition: border-color 0.2s;
+    }
+    .file-card.correct   { border-color: var(--green); }
+    .file-card.incorrect { border-color: var(--red); }
+
+    .card-index {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+    .card-filename {
+      color: var(--amber);
+      font-size: 15px;
+      margin-bottom: 10px;
+      word-break: break-all;
+    }
+    .card-bytes-label {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .card-bytes {
+      font-size: 13px;
+      color: #d4b060;
+      letter-spacing: 2px;
+      background: #0c0800;
+      padding: 8px 10px;
+      border: 1px solid #2a1e00;
+      margin-bottom: 12px;
+      word-break: break-all;
+    }
+    .card-select-label {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    select {
+      background: #0c0800;
+      color: var(--text);
+      border: 1px solid var(--border);
+      font-family: var(--font);
+      font-size: 13px;
+      padding: 6px 10px;
+      width: 100%;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23a87010'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+    select:focus { outline: 1px solid var(--amber-dim); }
+
+    .card-feedback {
+      margin-top: 8px;
+      font-size: 12px;
+      min-height: 18px;
+    }
+    .card-feedback.ok  { color: var(--green); }
+    .card-feedback.err { color: var(--red); }
+
+    /* CHECK BUTTON */
+    .check-row {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    button {
+      background: transparent;
+      border: 2px solid var(--amber);
+      color: var(--amber);
+      font-family: var(--font);
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 10px 24px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    button:hover {
+      background: var(--amber);
+      color: var(--bg);
+    }
+    button:disabled {
+      border-color: var(--muted);
+      color: var(--muted);
+      cursor: default;
+      background: transparent;
+    }
+    #check-msg {
+      font-size: 12px;
+      color: var(--amber-dim);
+    }
+
+    /* PROGRESS */
+    .progress-bar-wrap {
+      margin-top: 16px;
+      background: #0c0800;
+      border: 1px solid var(--border);
+      height: 6px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--amber);
+      transition: width 0.3s;
+      width: 0%;
+    }
+    .progress-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* BONUS MISSION */
+    #bonus-section {
+      display: none;
+      margin-top: 32px;
+    }
+    .bonus-header {
+      border: 2px solid var(--amber);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+    }
+    .bonus-tag {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--amber-dim);
+      margin-bottom: 4px;
+    }
+    .bonus-title {
+      color: var(--amber);
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+    .bonus-desc {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .corrupted-file-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .corrupted-filename {
+      color: var(--amber);
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+    .corrupted-status {
+      font-size: 12px;
+      color: var(--red);
+      margin-bottom: 16px;
+    }
+    .bytes-display {
+      background: #0c0800;
+      border: 1px solid #2a1e00;
+      padding: 12px 16px;
+      font-size: 14px;
+      letter-spacing: 3px;
+      margin-bottom: 16px;
+    }
+    .corrupted-byte { color: var(--red); font-size: 16px; font-weight: bold; }
+    .known-bytes    { color: #d4b060; }
+
+    .repair-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .repair-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .repair-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    input[type="text"] {
+      background: #0c0800;
+      border: 1px solid var(--border);
+      color: var(--amber);
+      font-family: var(--font);
+      font-size: 16px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      width: 56px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+    input[type="text"]:focus { outline: 1px solid var(--amber-dim); }
+    #repair-feedback {
+      font-size: 12px;
+      margin-top: 10px;
+      min-height: 18px;
+    }
+    #repair-feedback.ok  { color: var(--green); }
+    #repair-feedback.err { color: var(--red); }
+
+    /* FLAG TERMINAL */
+    #flag-terminal {
+      display: none;
+      background: #000800;
+      border: 2px solid var(--green);
+      padding: 24px;
+      margin-top: 24px;
+      font-size: 13px;
+      line-height: 1.8;
+      color: #60d060;
+    }
+    .flag-line    { color: #90f090; font-size: 16px; letter-spacing: 1px; margin: 8px 0; }
+    .flag-explain { color: #50a050; margin-top: 12px; font-size: 12px; }
+
+    /* SIDEBAR */
+    .sidebar-note {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .sidebar-note + .sidebar-note {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .hint-links a {
+      display: block;
+      color: var(--amber-dim);
+      text-decoration: none;
+      font-size: 12px;
+      padding: 4px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .hint-links a:hover { color: var(--amber); }
+    .hint-links a:last-child { border-bottom: none; }
+
+    /* FOOTER */
+    footer {
+      margin-top: 48px;
+      padding: 20px 32px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    footer a { color: var(--amber-dim); text-decoration: none; }
+    footer a:hover { color: var(--amber); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="agency-tag">Foundation Module F07</div>
+  <h1>Agency Training // What's in a File?</h1>
+  <p class="subtitle">Identify the disguised files and repair the corrupted one</p>
+  <div class="badge-row">
+    <span class="badge">BEGINNER</span>
+    <span class="badge">~25 MIN</span>
+    <span class="badge">PREREQ: F05 F06</span>
+    <span class="badge">UNLOCKS: FORENSICS</span>
+  </div>
+</header>
+
+<div class="main-grid">
+  <!-- LEFT COLUMN -->
+  <div>
+    <!-- INTRO -->
+    <div class="panel" style="margin-bottom:24px;">
+      <div class="panel-title">Mission Briefing</div>
+      <p id="briefing-text" style="font-size:13px;line-height:1.7;"></p>
+      <p id="briefing-note" style="font-size:12px;color:var(--muted);margin-top:10px;"></p>
+    </div>
+
+    <!-- FILE CARDS -->
+    <div class="panel" style="margin-bottom:0;">
+      <div class="panel-title">File Disguise Detector — 6 Files</div>
+      <div class="cards-grid" id="cards-grid"></div>
+
+      <div class="check-row">
+        <button id="check-btn" onclick="checkAll()">Check All</button>
+        <span id="check-msg"></span>
+      </div>
+
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-label" id="progress-label">0 / 6 correct</div>
+    </div>
+
+    <!-- BONUS MISSION -->
+    <div id="bonus-section">
+      <div class="bonus-header">
+        <div class="bonus-tag">Bonus Mission Unlocked</div>
+        <div class="bonus-title">Corrupted File Repair</div>
+        <div class="bonus-desc" id="bonus-desc-text"></div>
+      </div>
+
+      <div class="corrupted-file-panel">
+        <div class="corrupted-filename">evidence.png</div>
+        <div class="corrupted-status">ERROR: File signature invalid — cannot open</div>
+
+        <div class="card-bytes-label">First 8 Bytes (hex):</div>
+        <div class="bytes-display">
+          <span class="corrupted-byte">??</span><span class="known-bytes"> 50 4E 47 0D 0A 1A 0A</span>
+        </div>
+
+        <p id="repair-hint-text" style="font-size:12px;color:var(--muted);margin-bottom:16px;"></p>
+
+        <div class="repair-row">
+          <span class="repair-label">First byte should be:</span>
+          <div class="repair-input-wrap">
+            <input type="text" id="repair-input" maxlength="2" placeholder="??" autocomplete="off" spellcheck="false" />
+            <button id="repair-btn" onclick="checkRepair()">Repair File</button>
+          </div>
+        </div>
+        <div id="repair-feedback"></div>
+      </div>
+
+      <!-- FLAG TERMINAL -->
+      <div id="flag-terminal">
+        <div id="ft-1"></div>
+        <div id="ft-2"></div>
+        <div id="ft-3"></div>
+        <div id="ft-4"></div>
+        <div id="ft-5"></div>
+        <div id="ft-6" style="margin-top:12px;"></div>
+        <div class="flag-line" id="ft-flag"></div>
+        <div class="flag-explain" id="ft-explain"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN (SIDEBAR) -->
+  <div>
+    <!-- MAGIC BYTES REFERENCE -->
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-title">Magic Bytes Reference</div>
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Format</th>
+            <th>Hex Bytes</th>
+            <th>ASCII</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="fmt">PNG</td>
+            <td class="bytes">89 50 4E 47<br>0D 0A 1A 0A</td>
+            <td class="ascii">.PNG....</td>
+          </tr>
+          <tr>
+            <td class="fmt">JPEG</td>
+            <td class="bytes">FF D8 FF</td>
+            <td class="ascii">...</td>
+          </tr>
+          <tr>
+            <td class="fmt">PDF</td>
+            <td class="bytes">25 50 44 46<br>2D ...</td>
+            <td class="ascii">%PDF-</td>
+          </tr>
+          <tr>
+            <td class="fmt">ZIP</td>
+            <td class="bytes">50 4B 03 04</td>
+            <td class="ascii">PK..</td>
+          </tr>
+          <tr>
+            <td class="fmt">GIF</td>
+            <td class="bytes">47 49 46 38</td>
+            <td class="ascii">GIF8</td>
+          </tr>
+          <tr>
+            <td class="fmt">ELF</td>
+            <td class="bytes">7F 45 4C 46</td>
+            <td class="ascii">.ELF</td>
+          </tr>
+          <tr>
+            <td class="fmt">EXE</td>
+            <td class="bytes">4D 5A</td>
+            <td class="ascii">MZ</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:11px;color:var(--muted);margin-top:10px;">
+        The first few bytes of any file reveal its true format. Extensions can lie. Bytes cannot.
+      </p>
+    </div>
+
+    <!-- HOW TO SOLVE -->
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-title">How to Solve</div>
+      <div class="sidebar-note">
+        For each file card, look at the hex bytes shown. Find those opening bytes in the reference table above.
+        Select the matching format from the dropdown.
+      </div>
+      <div class="sidebar-note">
+        Some formats have ASCII-readable signatures — look at the ASCII column. %PDF, PK, GIF8, and MZ are
+        all recognizable as text. Others (like JPEG's FF D8 FF) are non-printable.
+      </div>
+      <div class="sidebar-note">
+        After matching all six correctly, the bonus mission unlocks. Use the reference table to find the correct
+        first byte for a PNG file.
+      </div>
+    </div>
+
+    <!-- HINTS -->
+    <div class="panel">
+      <div class="panel-title">Hints</div>
+      <div class="hint-links">
+        <a href="hint-1.md">Hint 1 — How to approach the challenge</a>
+        <a href="hint-2.md">Hint 2 — Narrowed clues for each file</a>
+        <a href="solution.md">Solution (spoilers)</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <a href="../lesson.md">Lesson</a> &nbsp;|&nbsp;
+  <a href="../concept-cards.md">Concept Cards</a> &nbsp;|&nbsp;
+  <a href="../README.md">Module README</a> &nbsp;|&nbsp;
+  <a href="https://www.garykessler.net/library/file_sigs.html" target="_blank" rel="noopener noreferrer">Full Signatures DB</a>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ── DATA ── */
+  var FILES = [
+    { index: 1, filename: "vacation.txt",  bytes: "FF D8 FF E0 00 10 4A 46", answer: "JPEG" },
+    { index: 2, filename: "report.png",    bytes: "25 50 44 46 2D 31 2E 34", answer: "PDF"  },
+    { index: 3, filename: "archive.jpg",   bytes: "50 4B 03 04 14 00 00 00", answer: "ZIP"  },
+    { index: 4, filename: "image.pdf",     bytes: "89 50 4E 47 0D 0A 1A 0A", answer: "PNG"  },
+    { index: 5, filename: "document.zip",  bytes: "47 49 46 38 39 61 10 00", answer: "GIF"  },
+    { index: 6, filename: "notes.gif",     bytes: "7F 45 4C 46 02 01 01 00", answer: "ELF"  }
+  ];
+
+  var FORMAT_OPTIONS = [
+    "-- select format --", "ELF", "EXE", "GIF", "JPEG", "PDF", "PNG", "ZIP"
+  ];
+
+  /* ── STATIC TEXT (safe; never inserted via innerHTML) ── */
+  function setText(id, text) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+
+  setText("briefing-text",
+    "Six files have been recovered from an untrusted source. Every filename extension has been falsified. " +
+    "Your job: identify each file's real format by reading its first bytes and matching them against " +
+    "the magic bytes reference table. After you've correctly identified all six, a bonus mission will unlock — " +
+    "a seventh file with a corrupted signature that needs repair."
+  );
+  setText("briefing-note", "Remember: extensions are labels. Bytes are truth.");
+
+  setText("bonus-desc-text",
+    "A critical evidence file was recovered, but the first byte of its signature was overwritten. " +
+    "The file won't open. Determine the correct first byte and repair it to recover the contents."
+  );
+
+  setText("repair-hint-text",
+    "The remaining 7 bytes are correct for a PNG file. Only the first byte is corrupted. " +
+    "What should it be? Enter the hex value (two characters, no spaces)."
+  );
+
+  setText("ft-1", "> INITIATING FILE REPAIR SEQUENCE...");
+  setText("ft-2", "> PATCHING BYTE 0x00 WITH VALUE 0x89...");
+  setText("ft-3", "> VALIDATING PNG SIGNATURE...");
+  setText("ft-4", "> SIGNATURE VALID: 89 50 4E 47 0D 0A 1A 0A");
+  setText("ft-5", "> READING FILE CONTENTS...");
+  setText("ft-6", "> FILE REPAIR SUCCESSFUL");
+  setText("ft-flag", "> Recovered content: FLAG{magic_bytes_never_lie}");
+  setText("ft-explain",
+    "> Real PNG files always start with 0x89 — it's a non-printable byte value (137 decimal).\n" +
+    "> This prevents old text editors from trying to open and corrupt the binary data.\n" +
+    "> The rest of the header (50 4E 47 = \"PNG\") spells out the format name in ASCII.\n" +
+    "> The full 8-byte PNG signature was chosen to detect file corruption on transmission."
+  );
+
+  /* ── RENDER CARDS ── */
+  function makeEl(tag, className) {
+    var el = document.createElement(tag);
+    if (className) el.className = className;
+    return el;
+  }
+
+  function renderCards() {
+    var grid = document.getElementById("cards-grid");
+    FILES.forEach(function (f) {
+      var card = makeEl("div", "file-card");
+      card.id = "card-" + f.index;
+
+      var idx = makeEl("div", "card-index");
+      idx.textContent = "FILE " + String(f.index).padStart(2, "0") + " / 06";
+
+      var fname = makeEl("div", "card-filename");
+      fname.textContent = f.filename;
+
+      var bytesLbl = makeEl("div", "card-bytes-label");
+      bytesLbl.textContent = "First 8 Bytes (hex):";
+
+      var bytesVal = makeEl("div", "card-bytes");
+      bytesVal.textContent = f.bytes;
+
+      var selLbl = makeEl("div", "card-select-label");
+      selLbl.textContent = "This file is actually a:";
+
+      var sel = makeEl("select");
+      sel.id = "sel-" + f.index;
+      sel.addEventListener("change", (function (idx) {
+        return function () { onSelectChange(idx); };
+      }(f.index)));
+
+      FORMAT_OPTIONS.forEach(function (opt) {
+        var o = document.createElement("option");
+        o.value = opt;
+        o.textContent = opt;
+        sel.appendChild(o);
+      });
+
+      var fb = makeEl("div", "card-feedback");
+      fb.id = "fb-" + f.index;
+
+      card.appendChild(idx);
+      card.appendChild(fname);
+      card.appendChild(bytesLbl);
+      card.appendChild(bytesVal);
+      card.appendChild(selLbl);
+      card.appendChild(sel);
+      card.appendChild(fb);
+      grid.appendChild(card);
+    });
+  }
+
+  /* ── SELECT CHANGE ── */
+  function onSelectChange(idx) {
+    var fb = document.getElementById("fb-" + idx);
+    fb.textContent = "";
+    fb.className = "card-feedback";
+    document.getElementById("card-" + idx).className = "file-card";
+    updateProgress();
+  }
+
+  /* ── CHECK ALL ── */
+  window.checkAll = function () {
+    var correct = 0;
+    FILES.forEach(function (f) {
+      var sel  = document.getElementById("sel-" + f.index);
+      var fb   = document.getElementById("fb-" + f.index);
+      var card = document.getElementById("card-" + f.index);
+
+      if (sel.value === f.answer) {
+        correct++;
+        fb.textContent = "Correct — " + f.answer;
+        fb.className = "card-feedback ok";
+        card.className = "file-card correct";
+      } else if (sel.value === "-- select format --") {
+        fb.textContent = "No selection made.";
+        fb.className = "card-feedback err";
+        card.className = "file-card incorrect";
+      } else {
+        fb.textContent = "Incorrect — try again.";
+        fb.className = "card-feedback err";
+        card.className = "file-card incorrect";
+      }
+    });
+
+    updateProgress(correct);
+
+    var msg = document.getElementById("check-msg");
+    if (correct === FILES.length) {
+      msg.textContent = "All 6 correct. Bonus mission unlocked.";
+      msg.style.color = "var(--green)";
+      unlockBonus();
+    } else {
+      msg.textContent = correct + " / " + FILES.length + " correct — review the highlighted cards.";
+      msg.style.color = "var(--amber-dim)";
+    }
+  };
+
+  /* ── PROGRESS ── */
+  function updateProgress(count) {
+    if (count === undefined) {
+      count = 0;
+      FILES.forEach(function (f) {
+        var sel = document.getElementById("sel-" + f.index);
+        if (sel && sel.value === f.answer) count++;
+      });
+    }
+    var pct = (count / FILES.length) * 100;
+    document.getElementById("progress-fill").style.width = pct + "%";
+    document.getElementById("progress-label").textContent = count + " / " + FILES.length + " correct";
+  }
+
+  /* ── UNLOCK BONUS ── */
+  function unlockBonus() {
+    var section = document.getElementById("bonus-section");
+    if (section.style.display !== "block") {
+      section.style.display = "block";
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  /* ── REPAIR INPUT — enter key ── */
+  document.addEventListener("DOMContentLoaded", function () {
+    var input = document.getElementById("repair-input");
+    if (input) {
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") window.checkRepair();
+      });
+    }
+  });
+
+  /* ── CHECK REPAIR ── */
+  window.checkRepair = function () {
+    var input = document.getElementById("repair-input");
+    var fb    = document.getElementById("repair-feedback");
+    var val   = input.value.trim().toUpperCase();
+
+    if (val === "89") {
+      fb.textContent = "Correct. First byte restored. Decrypting file contents...";
+      fb.className = "ok";
+      input.disabled = true;
+      document.getElementById("repair-btn").disabled = true;
+
+      setTimeout(function () {
+        var terminal = document.getElementById("flag-terminal");
+        terminal.style.display = "block";
+        terminal.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 400);
+    } else if (val === "") {
+      fb.textContent = "Enter a two-character hex value (e.g. 89).";
+      fb.className = "err";
+    } else {
+      fb.textContent = "Incorrect. Check the PNG entry in the reference table — what is the first byte?";
+      fb.className = "err";
+    }
+  };
+
+  /* ── INIT ── */
+  renderCards();
+  updateProgress(0);
+}());
+</script>
+</body>
+</html>

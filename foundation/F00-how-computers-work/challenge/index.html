@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F00 — Computer Tour | Foundation Track</title>
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  :root {
+    --bg: #1a1d24;
+    --panel-bg: #232732;
+    --panel-bg-soft: #2a2f3c;
+    --accent: #a0c4e8;
+    --accent-bright: #cfe2f5;
+    --accent-dim: #6f8cb0;
+    --accent-glow: rgba(160, 196, 232, 0.25);
+    --text: #e6ecf2;
+    --text-dim: #8a93a3;
+    --text-mute: #5d6577;
+    --border: #3a4050;
+    --border-soft: #2f3441;
+    --good: #88d8a3;
+    --good-soft: rgba(136, 216, 163, 0.15);
+    --warn: #f1c277;
+    --warn-soft: rgba(241, 194, 119, 0.15);
+    --bad: #e88a8a;
+    --bad-soft: rgba(232, 138, 138, 0.15);
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'SF Mono', Menlo, Monaco, Consolas, 'Courier New', monospace;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    background:
+      radial-gradient(ellipse at top, #232732 0%, var(--bg) 70%),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.55;
+    min-height: 100vh;
+    padding: 28px 20px 60px 20px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== HEADER ===== */
+  .site-header {
+    text-align: center;
+    margin: 0 auto 24px auto;
+    max-width: 920px;
+  }
+
+  .site-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--accent-bright);
+    letter-spacing: 0.3px;
+    margin-bottom: 6px;
+  }
+
+  .site-subtitle {
+    color: var(--text-dim);
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  /* ===== PROGRESS DOTS ===== */
+  .progress-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 20px auto 28px auto;
+    max-width: 920px;
+  }
+
+  .progress-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--panel-bg-soft);
+    border: 1px solid var(--border);
+    transition: all 0.4s ease;
+    position: relative;
+  }
+
+  .progress-dot.done {
+    background: var(--good);
+    border-color: var(--good);
+    box-shadow: 0 0 10px var(--good-soft);
+  }
+
+  .progress-label {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-bottom: 32px;
+  }
+
+  /* ===== DESKTOP GRID ===== */
+  .desktop {
+    max-width: 920px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  @media (max-width: 720px) {
+    .desktop { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 460px) {
+    .desktop { grid-template-columns: 1fr; }
+  }
+
+  .zone {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    cursor: pointer;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    text-align: left;
+    position: relative;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-family: var(--font);
+    color: var(--text);
+  }
+
+  .zone:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-dim);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+
+  .zone.solved {
+    border-color: var(--good);
+    background: linear-gradient(180deg, var(--panel-bg), rgba(136, 216, 163, 0.05));
+  }
+
+  .zone-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    background: var(--panel-bg-soft);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Pure-CSS icons for each zone */
+  .icon-folder::before {
+    content: '';
+    width: 24px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 2px;
+    position: relative;
+    top: 1px;
+    box-shadow: inset 0 -8px 0 0 var(--accent-bright);
+  }
+  .icon-folder::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 4px;
+    background: var(--accent);
+    border-radius: 2px 2px 0 0;
+    top: 12px;
+    left: 12px;
+  }
+
+  .icon-doc {
+    flex-direction: column;
+  }
+  .icon-doc::before {
+    content: '';
+    width: 22px;
+    height: 26px;
+    background: var(--accent-bright);
+    border-radius: 2px;
+    box-shadow:
+      inset 0 -16px 0 -14px var(--accent-dim),
+      inset 0 -10px 0 -8px var(--accent-dim),
+      inset 0 -4px 0 -2px var(--accent-dim);
+  }
+
+  .icon-tree::before {
+    content: '';
+    width: 28px;
+    height: 24px;
+    background:
+      linear-gradient(var(--accent), var(--accent)) 0 0/4px 24px no-repeat,
+      linear-gradient(var(--accent), var(--accent)) 0 8px/14px 2px no-repeat,
+      linear-gradient(var(--accent), var(--accent)) 0 18px/22px 2px no-repeat,
+      linear-gradient(var(--accent-bright), var(--accent-bright)) 12px 6px/8px 6px no-repeat,
+      linear-gradient(var(--accent-bright), var(--accent-bright)) 20px 16px/8px 6px no-repeat;
+  }
+
+  .icon-browser::before {
+    content: '';
+    width: 28px;
+    height: 22px;
+    background: var(--accent-bright);
+    border-radius: 3px;
+    box-shadow: inset 0 6px 0 0 var(--accent-dim);
+  }
+  .icon-browser::after {
+    content: '';
+    position: absolute;
+    top: 16px;
+    left: 14px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--bad);
+    box-shadow: 6px 0 0 var(--warn), 12px 0 0 var(--good);
+  }
+
+  .icon-server {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .icon-server::before, .icon-server::after {
+    content: '';
+    width: 26px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 2px;
+    box-shadow: inset -10px 0 0 -6px var(--accent-bright);
+  }
+
+  .icon-shield::before {
+    content: '';
+    width: 22px;
+    height: 26px;
+    background: var(--accent);
+    clip-path: polygon(50% 0, 100% 18%, 100% 60%, 50% 100%, 0 60%, 0 18%);
+  }
+
+  .zone-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .zone-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.45;
+  }
+
+  .zone-tag {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-size: 10px;
+    color: var(--text-mute);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .zone.solved .zone-tag {
+    color: var(--good);
+  }
+
+  .zone.solved .zone-tag::before {
+    content: '\2713  ';
+  }
+
+  /* ===== MODAL ===== */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 12, 16, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-backdrop.visible {
+    display: flex;
+  }
+
+  .modal {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    max-width: 640px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 28px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 22px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+  .modal-close:hover { color: var(--text); background: var(--panel-bg-soft); }
+
+  .modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent-bright);
+    margin-bottom: 6px;
+  }
+  .modal-sub {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+  }
+
+  .modal-scene {
+    background: var(--panel-bg-soft);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .modal-question {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 14px;
+  }
+
+  /* Choice buttons */
+  .choice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .choice {
+    background: var(--panel-bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text);
+    text-align: left;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.5;
+    transition: all 0.15s ease;
+  }
+
+  .choice:hover {
+    border-color: var(--accent-dim);
+    background: var(--panel-bg);
+    transform: translateX(2px);
+  }
+
+  .choice.wrong {
+    border-color: var(--bad);
+    background: var(--bad-soft);
+    color: var(--bad);
+    animation: shake 0.4s ease;
+  }
+
+  .choice.right {
+    border-color: var(--good);
+    background: var(--good-soft);
+    color: var(--good);
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
+  /* Text input */
+  .input-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+    margin-bottom: 12px;
+  }
+  .text-input {
+    flex: 1;
+    background: var(--panel-bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    outline: none;
+  }
+  .text-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .text-input.wrong {
+    border-color: var(--bad);
+    animation: shake 0.4s ease;
+  }
+
+  .btn {
+    background: var(--accent);
+    color: #1a1d24;
+    border: none;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn:hover { background: var(--accent-bright); }
+  .btn:active { transform: translateY(1px); }
+
+  .feedback {
+    font-size: 13px;
+    line-height: 1.55;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    margin-top: 10px;
+    display: none;
+  }
+  .feedback.good {
+    background: var(--good-soft);
+    border-left: 3px solid var(--good);
+    color: var(--good);
+    display: block;
+  }
+  .feedback.bad {
+    background: var(--bad-soft);
+    border-left: 3px solid var(--bad);
+    color: var(--bad);
+    display: block;
+  }
+
+  /* ===== ZONE-SPECIFIC SCENE STYLING ===== */
+
+  /* Folder tree visualisation */
+  .file-tree {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--accent-bright);
+  }
+  .tree-row {
+    display: block;
+    padding-left: 0;
+  }
+  .tree-row .indent {
+    display: inline-block;
+    color: var(--text-mute);
+  }
+  .tree-row .name {
+    color: var(--accent);
+  }
+  .tree-row .name.file {
+    color: var(--accent-bright);
+    font-weight: 600;
+  }
+
+  /* Long log block */
+  .log-block {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--text-dim);
+    background: #1b1e26;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    height: 240px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  /* Browser windows */
+  .browser-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+  .browser-window {
+    flex: 1 1 0;
+    min-width: 110px;
+    background: #1b1e26;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .browser-bar {
+    height: 22px;
+    background: var(--panel-bg-soft);
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 4px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .browser-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-mute);
+  }
+  .browser-dot.r { background: var(--bad); }
+  .browser-dot.y { background: var(--warn); }
+  .browser-dot.g { background: var(--good); }
+  .browser-body {
+    padding: 12px 10px;
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+  .browser-body strong {
+    color: var(--accent-bright);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+  }
+  .browser-name {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+  .browser-col {
+    flex: 1 1 0;
+    min-width: 110px;
+  }
+
+  /* Server diagram */
+  .server-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .device {
+    flex: 0 0 auto;
+    text-align: center;
+  }
+  .device-box {
+    width: 80px;
+    height: 56px;
+    background: var(--panel-bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin: 0 auto 6px auto;
+    position: relative;
+  }
+  .device-laptop::before {
+    content: '';
+    position: absolute;
+    inset: 8px 10px 16px 10px;
+    background: var(--accent);
+    border-radius: 2px;
+    opacity: 0.6;
+  }
+  .device-laptop::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 6px;
+    right: 6px;
+    height: 4px;
+    background: var(--accent-dim);
+    border-radius: 2px;
+  }
+  .device-server::before {
+    content: '';
+    position: absolute;
+    inset: 6px 10px;
+    background:
+      linear-gradient(var(--accent-dim), var(--accent-dim)) 0 0/100% 10px no-repeat,
+      linear-gradient(var(--accent-dim), var(--accent-dim)) 0 14px/100% 10px no-repeat,
+      linear-gradient(var(--accent-dim), var(--accent-dim)) 0 28px/100% 10px no-repeat;
+    border-radius: 2px;
+  }
+  .device-server::after {
+    content: '';
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--good);
+    border-radius: 50%;
+    top: 9px;
+    right: 14px;
+    box-shadow: 0 14px 0 var(--good), 0 28px 0 var(--good);
+  }
+  .device-label {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .arrow-pair {
+    flex: 1 1 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 90px;
+  }
+  .arrow {
+    height: 22px;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+  .arrow .line {
+    flex: 1;
+    height: 1px;
+    background: var(--accent-dim);
+    position: relative;
+  }
+  .arrow.right .line::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: -3px;
+    border-style: solid;
+    border-width: 4px 0 4px 6px;
+    border-color: transparent transparent transparent var(--accent-dim);
+  }
+  .arrow.left .line::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -3px;
+    border-style: solid;
+    border-width: 4px 6px 4px 0;
+    border-color: transparent var(--accent-dim) transparent transparent;
+  }
+  .arrow .label {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--panel-bg-soft);
+    padding: 1px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .arrow.animated .line {
+    background: linear-gradient(90deg, var(--accent-dim) 0%, var(--accent-bright) 50%, var(--accent-dim) 100%);
+    background-size: 200% 100%;
+    animation: flow 2.4s linear infinite;
+  }
+  @keyframes flow {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+  }
+
+  /* Path puzzle list (zone 1) */
+  .breadcrumb {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent-bright);
+    background: #1b1e26;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-soft);
+    margin-bottom: 12px;
+    word-break: break-all;
+  }
+
+  .ethics-rule {
+    padding: 8px 12px;
+    border-left: 3px solid var(--accent);
+    color: var(--accent-bright);
+    margin-top: 6px;
+    font-size: 14px;
+  }
+  .ethics-prelude {
+    font-style: italic;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  .scene-hint {
+    font-size: 12px;
+    color: var(--text-mute);
+    margin-bottom: 8px;
+  }
+  .scene-caption {
+    font-size: 12px;
+    color: var(--text-mute);
+    margin-top: 8px;
+  }
+
+  /* ===== FLAG REVEAL ===== */
+  .reveal-zone {
+    max-width: 920px;
+    margin: 36px auto 0 auto;
+    text-align: center;
+  }
+
+  .boot-btn {
+    background: var(--accent);
+    color: #1a1d24;
+    border: none;
+    padding: 16px 28px;
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 24px var(--accent-glow);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    display: none;
+  }
+  .boot-btn.visible { display: inline-block; }
+  .boot-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px var(--accent-glow); }
+
+  .flag-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--good);
+    border-radius: var(--radius);
+    padding: 28px;
+    max-width: 560px;
+    margin: 24px auto 0 auto;
+    box-shadow: 0 10px 40px rgba(136, 216, 163, 0.15);
+    display: none;
+    text-align: center;
+  }
+  .flag-card.visible { display: block; }
+
+  .flag-card .label {
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .flag-card .flag {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    color: var(--good);
+    font-weight: 600;
+    padding: 14px 16px;
+    background: var(--good-soft);
+    border-radius: var(--radius-sm);
+    margin-bottom: 18px;
+    word-break: break-all;
+  }
+  .flag-card .congrats {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .flag-card .next-link {
+    display: inline-block;
+    margin-top: 8px;
+    color: var(--accent-bright);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent-dim);
+    padding-bottom: 2px;
+    font-weight: 500;
+  }
+  .flag-card .next-link:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ===== FOOTER ===== */
+  .site-footer {
+    text-align: center;
+    margin-top: 48px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-soft);
+    font-size: 12px;
+    color: var(--text-mute);
+    max-width: 920px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .site-footer a {
+    color: var(--text-dim);
+    text-decoration: none;
+    margin: 0 6px;
+  }
+  .site-footer a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-title">F00 &mdash; Computer Tour</div>
+  <div class="site-subtitle">Click each zone, answer one question. Six greens unlocks your first flag.</div>
+</header>
+
+<div class="progress-row" id="progress-row">
+  <div class="progress-dot" data-i="0"></div>
+  <div class="progress-dot" data-i="1"></div>
+  <div class="progress-dot" data-i="2"></div>
+  <div class="progress-dot" data-i="3"></div>
+  <div class="progress-dot" data-i="4"></div>
+  <div class="progress-dot" data-i="5"></div>
+</div>
+<div class="progress-label" id="progress-label">0 of 6 zones complete</div>
+
+<main class="desktop" id="desktop">
+  <button class="zone" data-zone="0" type="button">
+    <span class="zone-tag">Zone 1</span>
+    <div class="zone-icon icon-folder"></div>
+    <div>
+      <div class="zone-title">The File Browser</div>
+      <div class="zone-sub">Find a file's full path inside nested folders.</div>
+    </div>
+  </button>
+
+  <button class="zone" data-zone="1" type="button">
+    <span class="zone-tag">Zone 2</span>
+    <div class="zone-icon icon-doc"></div>
+    <div>
+      <div class="zone-title">The Long File</div>
+      <div class="zone-sub">Use Ctrl+F (or Cmd+F) to find a hidden code in a wall of text.</div>
+    </div>
+  </button>
+
+  <button class="zone" data-zone="2" type="button">
+    <span class="zone-tag">Zone 3</span>
+    <div class="zone-icon icon-tree"></div>
+    <div>
+      <div class="zone-title">The Folder Tree</div>
+      <div class="zone-sub">Read a path and identify which folder contains which.</div>
+    </div>
+  </button>
+
+  <button class="zone" data-zone="3" type="button">
+    <span class="zone-tag">Zone 4</span>
+    <div class="zone-icon icon-browser"></div>
+    <div>
+      <div class="zone-title">The Browser Window</div>
+      <div class="zone-sub">Three browsers, one webpage. What's the relationship?</div>
+    </div>
+  </button>
+
+  <button class="zone" data-zone="4" type="button">
+    <span class="zone-tag">Zone 5</span>
+    <div class="zone-icon icon-server"></div>
+    <div>
+      <div class="zone-title">The Server</div>
+      <div class="zone-sub">A laptop talks to a computer in a far-away room.</div>
+    </div>
+  </button>
+
+  <button class="zone" data-zone="5" type="button">
+    <span class="zone-tag">Zone 6</span>
+    <div class="zone-icon icon-shield"></div>
+    <div>
+      <div class="zone-title">The Ethics Panel</div>
+      <div class="zone-sub">Just because you can, should you?</div>
+    </div>
+  </button>
+</main>
+
+<div class="reveal-zone">
+  <button class="boot-btn" id="boot-btn" type="button">Boot up your hacker journey &rarr;</button>
+  <div class="flag-card" id="flag-card">
+    <div class="label">Mission Complete</div>
+    <div class="flag" id="flag-text"></div>
+    <div class="congrats">
+      You now know what a computer actually is, the difference between programs and files,
+      what a server does, and the one rule that makes all of this legal. You're ready for the real work.
+    </div>
+    <a class="next-link" href="../../F01-internet-works/README.md">Continue to F01: The Postman Problem &rarr;</a>
+  </div>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal" id="modal">
+    <button class="modal-close" id="modal-close" type="button" aria-label="Close">&times;</button>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-sub" id="modal-sub"></div>
+    <div class="modal-scene" id="modal-scene"></div>
+    <div class="modal-question" id="modal-question"></div>
+    <div id="modal-input-area"></div>
+    <div class="feedback" id="modal-feedback"></div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  F00 &middot; How Computers Actually Work &middot;
+  <a href="hint-1.md">Hint 1</a> |
+  <a href="hint-2.md">Hint 2</a> |
+  <a href="solution.md">Solution</a>
+</footer>
+
+<script>
+  /* ============================================================
+     CONFIG
+  ============================================================ */
+  var FLAG = 'FLAG{the_machine_is_just_files_and_rules}';
+  var TOTAL_ZONES = 6;
+
+  /* state: which zones are solved */
+  var solved = [false, false, false, false, false, false];
+  var currentZone = -1;
+
+  /* ============================================================
+     SAFE DOM HELPERS — no innerHTML, only textContent
+  ============================================================ */
+  function el(tag, opts) {
+    var node = document.createElement(tag);
+    if (!opts) return node;
+    if (opts.cls) node.className = opts.cls;
+    if (opts.text) node.textContent = opts.text;
+    if (opts.attrs) {
+      Object.keys(opts.attrs).forEach(function(k) {
+        node.setAttribute(k, opts.attrs[k]);
+      });
+    }
+    return node;
+  }
+
+  function clear(node) {
+    while (node.firstChild) node.removeChild(node.firstChild);
+  }
+
+  /* ============================================================
+     ZONE DEFINITIONS
+  ============================================================ */
+  var zones = [
+    /* Zone 1: file path */
+    {
+      title: 'The File Browser',
+      sub: 'You see a folder structure on a Mac. Where does cat.jpg actually live?',
+      buildScene: function() {
+        var box = el('div');
+        var tree = el('div', { cls: 'file-tree' });
+        var rows = [
+          { indent: '',           name: '/',         color: 'name' },
+          { indent: '└─ ',     name: 'Users/',    color: 'name' },
+          { indent: '   └─ ',  name: 'you/',      color: 'name' },
+          { indent: '      └─ ', name: 'Pictures/', color: 'name' },
+          { indent: '         └─ ', name: 'cat.jpg', color: 'file' }
+        ];
+        rows.forEach(function(r) {
+          var row = el('div', { cls: 'tree-row' });
+          row.appendChild(el('span', { cls: 'indent', text: r.indent }));
+          row.appendChild(el('span', { cls: 'name ' + r.color, text: r.name }));
+          tree.appendChild(row);
+        });
+        box.appendChild(tree);
+        return box;
+      },
+      question: 'What is the full path to cat.jpg?',
+      input: {
+        kind: 'choice',
+        options: [
+          { text: '/cat.jpg/Pictures/you/Users', correct: false },
+          { text: '/Users/you/Pictures/cat.jpg', correct: true },
+          { text: 'Pictures/cat.jpg', correct: false },
+          { text: 'cat.jpg/you/Pictures/Users', correct: false }
+        ],
+        correctMsg: 'Right. The path reads top-down: start at the root /, into Users, into you, into Pictures, then the file cat.jpg.',
+        wrongMsg: 'Not quite. The path always starts at / and walks down through each folder until it reaches the file.'
+      }
+    },
+
+    /* Zone 2: Ctrl+F search */
+    {
+      title: 'The Long File',
+      sub: 'A boring system log. Somewhere in this wall of text is a hidden code.',
+      buildScene: function() {
+        var box = el('div');
+        var note = el('div', { cls: 'scene-hint', text: 'Use Ctrl+F on Windows/Linux or Cmd+F on Mac to open Find. Search for: IMPORTANT_CODE' });
+        box.appendChild(note);
+
+        var log = el('div', { cls: 'log-block' });
+        log.textContent = generateLogText();
+        box.appendChild(log);
+        return box;
+      },
+      question: 'What is the value next to IMPORTANT_CODE?',
+      input: {
+        kind: 'text',
+        placeholder: 'one word',
+        validate: function(v) { return v.trim().toLowerCase() === 'alpha'; },
+        correctMsg: 'Found it. Ctrl+F (Cmd+F) is the most-used shortcut in this whole series. From F04 onward you will live inside it.',
+        wrongMsg: 'Not the right word. Open Find with Ctrl+F (Cmd+F on Mac), type IMPORTANT_CODE, and read the value next to it.'
+      }
+    },
+
+    /* Zone 3: nested folders */
+    {
+      title: 'The Folder Tree',
+      sub: 'Read the path and answer the question. Paths are read left-to-right as you go deeper.',
+      buildScene: function() {
+        var box = el('div');
+        box.appendChild(el('div', { cls: 'breadcrumb', text: '/home/projects/secret/key.txt' }));
+
+        var tree = el('div', { cls: 'file-tree' });
+        var rows = [
+          { indent: '',           name: '/' },
+          { indent: '└─ ',     name: 'home/' },
+          { indent: '   └─ ',  name: 'projects/' },
+          { indent: '      └─ ', name: 'secret/' },
+          { indent: '         └─ ', name: 'key.txt' }
+        ];
+        rows.forEach(function(r, i) {
+          var row = el('div', { cls: 'tree-row' });
+          row.appendChild(el('span', { cls: 'indent', text: r.indent }));
+          row.appendChild(el('span', { cls: 'name ' + (i === rows.length - 1 ? 'file' : ''), text: r.name }));
+          tree.appendChild(row);
+        });
+        box.appendChild(tree);
+        return box;
+      },
+      question: 'Which folder is "secret" inside?',
+      input: {
+        kind: 'choice',
+        options: [
+          { text: 'home', correct: false },
+          { text: 'projects', correct: true },
+          { text: 'key.txt', correct: false },
+          { text: 'It is at the top, not inside anything', correct: false }
+        ],
+        correctMsg: 'Correct. "secret" sits inside "projects". The whole path nests like Russian dolls: home contains projects, which contains secret, which contains key.txt.',
+        wrongMsg: 'Not quite. Look at the path /home/projects/secret/key.txt. The folder right before "secret" is the one that contains it.'
+      }
+    },
+
+    /* Zone 4: browsers */
+    {
+      title: 'The Browser Window',
+      sub: 'Three different programs, all showing the same webpage.',
+      buildScene: function() {
+        var box = el('div');
+        var row = el('div', { cls: 'browser-row' });
+
+        var browsers = [
+          { name: 'Chrome' },
+          { name: 'Safari' },
+          { name: 'Firefox' }
+        ];
+        browsers.forEach(function(b) {
+          var col = el('div', { cls: 'browser-col' });
+          var win = el('div', { cls: 'browser-window' });
+
+          var bar = el('div', { cls: 'browser-bar' });
+          bar.appendChild(el('span', { cls: 'browser-dot r' }));
+          bar.appendChild(el('span', { cls: 'browser-dot y' }));
+          bar.appendChild(el('span', { cls: 'browser-dot g' }));
+
+          var body = el('div', { cls: 'browser-body' });
+          body.appendChild(el('strong', { text: 'example.com' }));
+          body.appendChild(el('div', { text: 'Welcome. Same page, every browser.' }));
+
+          win.appendChild(bar);
+          win.appendChild(body);
+          col.appendChild(win);
+          col.appendChild(el('div', { cls: 'browser-name', text: b.name }));
+          row.appendChild(col);
+        });
+        box.appendChild(row);
+        return box;
+      },
+      question: 'What is true about Chrome, Safari, and Firefox?',
+      input: {
+        kind: 'choice',
+        options: [
+          { text: 'They are three copies of "the internet".', correct: false },
+          { text: 'They are three different browsers, all showing the same webpage from the internet.', correct: true },
+          { text: 'Only one of them is a real browser; the others are fake.', correct: false },
+          { text: 'They are the operating system.', correct: false }
+        ],
+        correctMsg: 'Exactly. The internet is the network. Browsers are programs that visit the network. Many browsers can visit the same page.',
+        wrongMsg: 'Not quite. A browser is a program. The internet is the network. The browser talks to the network; it is not the network itself.'
+      }
+    },
+
+    /* Zone 5: server */
+    {
+      title: 'The Server',
+      sub: 'Watch a laptop ask a question, and a computer in a data centre answer.',
+      buildScene: function() {
+        var wrap = el('div');
+        var diag = el('div', { cls: 'server-diagram' });
+
+        var d1 = el('div', { cls: 'device' });
+        d1.appendChild(el('div', { cls: 'device-box device-laptop' }));
+        d1.appendChild(el('div', { cls: 'device-label', text: 'Your laptop' }));
+
+        var arrows = el('div', { cls: 'arrow-pair' });
+        var aR = el('div', { cls: 'arrow right animated' });
+        aR.appendChild(el('div', { cls: 'line' }));
+        aR.appendChild(el('div', { cls: 'label', text: 'HELLO' }));
+        var aL = el('div', { cls: 'arrow left animated' });
+        aL.appendChild(el('div', { cls: 'line' }));
+        aL.appendChild(el('div', { cls: 'label', text: 'HI BACK' }));
+        arrows.appendChild(aR);
+        arrows.appendChild(aL);
+
+        var d2 = el('div', { cls: 'device' });
+        d2.appendChild(el('div', { cls: 'device-box device-server' }));
+        d2.appendChild(el('div', { cls: 'device-label', text: 'A "server"' }));
+
+        diag.appendChild(d1);
+        diag.appendChild(arrows);
+        diag.appendChild(d2);
+        wrap.appendChild(diag);
+
+        wrap.appendChild(el('div', {
+          cls: 'scene-caption',
+          text: 'No screen, no keyboard. Just a computer in a building, waiting for questions.'
+        }));
+
+        return wrap;
+      },
+      question: 'What is a "server"?',
+      input: {
+        kind: 'choice',
+        options: [
+          { text: 'A magical machine that powers the internet.', correct: false },
+          { text: 'Just another computer that answers when asked.', correct: true },
+          { text: 'A small chip inside your phone.', correct: false },
+          { text: 'A type of cable.', correct: false }
+        ],
+        correctMsg: 'Right. Same hardware as your laptop. Different job: it sits in a data centre and answers requests all day.',
+        wrongMsg: 'Not quite. A server is regular computer hardware. What makes it a "server" is the job it does: waiting and answering when something asks.'
+      }
+    },
+
+    /* Zone 6: ethics — diary scenario */
+    {
+      title: 'The Ethics Panel',
+      sub: 'A real choice, before you go any further.',
+      buildScene: function() {
+        var wrap = el('div');
+        var scene = el('div', {
+          text: 'Your sister forgot to close her laptop. On the screen, you can see a file called diary.txt. She is not in the room. Nobody would know if you read it.'
+        });
+        wrap.appendChild(scene);
+
+        var spacer = el('div');
+        spacer.style.height = '10px';
+        wrap.appendChild(spacer);
+
+        wrap.appendChild(el('div', { cls: 'ethics-prelude', text: 'The most important rule in security:' }));
+        wrap.appendChild(el('div', { cls: 'ethics-rule', text: 'Just because you can, does not mean you should.' }));
+        return wrap;
+      },
+      question: 'Should you open the diary file?',
+      input: {
+        kind: 'choice',
+        options: [
+          { text: 'Yes, the file is right there. If she did not want me to see it, she would have closed it.', correct: false },
+          { text: 'Yes, but only a quick peek.', correct: false },
+          { text: 'No. Even though I can, I should not. It is not mine.', correct: true },
+          { text: 'Only if I find something interesting first.', correct: false }
+        ],
+        correctMsg: 'Correct. This is the line. Every skill in this series is dual-use. The difference between a hacker and a criminal is the answer you just gave.',
+        wrongMsg: 'Re-read the rule above the question. The whole point of this module is that "can" is not the same as "should". Only one answer respects that.'
+      }
+    }
+  ];
+
+  /* ============================================================
+     LOG TEXT GENERATOR (zone 2)
+     220 lines of fake log; line 110 contains IMPORTANT_CODE: alpha
+  ============================================================ */
+  function generateLogText() {
+    var lines = [];
+    var sources = ['kernel', 'systemd', 'launchd', 'WindowServer', 'bluetoothd', 'mdnsResponder', 'sshd', 'cron'];
+    var msgs = [
+      'started service',
+      'connection established',
+      'cache flushed',
+      'awaiting input',
+      'thread spawned',
+      'rotating log file',
+      'heartbeat ok',
+      'cleanup complete',
+      'session opened',
+      'memory check passed'
+    ];
+    var hidden = 110;
+    for (var i = 1; i <= 220; i++) {
+      if (i === hidden) {
+        lines.push('[INFO] config: IMPORTANT_CODE: alpha');
+        continue;
+      }
+      var src = sources[i % sources.length];
+      var msg = msgs[(i * 3) % msgs.length];
+      var mm = (i % 60).toString();
+      if (mm.length === 1) mm = '0' + mm;
+      var ss = ((i * 7) % 60).toString();
+      if (ss.length === 1) ss = '0' + ss;
+      lines.push('[08:' + mm + ':' + ss + '] ' + src + ': ' + msg + ' (#' + i + ')');
+    }
+    return lines.join('\n');
+  }
+
+  /* ============================================================
+     MODAL CONTROL
+  ============================================================ */
+  var backdrop = document.getElementById('modal-backdrop');
+  var modalTitle = document.getElementById('modal-title');
+  var modalSub = document.getElementById('modal-sub');
+  var modalScene = document.getElementById('modal-scene');
+  var modalQuestion = document.getElementById('modal-question');
+  var modalInput = document.getElementById('modal-input-area');
+  var modalFeedback = document.getElementById('modal-feedback');
+
+  function openZone(i) {
+    var z = zones[i];
+    currentZone = i;
+
+    modalTitle.textContent = z.title;
+    modalSub.textContent = z.sub;
+
+    clear(modalScene);
+    var scene = z.buildScene();
+    if (scene) modalScene.appendChild(scene);
+
+    modalQuestion.textContent = z.question;
+
+    clear(modalInput);
+    modalFeedback.className = 'feedback';
+    modalFeedback.textContent = '';
+
+    if (z.input.kind === 'choice') {
+      var list = el('div', { cls: 'choice-list' });
+      z.input.options.forEach(function(opt) {
+        var btn = el('button', { cls: 'choice', text: opt.text, attrs: { type: 'button' } });
+        btn.addEventListener('click', function() {
+          handleChoice(opt.correct, btn, z.input);
+        });
+        list.appendChild(btn);
+      });
+      modalInput.appendChild(list);
+    } else if (z.input.kind === 'text') {
+      var row = el('div', { cls: 'input-row' });
+      var input = el('input', {
+        cls: 'text-input',
+        attrs: {
+          type: 'text',
+          placeholder: z.input.placeholder || '',
+          autocomplete: 'off',
+          autocorrect: 'off',
+          spellcheck: 'false'
+        }
+      });
+      var btn = el('button', { cls: 'btn', text: 'Submit', attrs: { type: 'button' } });
+      btn.addEventListener('click', function() {
+        handleText(input, z.input);
+      });
+      input.addEventListener('keydown', function(ev) {
+        if (ev.key === 'Enter') handleText(input, z.input);
+      });
+      row.appendChild(input);
+      row.appendChild(btn);
+      modalInput.appendChild(row);
+      setTimeout(function(){ input.focus(); }, 50);
+    }
+
+    backdrop.classList.add('visible');
+  }
+
+  function closeModal() {
+    backdrop.classList.remove('visible');
+    currentZone = -1;
+  }
+
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  backdrop.addEventListener('click', function(e) {
+    if (e.target === backdrop) closeModal();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && backdrop.classList.contains('visible')) closeModal();
+  });
+
+  /* ============================================================
+     ANSWER HANDLERS
+  ============================================================ */
+  function handleChoice(isCorrect, btn, inputCfg) {
+    if (isCorrect) {
+      btn.classList.add('right');
+      showFeedback(true, inputCfg.correctMsg);
+      markSolved(currentZone);
+      setTimeout(closeModal, 1400);
+    } else {
+      btn.classList.add('wrong');
+      showFeedback(false, inputCfg.wrongMsg);
+      setTimeout(function(){ btn.classList.remove('wrong'); }, 600);
+    }
+  }
+
+  function handleText(input, inputCfg) {
+    if (inputCfg.validate(input.value)) {
+      input.classList.remove('wrong');
+      input.disabled = true;
+      showFeedback(true, inputCfg.correctMsg);
+      markSolved(currentZone);
+      setTimeout(closeModal, 1600);
+    } else {
+      input.classList.remove('wrong');
+      void input.offsetWidth;
+      input.classList.add('wrong');
+      showFeedback(false, inputCfg.wrongMsg);
+    }
+  }
+
+  function showFeedback(good, text) {
+    modalFeedback.textContent = text;
+    modalFeedback.className = 'feedback ' + (good ? 'good' : 'bad');
+  }
+
+  /* ============================================================
+     PROGRESS / FLAG
+  ============================================================ */
+  function markSolved(i) {
+    if (i < 0 || solved[i]) return;
+    solved[i] = true;
+    var dot = document.querySelector('.progress-dot[data-i="' + i + '"]');
+    if (dot) dot.classList.add('done');
+    var zoneBtn = document.querySelector('.zone[data-zone="' + i + '"]');
+    if (zoneBtn) zoneBtn.classList.add('solved');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    var count = 0;
+    for (var i = 0; i < TOTAL_ZONES; i++) if (solved[i]) count++;
+    document.getElementById('progress-label').textContent = count + ' of ' + TOTAL_ZONES + ' zones complete';
+    if (count === TOTAL_ZONES) {
+      document.getElementById('boot-btn').classList.add('visible');
+    }
+  }
+
+  document.getElementById('boot-btn').addEventListener('click', function() {
+    document.getElementById('flag-text').textContent = FLAG;
+    document.getElementById('flag-card').classList.add('visible');
+    this.classList.remove('visible');
+    setTimeout(function(){
+      document.getElementById('flag-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 80);
+  });
+
+  /* ============================================================
+     ZONE BINDINGS
+  ============================================================ */
+  document.querySelectorAll('.zone').forEach(function(z) {
+    z.addEventListener('click', function() {
+      var i = parseInt(z.getAttribute('data-zone'), 10);
+      openZone(i);
+    });
+  });
+</script>
+
+</body>
+</html>

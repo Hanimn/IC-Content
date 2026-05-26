@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>F14 — The One-Way Door</title>
+<style>
+  :root {
+    --bg: #0e0a06;
+    --bg-2: #1a120a;
+    --accent: #c8a870;
+    --accent-bright: #e8c890;
+    --ok: #88c070;
+    --bad: #d06868;
+    --muted: #8a7a5a;
+    --text: #e0d4b8;
+    --panel: #18120a;
+    --border: #4a3a22;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 16px;
+    background:
+      radial-gradient(circle at 20% 10%, #1f1608 0%, transparent 40%),
+      radial-gradient(circle at 80% 90%, #1a1208 0%, transparent 40%),
+      var(--bg);
+    color: var(--text);
+    font-family: Georgia, 'Times New Roman', serif;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  h1 {
+    color: var(--accent-bright);
+    font-size: 28px;
+    margin: 0 0 4px 0;
+    letter-spacing: 1px;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 0 0 1px rgba(200, 168, 112, 0.05) inset;
+  }
+  .panel h2 {
+    color: var(--accent);
+    font-size: 20px;
+    margin: 0 0 12px 0;
+    border-bottom: 1px dashed var(--border);
+    padding-bottom: 8px;
+  }
+  .panel.locked {
+    opacity: 0.4;
+    pointer-events: none;
+    filter: grayscale(0.5);
+  }
+  .panel-status {
+    float: right;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .panel-status.done { color: var(--ok); }
+
+  .avalanche-input {
+    width: 100%;
+    padding: 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    background: var(--bg-2);
+    color: var(--accent-bright);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+  }
+  .avalanche-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 8px rgba(200, 168, 112, 0.2);
+  }
+  .hash-output {
+    margin-top: 16px;
+    padding: 14px;
+    background: #0a0604;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--accent-bright);
+    word-break: break-all;
+    line-height: 1.7;
+    min-height: 50px;
+  }
+  .hash-label {
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .change-counter {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .change-counter strong { color: var(--accent-bright); }
+
+  .files-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .file-row {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .file-row:hover {
+    border-color: var(--accent);
+    background: #221808;
+  }
+  .file-row.selected {
+    border-color: var(--accent-bright);
+    background: #2a1c0a;
+  }
+  .file-row.match { border-left: 4px solid var(--ok); }
+  .file-row.mismatch { border-left: 4px solid var(--bad); }
+  .file-name {
+    font-family: 'Courier New', monospace;
+    color: var(--accent-bright);
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .file-meta {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 4px;
+  }
+  .file-hashes {
+    margin-top: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+  .file-hashes .row { display: flex; gap: 8px; }
+  .file-hashes .label { color: var(--muted); width: 80px; flex-shrink: 0; }
+  .file-hashes .hash { word-break: break-all; }
+  .file-hashes .hash.match { color: var(--ok); }
+  .file-hashes .hash.mismatch { color: var(--bad); font-weight: bold; }
+  .verdict {
+    margin-top: 8px;
+    font-size: 13px;
+    font-style: italic;
+  }
+  .verdict.match { color: var(--ok); }
+  .verdict.mismatch { color: var(--bad); }
+
+  .submit-area {
+    margin-top: 24px;
+    padding: 18px;
+    background: #0a0604;
+    border: 1px dashed var(--border);
+    border-radius: 3px;
+  }
+  .submit-area label {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .submit-row {
+    display: flex;
+    gap: 8px;
+  }
+  .submit-row input {
+    flex: 1;
+    padding: 10px 12px;
+    font-family: 'Courier New', monospace;
+    background: var(--bg-2);
+    color: var(--accent-bright);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 14px;
+  }
+  .submit-row button {
+    padding: 10px 20px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 3px;
+    font-family: Georgia, serif;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .submit-row button:hover { background: var(--accent-bright); }
+  .submit-row button:disabled {
+    background: var(--muted);
+    cursor: not-allowed;
+  }
+  .submit-feedback {
+    margin-top: 12px;
+    font-size: 14px;
+    min-height: 20px;
+  }
+  .submit-feedback.error { color: var(--bad); }
+  .submit-feedback.success { color: var(--ok); }
+
+  .flag-reveal {
+    margin-top: 24px;
+    padding: 24px;
+    background:
+      linear-gradient(135deg, #2a1c0a 0%, #1a120a 100%);
+    border: 2px solid var(--accent-bright);
+    border-radius: 4px;
+    text-align: center;
+    display: none;
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  .flag-reveal.shown { display: block; }
+  @keyframes glow {
+    from { box-shadow: 0 0 12px rgba(200, 168, 112, 0.3); }
+    to   { box-shadow: 0 0 24px rgba(232, 200, 144, 0.5); }
+  }
+  .flag-reveal h2 {
+    border: none;
+    color: var(--accent-bright);
+    margin-top: 0;
+  }
+  .flag-text {
+    font-family: 'Courier New', monospace;
+    font-size: 22px;
+    color: var(--accent-bright);
+    margin: 16px 0;
+    letter-spacing: 2px;
+    word-break: break-all;
+  }
+  .next-link {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--accent);
+    padding-bottom: 2px;
+  }
+  .next-link:hover { color: var(--accent-bright); }
+
+  .nav-footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+  }
+  .nav-footer a {
+    color: var(--accent);
+    text-decoration: none;
+    margin: 0 12px;
+  }
+  .nav-footer a:hover { color: var(--accent-bright); }
+
+  .briefing {
+    background: #0a0604;
+    border-left: 3px solid var(--accent);
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    font-style: italic;
+    color: var(--text);
+  }
+  .briefing strong { color: var(--accent-bright); font-style: normal; }
+
+  .compute-status {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>F14 — THE ONE-WAY DOOR</h1>
+  <div class="subtitle">Encryption is a door with a key. Hashing is a door with no door.</div>
+
+  <div class="briefing">
+    <strong>BRIEFING.</strong> The publisher of OrionScan has just released version 1.0.0. They've posted the official SHA-256 hash of every file in the release on their website. You've downloaded the package — but you've heard rumors that an attacker may have replaced one of the files with a tampered copy on a mirror server. Your job: hash each file, compare to the publisher's official hashes, and identify which file has been tampered with.
+  </div>
+
+  <div class="panel" id="part1-panel">
+    <span class="panel-status" id="part1-status">PART 1 — locked</span>
+    <h2>Part 1 — The Avalanche</h2>
+    <p>Type something below and watch the SHA-256 update live. Then change one character — even just the case of one letter — and watch the hash become totally different.</p>
+
+    <div class="hash-label">YOUR INPUT</div>
+    <input class="avalanche-input" id="avalanche-input" type="text" placeholder="Type anything..." autocomplete="off">
+
+    <div class="hash-label" style="margin-top: 16px;">SHA-256</div>
+    <div class="hash-output" id="avalanche-output">—</div>
+
+    <div class="change-counter">Distinct inputs hashed: <strong id="change-count">0</strong> / 3</div>
+    <div class="compute-status" id="part1-compute-status"></div>
+  </div>
+
+  <div class="panel locked" id="part2-panel">
+    <span class="panel-status" id="part2-status">PART 2 — locked</span>
+    <h2>Part 2 — File Integrity Check</h2>
+    <p>The publisher's official hash board for OrionScan v1.0.0 is below, alongside the file you received. Click any file to compute its SHA-256 and compare. One file has been replaced by a tampered copy — its computed hash will <strong>not match</strong> the publisher's official hash. Find the bad one.</p>
+
+    <div class="files-grid" id="files-grid"></div>
+
+    <div class="submit-area">
+      <label>Once you've found the tampered file, type its filename (exactly as shown above):</label>
+      <div class="submit-row">
+        <input id="filename-input" type="text" placeholder="e.g. some-file.txt" autocomplete="off">
+        <button id="submit-btn">Submit</button>
+      </div>
+      <div class="submit-feedback" id="submit-feedback"></div>
+    </div>
+  </div>
+
+  <div class="flag-reveal" id="flag-reveal">
+    <h2>VERIFIED. The tampered file has been identified.</h2>
+    <p>You used the avalanche effect of SHA-256 to detect a single-byte change in a binary. That is exactly how every software publisher, every certificate authority, and every blockchain in the world catches tampering.</p>
+    <div class="flag-text" id="flag-text">FLAG{hashes_are_fingerprints_not_locks}</div>
+    <p>A hash is not a lock. It is a fingerprint — and the smallest change in the original leaves a completely different fingerprint behind.</p>
+    <p><a class="next-link" href="../../F15-picture-knew-too-much/README.md">Continue to F15 — The Picture That Knew Too Much →</a></p>
+  </div>
+
+  <div class="nav-footer">
+    <a href="../README.md">← Back to F14</a>
+    <a href="../../README.md">Foundation Track</a>
+    <a href="../../F15-picture-knew-too-much/README.md">F15 →</a>
+  </div>
+</div>
+
+<script>
+  'use strict';
+
+  const FLAG = 'FLAG{hashes_are_fingerprints_not_locks}';
+  const TAMPERED_FILENAME = 'orion-gui-binary';
+
+  async function sha256Hex(text) {
+    const buf = new TextEncoder().encode(text);
+    const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+    const bytes = Array.from(new Uint8Array(hashBuf));
+    return bytes.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function checkSupport() {
+    if (!window.crypto || !crypto.subtle || !crypto.subtle.digest) {
+      const msg = 'Your browser does not support SubtleCrypto.digest under file://. Please open this challenge in Chrome 100+, Firefox 100+, or Safari 14+.';
+      const statusEl = document.getElementById('part1-compute-status');
+      statusEl.textContent = msg;
+      statusEl.style.color = '#d06868';
+      return false;
+    }
+    return true;
+  }
+
+  const inputEl = document.getElementById('avalanche-input');
+  const outputEl = document.getElementById('avalanche-output');
+  const changeCountEl = document.getElementById('change-count');
+  const part1Status = document.getElementById('part1-status');
+  const part1ComputeStatus = document.getElementById('part1-compute-status');
+
+  const seenInputs = new Set();
+  let part1Done = false;
+
+  async function updateAvalanche() {
+    const text = inputEl.value;
+    if (text.length === 0) {
+      outputEl.textContent = '—';
+      return;
+    }
+    try {
+      const hash = await sha256Hex(text);
+      outputEl.textContent = hash;
+      part1ComputeStatus.textContent = '';
+
+      if (!seenInputs.has(text)) {
+        seenInputs.add(text);
+        changeCountEl.textContent = String(Math.min(seenInputs.size, 3));
+        if (seenInputs.size >= 3 && !part1Done) {
+          part1Done = true;
+          part1Status.textContent = 'PART 1 — complete';
+          part1Status.classList.add('done');
+          unlockPart2();
+        }
+      }
+    } catch (err) {
+      outputEl.textContent = '(hash failed)';
+      part1ComputeStatus.textContent = 'Error: ' + err.message;
+      part1ComputeStatus.style.color = '#d06868';
+    }
+  }
+
+  let inputDebounce = null;
+  inputEl.addEventListener('input', () => {
+    clearTimeout(inputDebounce);
+    inputDebounce = setTimeout(updateAvalanche, 150);
+  });
+
+  if (checkSupport()) {
+    part1Status.textContent = 'PART 1 — type to begin';
+  }
+
+  const FILES = [
+    {
+      name: 'orion-installer-1.0.0.tar.gz',
+      meta: '4.2 MB — main installer archive',
+      content: 'ORION-INSTALLER-PACKAGE\nVersion: 1.0.0\nBuild: 2024-09-15\nSize: 4.2MB\nContents: orion-cli, orion-gui, manpages, defaults.conf',
+      officialHash: '889575a7450810e43fdf7a435994b03c468e7a12aab7c75babbd4823b0a468fe'
+    },
+    {
+      name: 'release-notes-1.0.0.txt',
+      meta: '2 KB — human-readable release notes',
+      content: 'OrionScan v1.0.0 Release Notes\n--------------------------------\n* Initial public release\n* Adds NetMap module\n* Adds DNS analyzer\n* Documentation included',
+      officialHash: 'b3f60c9d00ae5d0f986534233d9b1bc55f6d6c5929a43571d768712f2b5aee59'
+    },
+    {
+      name: 'orion-cli-binary',
+      meta: '1.1 MB — command-line executable',
+      content: 'ORION-CLI-EXECUTABLE\nMagic: 0x7F454C46\nArch: x86_64\nVersion: 1.0.0\nBuild-Date: 2024-09-15T08:30:00Z',
+      officialHash: '0ab2b431a3a761d0983c6580815756c698744d66158666da179de8a5ff20474c'
+    },
+    {
+      name: 'orion-gui-binary',
+      meta: '2.7 MB — graphical executable',
+      content: 'ORION-GUI-EXECUTABLE\nMagic: 0x4D5A9000\nArch: x86_64\nVersion: 1.0.0\nBuild-Date: 2024-09-15T08:32:00Z\nINJECTED: backdoor_payload_v3',
+      officialHash: '9f08b15672630bd44d4adf4624bd1a0716e3e5fe21baed4610492fb9ad86edae'
+    },
+    {
+      name: 'README.md',
+      meta: '1 KB — quick-start documentation',
+      content: '# OrionScan\n\nA defensive network analysis toolkit for educators.\n\nSee release-notes-1.0.0.txt for changes.',
+      officialHash: '86ae2732fa395906f470f854a78cd8af9d2a9c53bf004eb78140bd7482eb1c21'
+    }
+  ];
+
+  const filesGrid = document.getElementById('files-grid');
+  const part2Panel = document.getElementById('part2-panel');
+  const part2Status = document.getElementById('part2-status');
+
+  function unlockPart2() {
+    part2Panel.classList.remove('locked');
+    part2Status.textContent = 'PART 2 — find the tampered file';
+    renderFiles();
+  }
+
+  function renderFiles() {
+    while (filesGrid.firstChild) filesGrid.removeChild(filesGrid.firstChild);
+    for (const f of FILES) {
+      const row = document.createElement('div');
+      row.className = 'file-row';
+      row.dataset.name = f.name;
+
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'file-name';
+      nameDiv.textContent = f.name;
+
+      const metaDiv = document.createElement('div');
+      metaDiv.className = 'file-meta';
+      metaDiv.textContent = f.meta + ' — click to verify';
+
+      row.appendChild(nameDiv);
+      row.appendChild(metaDiv);
+
+      row.addEventListener('click', () => verifyFile(f, row));
+
+      filesGrid.appendChild(row);
+    }
+  }
+
+  function buildHashRow(labelText, hashValue, matchClass) {
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    const labelSpan = document.createElement('span');
+    labelSpan.className = 'label';
+    labelSpan.textContent = labelText;
+
+    const hashSpan = document.createElement('span');
+    hashSpan.className = 'hash ' + matchClass;
+    hashSpan.textContent = hashValue;
+
+    row.appendChild(labelSpan);
+    row.appendChild(hashSpan);
+    return row;
+  }
+
+  async function verifyFile(file, row) {
+    if (row.dataset.verified === '1') return;
+    row.dataset.verified = '1';
+    row.classList.add('selected');
+
+    let computed;
+    try {
+      computed = await sha256Hex(file.content);
+    } catch (err) {
+      const errDiv = document.createElement('div');
+      errDiv.className = 'verdict mismatch';
+      errDiv.textContent = 'Hash computation failed: ' + err.message;
+      row.appendChild(errDiv);
+      return;
+    }
+
+    const matches = computed === file.officialHash;
+    const matchClass = matches ? 'match' : 'mismatch';
+
+    const hashesDiv = document.createElement('div');
+    hashesDiv.className = 'file-hashes';
+    hashesDiv.appendChild(buildHashRow('computed:', computed, matchClass));
+    hashesDiv.appendChild(buildHashRow('official:', file.officialHash, matchClass));
+    row.appendChild(hashesDiv);
+
+    const verdictDiv = document.createElement('div');
+    verdictDiv.className = 'verdict ' + matchClass;
+    verdictDiv.textContent = matches
+      ? '✓ Hashes match. This file is genuine.'
+      : '✗ Hashes do NOT match. This file has been tampered with.';
+    row.appendChild(verdictDiv);
+
+    row.classList.add(matchClass);
+  }
+
+  const filenameInput = document.getElementById('filename-input');
+  const submitBtn = document.getElementById('submit-btn');
+  const submitFeedback = document.getElementById('submit-feedback');
+  const flagReveal = document.getElementById('flag-reveal');
+  const flagText = document.getElementById('flag-text');
+
+  submitBtn.addEventListener('click', () => {
+    const guess = filenameInput.value.trim();
+    if (!guess) {
+      submitFeedback.className = 'submit-feedback error';
+      submitFeedback.textContent = 'Please type a filename.';
+      return;
+    }
+    if (guess === TAMPERED_FILENAME) {
+      submitFeedback.className = 'submit-feedback success';
+      submitFeedback.textContent = 'Correct.';
+      flagText.textContent = FLAG;
+      flagReveal.classList.add('shown');
+      submitBtn.disabled = true;
+      filenameInput.disabled = true;
+      flagReveal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      submitFeedback.className = 'submit-feedback error';
+      submitFeedback.textContent = 'That file matches the publisher\'s official hash. Try another.';
+    }
+  });
+
+  filenameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitBtn.click();
+  });
+</script>
+</body>
+</html>

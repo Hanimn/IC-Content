@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>F08 — ASCII All the Way Down | Agency Training</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #100c04;
+      --panel:     #1a1200;
+      --panel2:    #221800;
+      --amber:     #e8a820;
+      --amber-dim: #b07a10;
+      --amber-glow:#ffd060;
+      --text:      #d4b870;
+      --text-dim:  #7a6030;
+      --green:     #40c060;
+      --red:       #c04040;
+      --border:    #3a2800;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .site-header {
+      background: var(--panel);
+      border-bottom: 2px solid var(--amber);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .header-badge {
+      background: var(--amber);
+      color: var(--bg);
+      font-size: 11px;
+      font-weight: bold;
+      padding: 3px 8px;
+      letter-spacing: 0.12em;
+    }
+    .header-title {
+      color: var(--amber);
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .hero {
+      padding: 48px 24px 36px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .hero-tag {
+      color: var(--amber-dim);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .hero h1 {
+      color: var(--amber-glow);
+      font-size: clamp(22px, 4vw, 36px);
+      letter-spacing: 0.06em;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+    .hero-subtitle {
+      color: var(--text-dim);
+      font-size: 13px;
+      max-width: 580px;
+    }
+    .hero-meta {
+      display: flex;
+      gap: 24px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .meta-item { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; }
+    .meta-item span { color: var(--amber); }
+
+    .main-layout {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 720px) {
+      .main-layout { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .panel-header {
+      background: var(--panel2);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .panel-tag {
+      background: var(--amber);
+      color: var(--bg);
+      font-size: 10px;
+      font-weight: bold;
+      padding: 2px 6px;
+      letter-spacing: 0.1em;
+    }
+    .panel-tag.dim { background: var(--border); color: var(--text-dim); }
+    .panel-title {
+      color: var(--amber);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .panel-body { padding: 18px 16px; }
+
+    .transmission-box {
+      background: var(--bg);
+      border: 1px solid var(--amber-dim);
+      padding: 16px;
+      margin-bottom: 16px;
+      font-size: 15px;
+      color: var(--amber-glow);
+      letter-spacing: 0.08em;
+      word-break: break-all;
+      line-height: 2;
+    }
+    .transmission-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .task-text {
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 14px;
+      line-height: 1.7;
+    }
+    .task-text strong { color: var(--amber); }
+
+    .input-group { margin-bottom: 14px; }
+    .input-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .challenge-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--amber-glow);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .challenge-input:focus { border-color: var(--amber-dim); }
+    .challenge-input.correct { border-color: var(--green); }
+    .challenge-input.wrong   { border-color: var(--red); }
+
+    .btn {
+      background: var(--panel2);
+      border: 1px solid var(--amber-dim);
+      color: var(--amber);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 9px 18px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn:hover { background: var(--border); border-color: var(--amber); }
+    .btn.primary {
+      background: var(--amber);
+      color: var(--bg);
+      border-color: var(--amber);
+      font-weight: bold;
+    }
+    .btn.primary:hover { background: var(--amber-glow); }
+
+    .status-msg {
+      font-size: 12px;
+      padding: 10px 12px;
+      border-left: 3px solid;
+      margin-top: 12px;
+      display: none;
+    }
+    .status-msg.success { border-color: var(--green); color: var(--green); background: rgba(64,192,96,0.07); }
+    .status-msg.error   { border-color: var(--red);   color: var(--red);   background: rgba(192,64,64,0.07); }
+    .status-msg.show    { display: block; }
+
+    .ascii-table-wrap {
+      max-height: 320px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) var(--bg);
+    }
+    .ascii-table-wrap::-webkit-scrollbar { width: 6px; }
+    .ascii-table-wrap::-webkit-scrollbar-track { background: var(--bg); }
+    .ascii-table-wrap::-webkit-scrollbar-thumb { background: var(--border); }
+
+    table.ascii-ref {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    table.ascii-ref thead { position: sticky; top: 0; background: var(--panel2); }
+    table.ascii-ref th {
+      padding: 6px 8px;
+      color: var(--amber-dim);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    table.ascii-ref td {
+      padding: 3px 8px;
+      border-bottom: 1px solid rgba(58,40,0,0.4);
+      color: var(--text);
+    }
+    table.ascii-ref tr:hover td { background: var(--panel2); }
+    table.ascii-ref td:first-child { color: var(--amber-glow); }
+    table.ascii-ref td:nth-child(2) { color: var(--amber-dim); }
+    table.ascii-ref td:nth-child(3) { color: var(--amber); font-weight: bold; }
+    .ascii-highlight td { background: rgba(232,168,32,0.12) !important; }
+
+    .decoder-tool {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .decoder-tool textarea {
+      width: 100%;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      color: var(--amber-glow);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      padding: 8px 10px;
+      resize: vertical;
+      min-height: 60px;
+      outline: none;
+    }
+    .decoder-tool textarea:focus { border-color: var(--amber-dim); }
+    .decoder-output {
+      margin-top: 10px;
+      padding: 10px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      min-height: 40px;
+      font-size: 13px;
+      color: var(--text);
+      word-break: break-all;
+    }
+    .decoder-output.error-out { color: var(--red); }
+    .decoder-output.success-out { color: var(--green); }
+
+    .part-divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+    .clue-box {
+      background: rgba(232,168,32,0.06);
+      border: 1px solid var(--amber-dim);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.7;
+    }
+    .clue-label {
+      color: var(--amber);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .clue-box strong { color: var(--amber); }
+
+    .flag-reveal {
+      display: none;
+      background: var(--panel2);
+      border: 2px solid var(--amber);
+      padding: 24px;
+      margin-top: 20px;
+      text-align: center;
+    }
+    .flag-reveal.show { display: block; }
+    .flag-reveal-title {
+      color: var(--amber-dim);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .flag-part { color: var(--text-dim); margin-bottom: 6px; font-size: 13px; }
+    .flag-part-value { color: var(--amber-glow); }
+    .flag-full {
+      font-size: clamp(14px, 2vw, 17px);
+      color: var(--amber-glow);
+      letter-spacing: 0.05em;
+      background: var(--bg);
+      padding: 12px 20px;
+      border: 1px solid var(--amber-dim);
+      display: inline-block;
+      margin-top: 8px;
+    }
+    .flag-congrats { color: var(--green); font-size: 12px; margin-top: 14px; letter-spacing: 0.08em; }
+
+    .progress-row { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .progress-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--panel2);
+    }
+    .progress-dot.done   { background: var(--green); border-color: var(--green); }
+    .progress-dot.active { background: var(--amber); border-color: var(--amber); }
+    .progress-label { font-size: 11px; color: var(--text-dim); margin-left: 4px; }
+
+    .sidebar .panel-body { padding: 14px 12px; }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-badge">F08</div>
+  <div class="header-title">AGENCY TRAINING // F08 — ASCII ALL THE WAY DOWN</div>
+</header>
+
+<div class="hero">
+  <div class="hero-tag">Foundation Track — Module 08</div>
+  <h1>ASCII ALL THE WAY DOWN</h1>
+  <p class="hero-subtitle">Decode the intercepted transmissions. Every letter is a number. Every encoded string has a key.</p>
+  <div class="hero-meta">
+    <div class="meta-item">DIFFICULTY: <span>BEGINNER</span></div>
+    <div class="meta-item">TIME: <span>~25 MIN</span></div>
+    <div class="meta-item">PARTS: <span>2</span></div>
+    <div class="meta-item">FLAG: <span>ONE FLAG</span></div>
+  </div>
+</div>
+
+<div class="main-layout">
+
+  <!-- CHALLENGES -->
+  <div>
+
+    <div class="progress-row">
+      <div class="progress-dot active" id="dot1"></div>
+      <div class="progress-dot" id="dot2"></div>
+      <div class="progress-label" id="progress-text">Part 1 of 2 active</div>
+    </div>
+
+    <!-- PART 1 -->
+    <div class="panel" id="part1-panel">
+      <div class="panel-header">
+        <div class="panel-tag">PART 1</div>
+        <div class="panel-title">DECRYPT THE DECIMAL TRANSMISSION</div>
+      </div>
+      <div class="panel-body">
+        <div class="transmission-label">INTERCEPTED TRANSMISSION // FORMAT: ASCII DECIMAL</div>
+        <div class="transmission-box">
+          70 76 65 71 123 97 115 99 105 105 95 97 110 100 95
+        </div>
+        <p class="task-text">
+          An intercepted message arrived as a sequence of decimal numbers. Each number is an ASCII value — it maps to exactly one character. Use the reference table on the right to look up each value and read the hidden text.
+        </p>
+        <p class="task-text">
+          <strong>Task:</strong> What text do these decimal numbers represent? Enter the decoded string below.
+        </p>
+        <div class="input-group">
+          <div class="input-label">Decoded text</div>
+          <input type="text" class="challenge-input" id="part1-input"
+            placeholder="Enter the decoded text..." autocomplete="off" spellcheck="false">
+        </div>
+        <button class="btn primary" onclick="checkPart1()">SUBMIT DECODE</button>
+        <div class="status-msg" id="part1-msg"></div>
+      </div>
+    </div>
+
+    <!-- PART 2 -->
+    <div class="panel" id="part2-panel" style="opacity:0.4; pointer-events:none;">
+      <div class="panel-header">
+        <div class="panel-tag dim" id="part2-tag">PART 2</div>
+        <div class="panel-title">REPAIR AND DECODE THE BASE64 FRAGMENT</div>
+      </div>
+      <div class="panel-body">
+        <p class="task-text">
+          The second half of the transmission arrived encoded in base64. But one character was corrupted in transit — the string will not decode cleanly as received.
+        </p>
+        <div class="transmission-label">CORRUPTED BASE64 FRAGMENT</div>
+        <div class="transmission-box" style="font-size:16px; letter-spacing:0.12em;">
+          YmFzZTY0X2RlY29kXWR9
+        </div>
+        <div class="clue-box">
+          <div class="clue-label">Signal Intelligence Note</div>
+          One character in this transmission is corrupted. The corruption is at <strong>position 17</strong> (counting from 1). Fix only that character, then decode. Valid base64 uses only: A–Z, a–z, 0–9, +, /
+        </div>
+
+        <!-- BUILT-IN DECODER -->
+        <div style="margin-bottom:16px;">
+          <div class="input-label" style="margin-bottom:8px;">Built-in Base64 Decoder</div>
+          <div class="decoder-tool">
+            <div style="font-size:11px; color:var(--text-dim); margin-bottom:6px;">Input — paste base64 here</div>
+            <textarea id="decoder-input" placeholder="Paste a base64 string..."></textarea>
+            <button class="btn" style="margin-top:8px;" onclick="runDecoder()">DECODE</button>
+            <div style="font-size:11px; color:var(--text-dim); margin-top:10px; margin-bottom:4px;">Output</div>
+            <div class="decoder-output" id="decoder-output">— paste and click DECODE —</div>
+          </div>
+        </div>
+
+        <hr class="part-divider">
+
+        <p class="task-text">
+          Once you have found and fixed the corrupted character, submit your answers below.
+        </p>
+
+        <div class="input-group">
+          <div class="input-label">A) Enter the corrected base64 string</div>
+          <input type="text" class="challenge-input" id="part2-input-a"
+            placeholder="Corrected base64..." autocomplete="off" spellcheck="false">
+        </div>
+
+        <div class="input-group">
+          <div class="input-label">B) Enter the decoded text (what the corrected base64 decodes to)</div>
+          <input type="text" class="challenge-input" id="part2-input-b"
+            placeholder="Decoded text..." autocomplete="off" spellcheck="false">
+        </div>
+
+        <button class="btn primary" onclick="checkPart2()">SUBMIT DECODE</button>
+        <div class="status-msg" id="part2-msg"></div>
+      </div>
+    </div>
+
+    <!-- FLAG REVEAL -->
+    <div class="flag-reveal" id="flag-reveal">
+      <div class="flag-reveal-title">TRANSMISSION COMPLETE</div>
+      <div style="margin-bottom:16px;">
+        <div class="flag-part">Part 1: <span class="flag-part-value">FLAG{ascii_and_</span></div>
+        <div class="flag-part">Part 2: <span class="flag-part-value">base64_decoded}</span></div>
+      </div>
+      <div style="font-size:11px; color:var(--text-dim); margin-bottom:8px; letter-spacing:0.12em;">COMPLETE FLAG</div>
+      <div class="flag-full" id="flag-full-text"></div>
+      <div class="flag-congrats">Mission complete. Both transmissions decoded successfully.</div>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- ASCII TABLE -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-tag">REF</div>
+        <div class="panel-title">ASCII LOOKUP TABLE</div>
+      </div>
+      <div class="panel-body" style="padding:10px 8px;">
+        <div style="font-size:11px; color:var(--text-dim); margin-bottom:8px;">Printable characters (32–126)</div>
+        <div class="ascii-table-wrap">
+          <table class="ascii-ref" id="ascii-table">
+            <thead>
+              <tr>
+                <th>Dec</th>
+                <th>Hex</th>
+                <th>Chr</th>
+              </tr>
+            </thead>
+            <tbody id="ascii-tbody"></tbody>
+          </table>
+        </div>
+        <div style="font-size:10px; color:var(--text-dim); margin-top:8px; line-height:1.6;">
+          Key: 65–90=A-Z &nbsp; 97–122=a-z &nbsp; 48–57=0-9
+        </div>
+      </div>
+    </div>
+
+    <!-- BASE64 SIGNS -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-tag">GUIDE</div>
+        <div class="panel-title">BASE64 SIGNS</div>
+      </div>
+      <div class="panel-body">
+        <div style="font-size:12px; color:var(--text); line-height:1.8;">
+          <div style="margin-bottom:6px;"><span style="color:var(--amber)">Alphabet:</span> A–Z, a–z, 0–9, +, /</div>
+          <div style="margin-bottom:6px;"><span style="color:var(--amber)">Padding:</span> ends in = or ==</div>
+          <div style="margin-bottom:6px;"><span style="color:var(--amber)">Length:</span> always divisible by 4</div>
+          <div style="margin-bottom:12px;"><span style="color:var(--amber)">Security:</span> <span style="color:var(--red)">NONE</span> — not encryption</div>
+        </div>
+        <hr style="border-color:var(--border); margin:10px 0;">
+        <div style="font-size:11px; color:var(--text-dim); line-height:1.8;">
+          <div>FLAG{test} = RkxBR3t0ZXN0fQ==</div>
+          <div>Hello = SGVsbG8=</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STUCK -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-tag dim">HELP</div>
+        <div class="panel-title">STUCK?</div>
+      </div>
+      <div class="panel-body">
+        <p style="font-size:12px; color:var(--text-dim); line-height:1.7;">
+          Hints are in the challenge folder:<br>
+          hint-1.md — direction only<br>
+          hint-2.md — more specific guidance
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  // Build ASCII table using safe DOM methods (no innerHTML with user data)
+  (function buildAsciiTable() {
+    var tbody = document.getElementById('ascii-tbody');
+    for (var i = 32; i <= 126; i++) {
+      var tr = document.createElement('tr');
+      tr.dataset.dec = String(i);
+
+      var tdDec = document.createElement('td');
+      tdDec.textContent = String(i);
+
+      var tdHex = document.createElement('td');
+      tdHex.textContent = i.toString(16).toUpperCase().padStart(2, '0');
+
+      var tdChr = document.createElement('td');
+      tdChr.textContent = i === 32 ? '(space)' : String.fromCharCode(i);
+
+      tr.appendChild(tdDec);
+      tr.appendChild(tdHex);
+      tr.appendChild(tdChr);
+      tbody.appendChild(tr);
+    }
+  })();
+
+  function highlightAscii(dec) {
+    document.querySelectorAll('.ascii-highlight').forEach(function(r) {
+      r.classList.remove('ascii-highlight');
+    });
+    var rows = document.querySelectorAll('#ascii-tbody tr');
+    for (var i = 0; i < rows.length; i++) {
+      if (parseInt(rows[i].dataset.dec, 10) === dec) {
+        rows[i].classList.add('ascii-highlight');
+        rows[i].scrollIntoView({ block: 'nearest' });
+        break;
+      }
+    }
+  }
+
+  // Highlight next needed char as user types
+  document.getElementById('part1-input').addEventListener('input', function() {
+    var seq = [70,76,65,71,123,97,115,99,105,105,95,97,110,100,95];
+    var len = this.value.length;
+    if (len < seq.length) {
+      highlightAscii(seq[len]);
+    }
+  });
+
+  function setMsg(id, text, type) {
+    var el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'status-msg ' + type + ' show';
+  }
+
+  function checkPart1() {
+    var input = document.getElementById('part1-input').value;
+    var correct = 'FLAG{ascii_and_';
+    var inp = document.getElementById('part1-input');
+
+    if (input === correct) {
+      inp.classList.remove('wrong');
+      inp.classList.add('correct');
+      setMsg('part1-msg',
+        'Part 1 complete. You decoded the ASCII transmission. But the message is not finished — the second half arrived in a different encoding.',
+        'success'
+      );
+      unlockPart2();
+    } else if (input.toLowerCase() === correct.toLowerCase()) {
+      inp.classList.add('wrong');
+      setMsg('part1-msg', 'Case matters. ASCII is case-sensitive — check your uppercase and lowercase.', 'error');
+    } else {
+      inp.classList.add('wrong');
+      setMsg('part1-msg', 'Not quite. Use the ASCII table on the right — look up each decimal number. Start with 70.', 'error');
+    }
+  }
+
+  function unlockPart2() {
+    var panel = document.getElementById('part2-panel');
+    var tag   = document.getElementById('part2-tag');
+    document.getElementById('dot1').classList.remove('active');
+    document.getElementById('dot1').classList.add('done');
+    document.getElementById('dot2').classList.add('active');
+    document.getElementById('progress-text').textContent = 'Part 2 of 2 active';
+    panel.style.opacity = '1';
+    panel.style.pointerEvents = 'auto';
+    tag.classList.remove('dim');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function runDecoder() {
+    var raw = document.getElementById('decoder-input').value.trim();
+    var out = document.getElementById('decoder-output');
+    if (!raw) {
+      out.textContent = '— paste a base64 string above —';
+      out.className = 'decoder-output';
+      return;
+    }
+    try {
+      var decoded = atob(raw);
+      out.textContent = decoded;
+      out.className = 'decoder-output success-out';
+    } catch(e) {
+      out.textContent = 'Invalid base64: check for typos or wrong characters.';
+      out.className = 'decoder-output error-out';
+    }
+  }
+
+  function checkPart2() {
+    var inputA = document.getElementById('part2-input-a').value.trim();
+    var inputB = document.getElementById('part2-input-b').value.trim();
+    var elA = document.getElementById('part2-input-a');
+    var elB = document.getElementById('part2-input-b');
+
+    var correctB64  = 'YmFzZTY0X2RlY29kZWR9';
+    var correctText = 'base64_decoded}';
+
+    var aOk = (inputA === correctB64);
+    var bOk = (inputB === correctText);
+
+    elA.classList.remove('correct', 'wrong');
+    elB.classList.remove('correct', 'wrong');
+
+    if (aOk && bOk) {
+      elA.classList.add('correct');
+      elB.classList.add('correct');
+      setMsg('part2-msg', 'Part 2 complete. Both answers correct.', 'success');
+      showFlag();
+      return;
+    }
+
+    if (!aOk) { elA.classList.add('wrong'); } else { elA.classList.add('correct'); }
+    if (!bOk) { elB.classList.add('wrong'); } else { elB.classList.add('correct'); }
+
+    if (!aOk && !bOk) {
+      setMsg('part2-msg',
+        'Both fields need attention. The corrupted string has one wrong character at position 15. Fix just that character, then decode.',
+        'error'
+      );
+    } else if (!aOk) {
+      setMsg('part2-msg',
+        'The corrected base64 string is not right yet. Count carefully — position 15 (from 1) is the wrong character.',
+        'error'
+      );
+    } else {
+      setMsg('part2-msg',
+        'The base64 string is correct, but the decoded text does not match. Try decoding it with the tool above.',
+        'error'
+      );
+    }
+  }
+
+  function showFlag() {
+    document.getElementById('dot2').classList.remove('active');
+    document.getElementById('dot2').classList.add('done');
+    document.getElementById('progress-text').textContent = 'Both parts complete';
+    var reveal = document.getElementById('flag-reveal');
+    var flagText = document.getElementById('flag-full-text');
+    flagText.textContent = 'FLAG{ascii_and_base64_decoded}';
+    reveal.classList.add('show');
+    reveal.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.getElementById('part1-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { checkPart1(); }
+  });
+  document.getElementById('part2-input-b').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { checkPart2(); }
+  });
+
+  // Highlight the first value on load
+  highlightAscii(70);
+</script>
+
+</body>
+</html>

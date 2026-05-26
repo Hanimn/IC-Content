@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Westfield Academy — System Maintenance</title>
+
+  <!--
+  ================================================================
+  CHALLENGE METADATA
+  ================================================================
+  Module:   01 — View Source
+  Title:    The Page Behind the Page
+  Tier:     A (pure HTML/JS — works via file://, no server needed)
+  Flag:     See FLAG constant in <script> below
+  Version:  1.0
+
+  INSTRUCTOR NOTES:
+  - To change the flag: edit the FLAG constant in the <script> at
+    the bottom of this file. That's the only thing you need to edit.
+  - The flag is also placed as an HTML comment in this <head>
+    section — that IS the challenge mechanic. Update both when
+    you change the flag value.
+  - The red herring comment below decodes to "nice try!" in base64.
+    You can change or remove it, but it's a useful teaching moment.
+  ================================================================
+  -->
+
+  <!-- Site last updated: 2019-08-22 -->
+  <!-- Webmaster: R. Calloway (retired 2021) — contact IT helpdesk for changes -->
+  <!-- aGVsbG8gZnJvbSB0aGUgcGFzdCAtIG5pY2UgdHJ5IQ== -->
+  <!-- TODO: migrate to new CMS before September — never got around to it -->
+  <!-- FLAG{source_is_never_secret} -->
+  <!-- Server: westfield-legacy-01 | Build: static-v0.3 -->
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #0a0a0a;
+      color: #33ff33;
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .terminal {
+      max-width: 640px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .terminal-header {
+      border: 1px solid #33ff33;
+      padding: 0.4rem 1rem;
+      font-size: 0.75rem;
+      color: #33ff33;
+      opacity: 0.6;
+      margin-bottom: 2rem;
+      text-align: left;
+    }
+
+    h1 {
+      font-size: 1.1rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      opacity: 0.9;
+    }
+
+    .status-line {
+      font-size: 0.95rem;
+      opacity: 0.75;
+      margin-bottom: 2.5rem;
+    }
+
+    .blink {
+      display: inline-block;
+      animation: blink 1.1s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+
+    .footer-note {
+      font-size: 0.7rem;
+      opacity: 0.35;
+      margin-top: 3rem;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="terminal">
+    <div class="terminal-header">
+      WESTFIELD ACADEMY — INTERNAL WEB SERVICES<br>
+      SYSTEM STATUS: MAINTENANCE MODE
+    </div>
+
+    <h1>Nothing to see here.</h1>
+
+    <p class="status-line">
+      This page is temporarily offline for maintenance.<br>
+      Please check back later.<span class="blink">_</span>
+    </p>
+
+    <p class="footer-note">
+      westfield-legacy-01 &nbsp;|&nbsp; uptime: 1642 days
+    </p>
+  </div>
+
+  <!--
+  ================================================================
+  CHALLENGE LOGIC
+  ================================================================
+  INSTRUCTORS: Edit the FLAG constant value below AND update the
+  HTML comment in the <head> section above to match.
+  ================================================================
+  -->
+  <script>
+    // ============================================================
+    // CONFIGURATION — instructors edit this value (and the
+    // matching HTML comment in <head>) when changing the flag
+    // ============================================================
+    const FLAG = "FLAG{source_is_never_secret}";
+
+    // ============================================================
+    // No active challenge logic needed for this module.
+    // The flag is discovered by reading the HTML source directly.
+    // This constant is kept for instructor reference and in case
+    // a submission box is added in a future revision.
+    // ============================================================
+  </script>
+
+</body>
+</html>

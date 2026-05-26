@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus Systems — Staging API</title>
+
+  <!--
+  ================================================================
+  CHALLENGE METADATA
+  ================================================================
+  Module:   04 — HTTP Headers
+  Title:    The Envelope, Not the Letter
+  Tier:     B — REQUIRES HTTP SERVER
+            Run: python3 -m http.server 8080
+            Visit: http://localhost:8080
+            (Opening via file:// will cause the fetch to fail)
+  Flag:     See FLAG constant in <script> below
+  Version:  1.0
+
+  INSTRUCTOR NOTES:
+  - To change the flag: edit FLAG and flagPart1 below.
+    Also update secret.json: re-encode your Part 2 with btoa().
+  - Flag split:
+      Part 1: visible on screen in the "audit reference" panel
+              → FLAG{network_tab_
+      Part 2: base64 value in secret.json's "data" field
+              → atob("cmV2ZWFsc19hbGx9") = "reveals_all}"
+  - Combined: FLAG{network_tab_reveals_all}
+  - Students find Part 2 by: Network tab → click secret.json
+    request → Preview or Response subtab → see JSON → decode data field
+  ================================================================
+  -->
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      background: #010409;
+      border-bottom: 1px solid #21262d;
+      padding: 0 2rem;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar-brand {
+      font-size: 0.82rem;
+      color: #58a6ff;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .topbar-status {
+      font-size: 0.72rem;
+      color: #3fb950;
+      letter-spacing: 0.08em;
+    }
+
+    .topbar-status::before {
+      content: '● ';
+    }
+
+    /* ── Layout ── */
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #388bfd;
+      margin-bottom: 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid #21262d;
+    }
+
+    /* ── Info grid ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .info-cell {
+      background: #161b22;
+      border: 1px solid #21262d;
+      padding: 1rem;
+    }
+
+    .info-cell .label {
+      font-size: 0.68rem;
+      color: #8b949e;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    .info-cell .value {
+      font-size: 1rem;
+      color: #c9d1d9;
+    }
+
+    .info-cell .value.green { color: #3fb950; }
+    .info-cell .value.blue  { color: #58a6ff; }
+
+    /* ── Endpoint table ── */
+    .endpoint-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+      font-size: 0.82rem;
+    }
+
+    .endpoint-table th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #8b949e;
+      border-bottom: 1px solid #21262d;
+    }
+
+    .endpoint-table td {
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid #161b22;
+      color: #c9d1d9;
+    }
+
+    .endpoint-table tr:hover td {
+      background: #161b22;
+    }
+
+    .method {
+      display: inline-block;
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+
+    .method.get  { background: #1f6feb33; color: #58a6ff; border: 1px solid #1f6feb; }
+    .method.post { background: #238636aa; color: #3fb950; border: 1px solid #238636; }
+
+    .status-200 { color: #3fb950; }
+    .status-403 { color: #f85149; }
+
+    /* ── Audit panel ── */
+    .audit-panel {
+      background: #161b22;
+      border: 1px solid #21262d;
+      padding: 1.2rem 1.4rem;
+      margin-bottom: 2rem;
+    }
+
+    .audit-panel .audit-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid #0d1117;
+      font-size: 0.82rem;
+    }
+
+    .audit-panel .audit-row:last-child {
+      border-bottom: none;
+    }
+
+    .audit-panel .audit-key {
+      color: #8b949e;
+      font-size: 0.72rem;
+    }
+
+    .audit-panel .audit-val {
+      color: #c9d1d9;
+      font-family: 'Courier New', monospace;
+    }
+
+    .audit-panel .audit-val.highlight {
+      color: #58a6ff;
+    }
+
+    /* ── Fetch status panel ── */
+    .fetch-panel {
+      background: #161b22;
+      border: 1px solid #21262d;
+      padding: 1.2rem 1.4rem;
+    }
+
+    .fetch-panel p {
+      font-size: 0.82rem;
+      color: #8b949e;
+      margin-bottom: 0.6rem;
+    }
+
+    #fetch-status {
+      font-size: 0.82rem;
+      color: #8b949e;
+      font-style: italic;
+    }
+
+    #fetch-status.ok    { color: #3fb950; font-style: normal; }
+    #fetch-status.error { color: #f85149; font-style: normal; }
+
+    /* ── Footer ── */
+    .footer {
+      border-top: 1px solid #21262d;
+      padding: 1rem 2rem;
+      margin-top: 3rem;
+      font-size: 0.68rem;
+      color: #30363d;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <span class="topbar-brand">Nexus Systems &mdash; Staging API</span>
+    <span class="topbar-status">System Operational</span>
+  </div>
+
+  <div class="page">
+
+    <p class="section-label">System Overview</p>
+
+    <div class="info-grid">
+      <div class="info-cell">
+        <div class="label">Uptime</div>
+        <div class="value green" id="uptime">calculating...</div>
+      </div>
+      <div class="info-cell">
+        <div class="label">Build</div>
+        <div class="value blue">0.4.2-staging</div>
+      </div>
+      <div class="info-cell">
+        <div class="label">Environment</div>
+        <div class="value">staging</div>
+      </div>
+    </div>
+
+    <p class="section-label">Available Endpoints</p>
+
+    <table class="endpoint-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Path</th>
+          <th>Description</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td>/api/status</td>
+          <td>System health check</td>
+          <td class="status-200">200</td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td>/api/secret</td>
+          <td>Internal reference data</td>
+          <td class="status-200">200</td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td>/api/ingest</td>
+          <td>Data ingestion endpoint</td>
+          <td class="status-403">403</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="section-label">Security Audit — Reference</p>
+
+    <!-- Part 1 of the flag is here, visible on screen.
+         It confirms to students that the server is running and they've
+         found the right place. The real challenge is finding Part 2
+         in the Network tab. -->
+    <div class="audit-panel">
+      <div class="audit-row">
+        <span class="audit-key">Audit ID</span>
+        <span class="audit-val">NX-2024-0814</span>
+      </div>
+      <div class="audit-row">
+        <span class="audit-key">Scope</span>
+        <span class="audit-val">staging.nexus-internal.local</span>
+      </div>
+      <div class="audit-row">
+        <span class="audit-key">Finding ref</span>
+        <span class="audit-val highlight" id="flag-part1"></span>
+      </div>
+      <div class="audit-row">
+        <span class="audit-key">Data endpoint</span>
+        <span class="audit-val">secret.json (fetched on load — check network activity)</span>
+      </div>
+    </div>
+
+    <p class="section-label" style="margin-top:1.5rem;">Background Data Fetch</p>
+
+    <div class="fetch-panel">
+      <p>The system fetches operational data from the internal API on page load.</p>
+      <div id="fetch-status">Fetching secret.json...</div>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    Nexus Systems Staging &nbsp;|&nbsp; Build 0.4.2 &nbsp;|&nbsp;
+    This server should have been decommissioned. &nbsp;|&nbsp;
+    Do not expose to external network.
+  </footer>
+
+  <!--
+  ================================================================
+  CHALLENGE LOGIC
+  ================================================================
+  INSTRUCTORS: To change the flag:
+    1. Edit FLAG and flagPart1 below
+    2. Update secret.json's "data" field with btoa("your_part2")
+  ================================================================
+  -->
+  <script>
+    // ============================================================
+    // CONFIGURATION — instructors edit these values
+    // ============================================================
+    const FLAG      = "FLAG{network_tab_reveals_all}";
+    const flagPart1 = "FLAG{network_tab_";
+    // Part 2 lives in secret.json "data" field: btoa("reveals_all}") = "cmV2ZWFsc19hbGx9"
+
+    // ============================================================
+    // CHALLENGE LOGIC
+    // ============================================================
+
+    // Show Part 1 on screen (confirms server is running)
+    document.getElementById('flag-part1').textContent = flagPart1;
+
+    // Uptime counter (cosmetic — makes the page feel live)
+    const startTime = Date.now();
+    setInterval(() => {
+      const s = Math.floor((Date.now() - startTime) / 1000);
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      document.getElementById('uptime').textContent =
+        String(h).padStart(2,'0') + ':' +
+        String(m).padStart(2,'0') + ':' +
+        String(sec).padStart(2,'0');
+    }, 1000);
+
+    // Fetch secret.json — this is the request students need to find in the Network tab.
+    // The response body contains the base64-encoded second flag half in the "data" field.
+    // The page only displays the "status" field — not "data" — so students must use
+    // the Network tab's Preview/Response subtab to see the full JSON.
+    fetch('secret.json')
+      .then(response => response.json())
+      .then(data => {
+        const statusEl = document.getElementById('fetch-status');
+        statusEl.textContent = 'API status: ' + data.status + ' (v' + data.version + ')';
+        statusEl.className = 'ok';
+        // data.data is intentionally NOT displayed — students find it in the Network tab
+      })
+      .catch(() => {
+        const statusEl = document.getElementById('fetch-status');
+        statusEl.textContent =
+          'Fetch failed. Are you visiting http://localhost:8080? ' +
+          'This challenge requires a local server — see README.md.';
+        statusEl.className = 'error';
+      });
+
+  </script>
+
+</body>
+</html>

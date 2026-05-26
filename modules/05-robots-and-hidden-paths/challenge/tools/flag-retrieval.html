@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flag Retrieval — Internal Tool</title>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1614;
+      color: #c8bdb6;
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .terminal {
+      max-width: 640px;
+      width: 100%;
+    }
+
+    .terminal-bar {
+      background: #2c2825;
+      border: 1px solid #443c38;
+      border-bottom: none;
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      color: #5a4f48;
+      letter-spacing: 0.04em;
+    }
+
+    .terminal-body {
+      background: #0d0b0a;
+      border: 1px solid #443c38;
+      padding: 1.5rem;
+      font-size: 0.88rem;
+      line-height: 1.8;
+    }
+
+    .prompt { color: #8b3a2a; }
+    .output { color: #a09890; }
+    .label  { color: #5a8a5a; }
+    .flag   { color: #e8c96a; letter-spacing: 0.06em; }
+    .dim    { color: #443c38; }
+  </style>
+</head>
+<body>
+
+  <div class="terminal">
+    <div class="terminal-bar">meridian-internal — flag-retrieval — bash</div>
+    <div class="terminal-body">
+      <div><span class="prompt">$</span> <span class="output">./flag-retrieval --run</span></div>
+      <div class="dim">──────────────────────────────────────</div>
+      <div><span class="label">SYSTEM:</span> <span class="output">Meridian Publishing Group</span></div>
+      <div><span class="label">TOOL:</span>   <span class="output">Internal flag retrieval utility</span></div>
+      <div><span class="label">STATUS:</span> <span class="output">Access granted</span></div>
+      <div class="dim">──────────────────────────────────────</div>
+      <div>&nbsp;</div>
+      <div><span class="output">This tool was listed in robots.txt as Disallowed.</span></div>
+      <div><span class="output">robots.txt asked crawlers not to index this path.</span></div>
+      <div><span class="output">It did not stop you from getting here.</span></div>
+      <div>&nbsp;</div>
+      <div><span class="label">FLAG:</span>   <span class="flag">FLAG{robots_txt_is_not_a_fence}</span></div>
+      <div>&nbsp;</div>
+      <div class="dim">──────────────────────────────────────</div>
+      <div><span class="prompt">$</span> <span class="dim">_</span></div>
+    </div>
+  </div>
+
+  <!--
+  ================================================================
+  CHALLENGE METADATA
+  ================================================================
+  Module:   05 — robots.txt & Hidden Paths
+  Flag:     FLAG{robots_txt_is_not_a_fence}
+  Path:     /tools/flag-retrieval.html
+  Listed:   in robots.txt as "Disallow: /tools/flag-retrieval.html"
+  ================================================================
+  -->
+  <script>
+    const FLAG = "FLAG{robots_txt_is_not_a_fence}";
+  </script>
+
+</body>
+</html>

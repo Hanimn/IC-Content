@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meridian Publishing Group</title>
+
+  <!--
+  ================================================================
+  CHALLENGE METADATA
+  ================================================================
+  Module:   05 — robots.txt & Hidden Paths
+  Title:    The Map They Forgot to Hide
+  Tier:     A — Works via file:// (no server needed)
+  Flag:     FLAG{robots_txt_is_not_a_fence}
+            Stored in: challenge/tools/flag-retrieval.html
+            Path revealed in: challenge/robots.txt
+  Version:  1.0
+
+  INSTRUCTOR NOTES:
+  - To change the flag: edit FLAG constant below AND the flag
+    displayed in tools/flag-retrieval.html
+  - robots.txt lists /tools/flag-retrieval.html as Disallowed
+  - Students navigate to that path manually to find the flag
+  - The main page (index.html) is a believable publishing company
+    homepage — nothing obviously suspicious on screen
+  ================================================================
+  -->
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #f7f3ee;
+      color: #2c2825;
+      font-family: Georgia, 'Times New Roman', serif;
+      min-height: 100vh;
+    }
+
+    /* ── Masthead ── */
+    .masthead {
+      background: #1a1614;
+      color: #f0ebe4;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      border-bottom: 3px solid #8b3a2a;
+    }
+
+    .masthead-name {
+      font-size: 1.8rem;
+      letter-spacing: 0.04em;
+      font-weight: normal;
+    }
+
+    .masthead-tagline {
+      font-size: 0.82rem;
+      color: #a09890;
+      letter-spacing: 0.06em;
+      font-style: italic;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      background: #2c2825;
+      padding: 0 2rem;
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid #443c38;
+    }
+
+    .nav a {
+      color: #c8bdb6;
+      text-decoration: none;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.75rem 1.2rem;
+      display: block;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .nav a:hover {
+      color: #f0ebe4;
+      border-bottom-color: #8b3a2a;
+    }
+
+    /* ── Layout ── */
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem;
+    }
+
+    /* ── Section heading ── */
+    .section-heading {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #8b3a2a;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid #d4c9bc;
+    }
+
+    /* ── Feature article ── */
+    .feature {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .feature-text h2 {
+      font-size: 1.5rem;
+      font-weight: normal;
+      line-height: 1.3;
+      margin-bottom: 0.6rem;
+      color: #1a1614;
+    }
+
+    .feature-text .byline {
+      font-size: 0.75rem;
+      color: #8a7d74;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.8rem;
+    }
+
+    .feature-text p {
+      font-size: 0.92rem;
+      line-height: 1.7;
+      color: #3d3530;
+    }
+
+    .feature-image {
+      background: #e0d8cf;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 180px;
+      color: #a09080;
+      font-size: 0.75rem;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── Article grid ── */
+    .article-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .article-card {
+      border-top: 2px solid #d4c9bc;
+      padding-top: 0.8rem;
+    }
+
+    .article-card .category {
+      font-size: 0.65rem;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #8b3a2a;
+      margin-bottom: 0.4rem;
+    }
+
+    .article-card h3 {
+      font-size: 1rem;
+      font-weight: normal;
+      line-height: 1.35;
+      margin-bottom: 0.4rem;
+      color: #1a1614;
+    }
+
+    .article-card p {
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: #5a4f48;
+    }
+
+    /* ── Notices bar ── */
+    .notices {
+      background: #1a1614;
+      color: #a09890;
+      padding: 0.8rem 1.2rem;
+      font-size: 0.72rem;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      letter-spacing: 0.04em;
+      margin-bottom: 2.5rem;
+      border-left: 3px solid #8b3a2a;
+    }
+
+    .notices strong {
+      color: #c8bdb6;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid #d4c9bc;
+      padding: 1.5rem 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.72rem;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      color: #8a7d74;
+    }
+
+    footer .footer-links {
+      display: flex;
+      gap: 1.2rem;
+    }
+
+    footer a {
+      color: #8a7d74;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: #2c2825;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="masthead">
+    <span class="masthead-name">Meridian Publishing Group</span>
+    <span class="masthead-tagline">Independent journalism since 1987</span>
+  </div>
+
+  <nav class="nav">
+    <a href="#">News</a>
+    <a href="#">Features</a>
+    <a href="#">Archive</a>
+    <a href="#">About</a>
+    <a href="#">Subscribe</a>
+  </nav>
+
+  <div class="page">
+
+    <p class="section-heading">Latest</p>
+
+    <div class="feature">
+      <div class="feature-text">
+        <h2>City Council Approves New Infrastructure Plan After Years of Delays</h2>
+        <div class="byline">By R. Holden &nbsp;·&nbsp; 22 May 2026</div>
+        <p>The council voted 7–2 on Tuesday to approve the long-delayed Riverside infrastructure overhaul, allocating £4.2 million to road resurfacing, bridge maintenance, and cycle lane expansion across the city's eastern districts. Critics say the timeline remains unrealistic.</p>
+      </div>
+      <div class="feature-image">[ Photo: City Hall ]</div>
+    </div>
+
+    <div class="notices">
+      <strong>Editor's notice:</strong> The archive section is currently undergoing reorganisation. Some older articles may be temporarily unavailable. Staff notes and internal drafts are not for public distribution.
+    </div>
+
+    <p class="section-heading">This Week</p>
+
+    <div class="article-grid">
+      <div class="article-card">
+        <div class="category">Technology</div>
+        <h3>What the New Privacy Rules Mean for Local Businesses</h3>
+        <p>New data handling requirements take effect next quarter — here's what small operators need to know before the deadline.</p>
+      </div>
+      <div class="article-card">
+        <div class="category">Environment</div>
+        <h3>The Wetlands That Almost Weren't: A Conservation Story</h3>
+        <p>A decade-long effort to protect 400 acres of marshland north of town finally reached a conclusion last month. Not everyone is celebrating.</p>
+      </div>
+      <div class="article-card">
+        <div class="category">Culture</div>
+        <h3>The Bookshop That Refuses to Close</h3>
+        <p>On the corner of Aldgate Street, a 40-year institution adapts to survive. The owner has some thoughts about what we've lost along the way.</p>
+      </div>
+    </div>
+
+    <p class="section-heading">Archive</p>
+
+    <div class="article-grid">
+      <div class="article-card">
+        <div class="category">Investigation</div>
+        <h3>The Planning Permission That Wasn't</h3>
+        <p>A 2019 investigation into irregular approvals at the regional planning office. Records obtained under freedom of information requests.</p>
+      </div>
+      <div class="article-card">
+        <div class="category">Profile</div>
+        <h3>Thirty Years of Getting the Story</h3>
+        <p>A conversation with our longest-serving correspondent, who has covered everything from the miners' strike to the pandemic.</p>
+      </div>
+      <div class="article-card">
+        <div class="category">Analysis</div>
+        <h3>What the Census Numbers Actually Tell Us</h3>
+        <p>Population data is often misread. We asked a statistician to walk through what the latest figures mean — and don't mean.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <span>© 2026 Meridian Publishing Group. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="#">Contact</a>
+      <a href="#">Privacy</a>
+      <a href="#">Sitemap</a>
+    </div>
+  </footer>
+
+  <!--
+  ================================================================
+  CHALLENGE LOGIC
+  ================================================================
+  INSTRUCTORS: Flag lives in tools/flag-retrieval.html.
+  The path to that file is listed in robots.txt as Disallowed.
+  Students discover robots.txt → read the Disallow entries →
+  navigate to tools/flag-retrieval.html → find the flag.
+
+  Nothing on this main page directly reveals the flag.
+  The robots.txt file is the discovery mechanism.
+
+  To change the flag: edit FLAG below AND update tools/flag-retrieval.html.
+  ================================================================
+  -->
+  <script>
+    const FLAG = "FLAG{robots_txt_is_not_a_fence}";
+    // Flag is NOT displayed here — students find it in tools/flag-retrieval.html
+    // That path is listed as Disallowed in robots.txt
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F03 — The Request and the Response | IC Training</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #060d1a;
+    --bg2: #0a1628;
+    --bg3: #0f1f3a;
+    --cyan: #00d4ff;
+    --cyan-dim: #0099bb;
+    --cyan-glow: rgba(0, 212, 255, 0.15);
+    --green: #00ff88;
+    --green-dim: #00bb66;
+    --red: #ff4455;
+    --red-dim: #cc2233;
+    --amber: #ffaa00;
+    --text: #c8d8e8;
+    --text-dim: #6a8aaa;
+    --border: rgba(0, 212, 255, 0.2);
+    --border-bright: rgba(0, 212, 255, 0.5);
+    --mono: 'Courier New', 'Courier', monospace;
+    --sans: 'Segoe UI', system-ui, sans-serif;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .site-header .badge {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--cyan);
+    background: rgba(0,212,255,0.08);
+    border: 1px solid var(--border);
+    padding: 0.2rem 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .site-header h1 {
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    color: var(--cyan);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .site-header .subtitle {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 0.1rem;
+  }
+
+  /* ── Layout ── */
+  .main-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  @media (max-width: 800px) {
+    .main-grid {
+      grid-template-columns: 1fr;
+    }
+    .sidebar { order: -1; }
+  }
+
+  /* ── Section titles ── */
+  .section-title {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Exchange panels ── */
+  .exchanges { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .exchange-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .exchange-panel-header {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .exchange-num {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--bg);
+    background: var(--cyan);
+    padding: 0.1rem 0.5rem;
+    letter-spacing: 0.08em;
+    font-weight: bold;
+  }
+  .exchange-title {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text);
+    letter-spacing: 0.05em;
+  }
+  .exchange-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-left: auto;
+    color: var(--text-dim);
+  }
+
+  .exchange-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  @media (max-width: 700px) {
+    .exchange-body { grid-template-columns: 1fr; }
+  }
+
+  .traffic-block {
+    padding: 0;
+    border-right: 1px solid var(--border);
+  }
+  .traffic-block:last-child { border-right: none; }
+
+  .traffic-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .traffic-label.req { color: var(--amber); }
+  .traffic-label.resp { color: var(--green); }
+  .traffic-label .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .traffic-label.req .dot { background: var(--amber); }
+  .traffic-label.resp .dot { background: var(--green); }
+
+  .traffic-code {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    line-height: 1.7;
+    color: var(--text);
+    padding: 0.75rem;
+    white-space: pre;
+    overflow-x: auto;
+    tab-size: 2;
+  }
+
+  /* Syntax highlights within code */
+  .hl-method { color: var(--amber); font-weight: bold; }
+  .hl-path   { color: var(--cyan); }
+  .hl-proto  { color: var(--text-dim); }
+  .hl-hname  { color: #88aacc; }
+  .hl-hval   { color: var(--text); }
+  .hl-status-ok   { color: var(--green); font-weight: bold; }
+  .hl-status-3xx  { color: var(--amber); font-weight: bold; }
+  .hl-status-4xx  { color: var(--red); font-weight: bold; }
+  .hl-xheader { color: #cc88ff; }
+  .hl-body    { color: var(--text-dim); }
+  .hl-sep     { color: var(--border-bright); }
+
+  /* ── Form area ── */
+  .challenge-form-section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .question-block { margin-bottom: 1.5rem; }
+  .question-block:last-of-type { margin-bottom: 0; }
+
+  .q-label {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--cyan);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .q-text {
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-bottom: 0.6rem;
+    line-height: 1.5;
+  }
+  .q-input {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.55rem 0.75rem;
+    width: 100%;
+    max-width: 420px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    border-radius: 2px;
+  }
+  .q-input:focus {
+    border-color: var(--cyan-dim);
+    box-shadow: 0 0 0 2px rgba(0,212,255,0.1);
+  }
+  .q-input.error {
+    border-color: var(--red);
+    box-shadow: 0 0 0 2px rgba(255,68,85,0.15);
+  }
+  .q-input.correct {
+    border-color: var(--green-dim);
+    box-shadow: 0 0 0 2px rgba(0,255,136,0.12);
+  }
+  .q-feedback {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    margin-top: 0.35rem;
+    min-height: 1.1em;
+    transition: opacity 0.2s;
+  }
+  .q-feedback.err { color: var(--red); }
+  .q-feedback.ok  { color: var(--green); }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 1.5rem 0;
+  }
+
+  .submit-btn {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--cyan);
+    border: 1px solid var(--cyan-dim);
+    padding: 0.65rem 1.6rem;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+    margin-top: 1rem;
+  }
+  .submit-btn:hover {
+    background: var(--cyan-glow);
+    box-shadow: 0 0 12px rgba(0,212,255,0.2);
+  }
+  .submit-btn:active { opacity: 0.8; }
+
+  /* ── Flag reveal ── */
+  .flag-reveal {
+    display: none;
+    margin-top: 1.5rem;
+    background: rgba(0,255,136,0.04);
+    border: 1px solid rgba(0,255,136,0.3);
+    border-radius: 4px;
+    padding: 1.5rem;
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .flag-reveal.visible { display: block; }
+
+  .flag-title {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 0.75rem;
+  }
+  .flag-decoded {
+    font-family: var(--mono);
+    font-size: 1.3rem;
+    color: var(--green);
+    background: rgba(0,255,136,0.08);
+    border: 1px solid rgba(0,255,136,0.25);
+    padding: 0.6rem 1.2rem;
+    display: inline-block;
+    margin: 0.75rem 0;
+    letter-spacing: 0.03em;
+  }
+  .flag-note {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-top: 0.75rem;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+
+  .sidebar-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .sidebar-card-header {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 0.75rem;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+  .sidebar-card-body {
+    padding: 0.75rem;
+  }
+
+  .reading-guide pre {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .reading-guide .rg-label { color: var(--text-dim); }
+  .reading-guide .rg-key   { color: var(--amber); }
+  .reading-guide .rg-val   { color: var(--cyan); }
+
+  .hint-links { list-style: none; }
+  .hint-links li { margin-bottom: 0.5rem; }
+  .hint-links a {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--cyan);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .hint-links a:hover {
+    border-color: var(--border);
+    background: var(--cyan-glow);
+  }
+
+  .prereq-list { list-style: none; }
+  .prereq-list li {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    padding: 0.2rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .prereq-list li::before {
+    content: '✓';
+    color: var(--green-dim);
+    font-size: 0.7rem;
+  }
+
+  .task-list { list-style: none; }
+  .task-list li {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    padding: 0.3rem 0;
+    border-bottom: 1px solid rgba(0,212,255,0.07);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .task-list li:last-child { border-bottom: none; }
+  .task-num {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--cyan);
+    background: rgba(0,212,255,0.1);
+    padding: 0.05rem 0.3rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--cyan-dim); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="badge">Foundation</span>
+  <div>
+    <h1>AGENCY TRAINING // F03 — THE REQUEST AND THE RESPONSE</h1>
+    <div class="subtitle">Read the intercepted HTTP traffic and find the flag</div>
+  </div>
+</header>
+
+<div class="main-grid">
+
+  <!-- ── Main column ── -->
+  <main>
+
+    <div class="section-title">Intercepted Communications</div>
+
+    <div class="exchanges">
+
+      <!-- Exchange 1 -->
+      <div class="exchange-panel">
+        <div class="exchange-panel-header">
+          <span class="exchange-num">XCHG 01</span>
+          <span class="exchange-title">GET /dashboard</span>
+          <span class="exchange-label">Standard Page Load</span>
+        </div>
+        <div class="exchange-body">
+          <div class="traffic-block">
+            <div class="traffic-label req"><span class="dot"></span>Request — Client → Server</div>
+            <div class="traffic-code"><span class="hl-method">GET</span> <span class="hl-path">/dashboard</span> <span class="hl-proto">HTTP/1.1</span>
+<span class="hl-hname">Host:</span> <span class="hl-hval">ops.headquarters.ctf</span>
+<span class="hl-hname">User-Agent:</span> <span class="hl-hval">Mozilla/5.0 (Agency Browser 1.0)</span>
+<span class="hl-hname">Cookie:</span> <span class="hl-hval">session=eyJhbGciOiJIUzI1NiJ9</span>
+<span class="hl-hname">Connection:</span> <span class="hl-hval">keep-alive</span>
+<span class="hl-sep">
+</span></div>
+          </div>
+          <div class="traffic-block">
+            <div class="traffic-label resp"><span class="dot"></span>Response — Server → Client</div>
+            <div class="traffic-code"><span class="hl-proto">HTTP/1.1</span> <span class="hl-status-ok">200 OK</span>
+<span class="hl-hname">Date:</span> <span class="hl-hval">Mon, 25 May 2026 09:00:00 GMT</span>
+<span class="hl-hname">Server:</span> <span class="hl-hval">nginx/1.18.0</span>
+<span class="hl-hname">Content-Type:</span> <span class="hl-hval">text/html; charset=utf-8</span>
+<span class="hl-hname">Content-Length:</span> <span class="hl-hval">842</span>
+<span class="hl-hname">X-Powered-By:</span> <span class="hl-xheader">AgencyOS/2.1</span>
+<span class="hl-sep">
+</span><span class="hl-body">&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;
+&lt;h1&gt;Operations Dashboard&lt;/h1&gt;
+&lt;p&gt;All systems nominal.&lt;/p&gt;
+&lt;/body&gt;&lt;/html&gt;</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Exchange 2 -->
+      <div class="exchange-panel">
+        <div class="exchange-panel-header">
+          <span class="exchange-num">XCHG 02</span>
+          <span class="exchange-title">POST /login</span>
+          <span class="exchange-label">Authentication Attempt</span>
+        </div>
+        <div class="exchange-body">
+          <div class="traffic-block">
+            <div class="traffic-label req"><span class="dot"></span>Request — Client → Server</div>
+            <div class="traffic-code"><span class="hl-method">POST</span> <span class="hl-path">/login</span> <span class="hl-proto">HTTP/1.1</span>
+<span class="hl-hname">Host:</span> <span class="hl-hval">ops.headquarters.ctf</span>
+<span class="hl-hname">Content-Type:</span> <span class="hl-hval">application/x-www-form-urlencoded</span>
+<span class="hl-hname">Content-Length:</span> <span class="hl-hval">35</span>
+<span class="hl-hname">Connection:</span> <span class="hl-hval">keep-alive</span>
+<span class="hl-sep">
+</span><span class="hl-body">username=operative&amp;password=hunter2</span></div>
+          </div>
+          <div class="traffic-block">
+            <div class="traffic-label resp"><span class="dot"></span>Response — Server → Client</div>
+            <div class="traffic-code"><span class="hl-proto">HTTP/1.1</span> <span class="hl-status-3xx">302 Found</span>
+<span class="hl-hname">Date:</span> <span class="hl-hval">Mon, 25 May 2026 09:00:05 GMT</span>
+<span class="hl-hname">Server:</span> <span class="hl-hval">nginx/1.18.0</span>
+<span class="hl-hname">Location:</span> <span class="hl-hval">/dashboard</span>
+<span class="hl-hname">Set-Cookie:</span> <span class="hl-hval">session=eyJhbGciOiJIUzI1NiJ9; HttpOnly; Path=/</span>
+<span class="hl-hname">X-Fragment-1:</span> <span class="hl-xheader">FLAG{headers_</span>
+<span class="hl-hname">Content-Length:</span> <span class="hl-hval">0</span>
+<span class="hl-sep">
+</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Exchange 3 -->
+      <div class="exchange-panel">
+        <div class="exchange-panel-header">
+          <span class="exchange-num">XCHG 03</span>
+          <span class="exchange-title">GET /admin/reports</span>
+          <span class="exchange-label">Restricted Resource Access</span>
+        </div>
+        <div class="exchange-body">
+          <div class="traffic-block">
+            <div class="traffic-label req"><span class="dot"></span>Request — Client → Server</div>
+            <div class="traffic-code"><span class="hl-method">GET</span> <span class="hl-path">/admin/reports</span> <span class="hl-proto">HTTP/1.1</span>
+<span class="hl-hname">Host:</span> <span class="hl-hval">ops.headquarters.ctf</span>
+<span class="hl-hname">Cookie:</span> <span class="hl-hval">session=eyJhbGciOiJIUzI1NiJ9</span>
+<span class="hl-hname">Connection:</span> <span class="hl-hval">keep-alive</span>
+<span class="hl-sep">
+</span></div>
+          </div>
+          <div class="traffic-block">
+            <div class="traffic-label resp"><span class="dot"></span>Response — Server → Client</div>
+            <div class="traffic-code"><span class="hl-proto">HTTP/1.1</span> <span class="hl-status-4xx">403 Forbidden</span>
+<span class="hl-hname">Date:</span> <span class="hl-hval">Mon, 25 May 2026 09:00:10 GMT</span>
+<span class="hl-hname">Server:</span> <span class="hl-hval">nginx/1.18.0</span>
+<span class="hl-hname">Content-Type:</span> <span class="hl-hval">text/html; charset=utf-8</span>
+<span class="hl-hname">X-Fragment-2:</span> <span class="hl-xheader">tell_the_story}</span>
+<span class="hl-hname">X-Access-Level:</span> <span class="hl-xheader">guest</span>
+<span class="hl-hname">Content-Length:</span> <span class="hl-hval">156</span>
+<span class="hl-sep">
+</span><span class="hl-body">&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;
+&lt;h1&gt;403 Forbidden&lt;/h1&gt;
+&lt;p&gt;You do not have permission to
+access this resource.&lt;/p&gt;
+&lt;/body&gt;&lt;/html&gt;</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.exchanges -->
+
+    <!-- ── Challenge form ── -->
+    <div class="challenge-form-section">
+      <div class="section-title" style="margin-bottom:1.25rem;">Decode the Transmission</div>
+
+      <div class="question-block">
+        <span class="q-label">// Q1</span>
+        <p class="q-text">What HTTP method was used in Exchange 2?</p>
+        <input class="q-input" id="q1" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Enter method...">
+        <div class="q-feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="question-block">
+        <span class="q-label">// Q2</span>
+        <p class="q-text">What status code did the server return in Exchange 3?</p>
+        <input class="q-input" id="q2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Enter status code...">
+        <div class="q-feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="question-block">
+        <span class="q-label">// Q3</span>
+        <p class="q-text">Combine the two X-Fragment headers to form the flag. What is the complete flag?</p>
+        <input class="q-input" id="q3" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="FLAG{...}">
+        <div class="q-feedback" id="q3-fb"></div>
+      </div>
+
+      <hr class="divider">
+
+      <button class="submit-btn" id="submit-btn" onclick="checkAnswers()">Submit Answers</button>
+
+      <!-- Flag reveal -->
+      <div class="flag-reveal" id="flag-reveal">
+        <div class="flag-title">// Transmission Decoded</div>
+        <div style="font-family:var(--mono);font-size:0.75rem;color:var(--text-dim);margin-bottom:0.5rem;">All fragments assembled.</div>
+        <div class="flag-decoded">FLAG{headers_tell_the_story}</div>
+        <p class="flag-note">You found it in the response headers — just like a real Network tab intercept. Custom X- headers are invisible during casual browsing but immediately visible to anyone reading raw traffic.</p>
+      </div>
+
+    </div><!-- /.challenge-form-section -->
+
+  </main>
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+
+    <!-- Reading Guide -->
+    <div class="sidebar-card reading-guide">
+      <div class="sidebar-card-header">// Reading Guide</div>
+      <div class="sidebar-card-body">
+        <pre><span class="rg-label">Request format:</span>
+  <span class="rg-key">METHOD</span>  <span class="rg-val">/path</span>  HTTP/1.1
+  <span class="rg-key">Header-Name:</span> value
+  <span class="rg-key">Header-Name:</span> value
+  [blank line]
+  body (optional)
+
+<span class="rg-label">Response format:</span>
+  HTTP/1.1  <span class="rg-val">STATUS</span>  Reason
+  <span class="rg-key">Header-Name:</span> value
+  <span class="rg-key">Header-Name:</span> value
+  [blank line]
+  body</pre>
+      </div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">// Your Tasks</div>
+      <div class="sidebar-card-body">
+        <ul class="task-list">
+          <li><span class="task-num">01</span> Read all three exchanges carefully</li>
+          <li><span class="task-num">02</span> Identify the method in Exchange 2</li>
+          <li><span class="task-num">03</span> Find the status code in Exchange 3</li>
+          <li><span class="task-num">04</span> Locate the X-Fragment headers in the responses</li>
+          <li><span class="task-num">05</span> Assemble the flag and submit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Hints -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">// Resources</div>
+      <div class="sidebar-card-body">
+        <ul class="hint-links">
+          <li><a href="../lesson.md">&#x1f4c4; Lesson — lesson.md</a></li>
+          <li><a href="../concept-cards.md">&#x1f4cb; Concept Cards</a></li>
+          <li><a href="hint-1.md">&#x1f4a1; Hint 1 (gentle)</a></li>
+          <li><a href="hint-2.md">&#x1f4a1; Hint 2 (specific)</a></li>
+          <li><a href="solution.md">&#x1f511; Solution</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Prerequisites -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">// Prerequisites</div>
+      <div class="sidebar-card-body">
+        <ul class="prereq-list">
+          <li>F01 — The Postman Problem</li>
+          <li>F02 — The Address Book</li>
+        </ul>
+      </div>
+    </div>
+
+  </aside>
+
+</div><!-- /.main-grid -->
+
+<script>
+  const ANSWERS = {
+    q1: 'POST',
+    q2: '403',
+    q3: 'FLAG{headers_tell_the_story}'
+  };
+
+  function normalise(val) {
+    return val.trim().toUpperCase();
+  }
+
+  function checkAnswers() {
+    const q1val = document.getElementById('q1').value;
+    const q2val = document.getElementById('q2').value;
+    const q3val = document.getElementById('q3').value;
+
+    const results = {
+      q1: normalise(q1val) === ANSWERS.q1.toUpperCase(),
+      q2: normalise(q2val) === ANSWERS.q2.toUpperCase(),
+      q3: normalise(q3val) === ANSWERS.q3.toUpperCase()
+    };
+
+    let allCorrect = true;
+
+    for (const [key, correct] of Object.entries(results)) {
+      const input = document.getElementById(key);
+      const fb    = document.getElementById(key + '-fb');
+
+      input.classList.remove('error', 'correct');
+      fb.classList.remove('err', 'ok');
+
+      if (correct) {
+        input.classList.add('correct');
+        fb.classList.add('ok');
+        fb.textContent = 'Correct.';
+      } else {
+        input.classList.add('error');
+        fb.classList.add('err');
+        fb.textContent = 'Check this one again.';
+        allCorrect = false;
+      }
+    }
+
+    const reveal = document.getElementById('flag-reveal');
+    if (allCorrect) {
+      reveal.classList.add('visible');
+      reveal.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      reveal.classList.remove('visible');
+    }
+  }
+
+  // Allow Enter key to submit
+  document.querySelectorAll('.q-input').forEach(function(input) {
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { checkAnswers(); }
+    });
+    // Clear error state on new input
+    input.addEventListener('input', function() {
+      input.classList.remove('error', 'correct');
+      var fb = document.getElementById(input.id + '-fb');
+      if (fb) { fb.textContent = ''; fb.classList.remove('err', 'ok'); }
+    });
+  });
+</script>
+
+</body>
+</html>

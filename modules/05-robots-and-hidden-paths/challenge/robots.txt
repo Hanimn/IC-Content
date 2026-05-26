@@ -1,0 +1,19 @@
+# Crawl rules for Meridian Publishing Group
+# Last updated: 2024-03-01
+# Contact: webmaster@meridian-publishing.local
+
+User-agent: *
+Disallow: /admin/
+Disallow: /internal/
+Disallow: /archive/staff-notes/
+Disallow: /staging/
+
+User-agent: Googlebot
+Disallow: /archive/staff-notes/
+Disallow: /staging/
+
+# Do not index draft articles
+Disallow: /drafts/
+
+# Internal tools — not for public access
+Disallow: /tools/flag-retrieval.html

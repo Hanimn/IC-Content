@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>F06 — Thinking in Hex | Agency Training</title>
+  <style>
+    /* ── Retro terminal green palette ── */
+    :root {
+      --bg:        #0a0f0a;
+      --panel-bg:  #0d1a0d;
+      --border:    #1a3a1a;
+      --accent:    #33ff33;
+      --accent-dim:#22bb22;
+      --muted:     #1f5a1f;
+      --text:      #c8e8c8;
+      --text-dim:  #6aaa6a;
+      --error:     #ff4444;
+      --success:   #33ff33;
+      --font:      'Courier New', Courier, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    /* ── Scanline effect ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 2px,
+        rgba(0,0,0,0.05) 2px,
+        rgba(0,0,0,0.05) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .header-label {
+      font-size: 11px;
+      color: var(--accent-dim);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 20px;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    /* ── Main layout ── */
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* ── Section panels ── */
+    .panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 20px 24px;
+    }
+
+    .panel-title {
+      font-size: 11px;
+      color: var(--accent-dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── How-to guide ── */
+    .guide-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 6px 16px;
+      font-size: 13px;
+    }
+
+    .guide-grid .col-label {
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .guide-note {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    .inline-code {
+      color: var(--accent);
+      background: rgba(51,255,51,0.07);
+      padding: 1px 5px;
+      border-radius: 2px;
+      font-family: var(--font);
+    }
+
+    /* ── Hex dump table ── */
+    .hex-table-wrap {
+      overflow-x: auto;
+    }
+
+    #hex-dump {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13px;
+    }
+
+    #hex-dump th {
+      color: var(--accent-dim);
+      text-align: left;
+      padding: 4px 10px 8px 10px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #hex-dump td {
+      padding: 4px 10px;
+      vertical-align: top;
+    }
+
+    #hex-dump tr:hover td {
+      background: rgba(51,255,51,0.04);
+    }
+
+    .td-offset {
+      color: var(--text-dim);
+      padding-right: 20px !important;
+      user-select: none;
+      font-family: var(--font);
+      white-space: pre;
+    }
+
+    .td-hex {
+      font-family: var(--font);
+      white-space: pre;
+      letter-spacing: 0.04em;
+    }
+
+    .td-ascii {
+      font-family: var(--font);
+      padding-left: 20px !important;
+      white-space: pre;
+    }
+
+    /* ── Questions ── */
+    .questions {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .question {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .q-label {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    input[type="text"] {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-family: var(--font);
+      font-size: 14px;
+      padding: 8px 12px;
+      outline: none;
+      border-radius: 3px;
+      width: 340px;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent-dim);
+    }
+
+    input[type="text"].correct {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    input[type="text"].wrong {
+      border-color: var(--error);
+      color: var(--error);
+    }
+
+    /* ── Submit button ── */
+    .btn-submit {
+      background: transparent;
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
+      font-family: var(--font);
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 24px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background 0.2s, border-color 0.2s;
+      margin-top: 4px;
+      align-self: flex-start;
+    }
+
+    .btn-submit:hover {
+      background: rgba(51,255,51,0.08);
+      border-color: var(--accent);
+    }
+
+    /* ── Result block ── */
+    #result {
+      display: none;
+      border: 1px solid var(--border);
+      background: var(--panel-bg);
+      border-radius: 4px;
+      padding: 20px 24px;
+    }
+
+    #result.show { display: block; }
+    #result.success { border-color: var(--success); }
+    #result.failure { border-color: var(--error); }
+
+    #result-text {
+      font-family: var(--font);
+      font-size: 13px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      color: var(--accent);
+    }
+
+    #result-text.failure-text { color: var(--error); }
+
+    #result-note {
+      display: none;
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.7;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    @media (max-width: 600px) {
+      input[type="text"] { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-label">Agency Training // Foundation Module F06</div>
+    <h1>Thinking in Hex</h1>
+    <div class="subtitle">Find the flag hidden in the hex dump</div>
+  </header>
+
+  <main>
+
+    <!-- How to read this dump -->
+    <div class="panel">
+      <div class="panel-title">How to read this dump</div>
+      <div class="guide-grid">
+        <span class="col-label">Column 1:</span>
+        <span>File offset — position of the first byte in that row</span>
+        <span class="col-label">Column 2:</span>
+        <span>The 16 bytes in hex (split 8|8 for readability)</span>
+        <span class="col-label">Column 3:</span>
+        <span>Same bytes as ASCII — printable chars shown, non-printable as <strong style="color:var(--muted)">.</strong></span>
+      </div>
+      <div class="guide-note">
+        Printable ASCII range:
+        <span class="inline-code">0x20</span> to <span class="inline-code">0x7E</span>
+        — bytes in this range appear as characters in the ASCII column.
+        <br>
+        Look for runs of readable characters in the ASCII column — those are your targets.
+      </div>
+    </div>
+
+    <!-- Hex dump -->
+    <div class="panel">
+      <div class="panel-title">Intercepted file — 96 bytes</div>
+      <div class="hex-table-wrap">
+        <table id="hex-dump" aria-label="Hex dump of intercepted file">
+          <thead>
+            <tr>
+              <th scope="col">Offset</th>
+              <th scope="col">Hex Bytes</th>
+              <th scope="col">ASCII</th>
+            </tr>
+          </thead>
+          <tbody id="hex-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Questions -->
+    <div class="panel">
+      <div class="panel-title">Your Analysis</div>
+      <div class="questions">
+
+        <div class="question">
+          <label class="q-label" for="q1">
+            <strong style="color:var(--accent)">Q1</strong> — At which offset (in hex) does the flag begin?
+            Enter a hex number, e.g. <span class="inline-code">20</span> or <span class="inline-code">0x20</span>
+          </label>
+          <input type="text" id="q1" placeholder="Enter hex offset..." autocomplete="off" spellcheck="false" />
+        </div>
+
+        <div class="question">
+          <label class="q-label" for="q2">
+            <strong style="color:var(--accent)">Q2</strong> — What is the flag?
+            Read the printable ASCII characters starting at that offset.
+          </label>
+          <input type="text" id="q2" placeholder="FLAG{...}" autocomplete="off" spellcheck="false" />
+        </div>
+
+        <button class="btn-submit" onclick="checkAnswers()">[ Submit Analysis ]</button>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div id="result" role="alert">
+      <pre id="result-text"></pre>
+      <div id="result-note"></div>
+    </div>
+
+  </main>
+
+  <script>
+    // ── Byte array ──────────────────────────────────────────────────────────
+    // 96 bytes. Flag "FLAG{0x_bytes_everywhere}" starts at offset 0x20 (byte 32).
+    //   0x00-0x1F: non-printable garbage (32 bytes)
+    //   0x20-0x38: FLAG{0x_bytes_everywhere} (25 bytes)
+    //   0x39-0x5F: garbage + null padding (39 bytes)
+    const BYTES = [
+      // row 0: 0x00 – 0x0F
+      0xA3, 0x7F, 0xC2, 0xB1, 0x8E, 0xF4, 0xD2, 0x0C,
+      0x91, 0x6A, 0x3F, 0xB8, 0x55, 0x2D, 0xE1, 0x7C,
+      // row 1: 0x10 – 0x1F
+      0xC0, 0x43, 0xBB, 0x9E, 0x5A, 0x22, 0x87, 0x4D,
+      0x1F, 0xA8, 0x63, 0xE5, 0x29, 0xD0, 0x76, 0x14,
+      // row 2: 0x20 – 0x2F  (FLAG{0x_bytes_ev)
+      0x46, 0x4C, 0x41, 0x47, 0x7B, 0x30, 0x78, 0x5F,
+      0x62, 0x79, 0x74, 0x65, 0x73, 0x5F, 0x65, 0x76,
+      // row 3: 0x30 – 0x3F  (erywhere}...)
+      0x65, 0x72, 0x79, 0x77, 0x68, 0x65, 0x72, 0x65,
+      0x7D, 0x00, 0xB2, 0x8C, 0x4A, 0xF1, 0x71, 0x3E,
+      // row 4: 0x40 – 0x4F
+      0xC9, 0xA6, 0x0D, 0x58, 0xE7, 0x2B, 0x94, 0x6F,
+      0x31, 0xD8, 0x47, 0xBC, 0x80, 0x15, 0xE3, 0x5A,
+      // row 5: 0x50 – 0x5F
+      0x22, 0xC4, 0x70, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    ];
+
+    const CORRECT_OFFSET = '20';
+    const CORRECT_FLAG   = 'FLAG{0x_bytes_everywhere}';
+
+    function isPrintable(b) {
+      return b >= 0x20 && b <= 0x7E;
+    }
+
+    // Build a styled <span> for a hex byte
+    function hexByteSpan(b) {
+      const span = document.createElement('span');
+      span.textContent = b.toString(16).toUpperCase().padStart(2, '0');
+      if (b === 0x00) {
+        span.style.color = 'var(--muted)';
+      } else if (isPrintable(b)) {
+        span.style.color = 'var(--accent)';
+      } else {
+        span.style.color = 'var(--text-dim)';
+      }
+      return span;
+    }
+
+    // Build a styled <span> for an ASCII character
+    function asciiCharSpan(b) {
+      const span = document.createElement('span');
+      if (isPrintable(b)) {
+        span.textContent = String.fromCharCode(b);
+        span.style.color = 'var(--accent)';
+      } else {
+        span.textContent = '.';
+        span.style.color = 'var(--muted)';
+      }
+      return span;
+    }
+
+    function renderHexDump() {
+      const tbody = document.getElementById('hex-body');
+      const BYTES_PER_ROW = 16;
+
+      for (let rowStart = 0; rowStart < BYTES.length; rowStart += BYTES_PER_ROW) {
+        const chunk = BYTES.slice(rowStart, rowStart + BYTES_PER_ROW);
+        const tr = document.createElement('tr');
+
+        // — Offset cell —
+        const tdOffset = document.createElement('td');
+        tdOffset.className = 'td-offset';
+        tdOffset.textContent = rowStart.toString(16).toUpperCase().padStart(8, '0');
+        tr.appendChild(tdOffset);
+
+        // — Hex cell —
+        const tdHex = document.createElement('td');
+        tdHex.className = 'td-hex';
+        for (let i = 0; i < chunk.length; i++) {
+          if (i > 0) {
+            // Extra space gap between byte 8 and 9 (visual 8|8 split)
+            tdHex.appendChild(document.createTextNode(i === 8 ? '  ' : ' '));
+          }
+          tdHex.appendChild(hexByteSpan(chunk[i]));
+        }
+        // Pad short rows so ASCII column stays aligned
+        if (chunk.length < BYTES_PER_ROW) {
+          const missing = BYTES_PER_ROW - chunk.length;
+          const padSpaces = missing * 3 + (chunk.length <= 8 ? 2 : 0);
+          tdHex.appendChild(document.createTextNode(' '.repeat(padSpaces)));
+        }
+        tr.appendChild(tdHex);
+
+        // — ASCII cell —
+        const tdAscii = document.createElement('td');
+        tdAscii.className = 'td-ascii';
+        for (const b of chunk) {
+          tdAscii.appendChild(asciiCharSpan(b));
+        }
+        tr.appendChild(tdAscii);
+
+        tbody.appendChild(tr);
+      }
+    }
+
+    function checkAnswers() {
+      const q1Raw = document.getElementById('q1').value.trim().toLowerCase();
+      const q2Raw = document.getElementById('q2').value.trim();
+
+      // Normalise Q1: accept "20" or "0x20"
+      const q1Norm    = q1Raw.replace(/^0x/i, '');
+      const q1Correct = q1Norm === CORRECT_OFFSET;
+      const q2Correct = q2Raw === CORRECT_FLAG;
+
+      document.getElementById('q1').className = q1Correct ? 'correct' : 'wrong';
+      document.getElementById('q2').className = q2Correct ? 'correct' : 'wrong';
+
+      const resultEl = document.getElementById('result');
+      const textEl   = document.getElementById('result-text');
+      const noteEl   = document.getElementById('result-note');
+
+      if (q1Correct && q2Correct) {
+        resultEl.className = 'show success';
+        textEl.className   = '';
+        textEl.style.color = 'var(--success)';
+        textEl.textContent =
+          'OFFSET CONFIRMED: 0x20\n' +
+          'FLAG EXTRACTED:   FLAG{0x_bytes_everywhere}\n\n' +
+          'You read raw hex data like a professional.';
+        noteEl.style.display = 'block';
+        noteEl.textContent =
+          'In a real forensics challenge, this is exactly how you\'d find a hidden string. ' +
+          'The ASCII column does the decoding for you — any byte in the printable range (0x20–0x7E) ' +
+          'shows up as its character. Forensics tools, debuggers, and hex editors all use this same layout.';
+      } else {
+        resultEl.className = 'show failure';
+        textEl.className   = 'failure-text';
+        textEl.style.color = 'var(--error)';
+        const msgs = [];
+        if (!q1Correct) {
+          msgs.push('Q1: Offset incorrect. Each row is 0x10 bytes wide — count from 0x00 until you see the flag start in the ASCII column.');
+        }
+        if (!q2Correct) {
+          msgs.push('Q2: Flag incorrect. Read the ASCII column carefully from the target row through to the closing }.');
+        }
+        textEl.textContent = msgs.join('\n');
+        noteEl.style.display = 'none';
+      }
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') checkAnswers();
+    });
+
+    renderHexDump();
+  </script>
+
+</body>
+</html>

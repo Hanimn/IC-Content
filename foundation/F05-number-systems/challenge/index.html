@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F05 — Everything Is a Number | Agency Training</title>
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  :root {
+    --bg: #0a0f0a;
+    --panel-bg: #1a2a1a;
+    --accent: #33ff33;
+    --accent-dim: #1a8c1a;
+    --accent-bright: #66ff66;
+    --accent-glow: rgba(51, 255, 51, 0.3);
+    --text: #33ff33;
+    --text-dim: #1a8c1a;
+    --red: #ff3333;
+    --red-dim: rgba(255, 51, 51, 0.2);
+    --border: #33ff33;
+    --border-dim: #1a4a1a;
+    --font: 'Courier New', Courier, monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* HEADER */
+  .site-header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-dim);
+  }
+
+  .site-title {
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: var(--accent-bright);
+    text-shadow: 0 0 10px var(--accent-glow);
+    margin-bottom: 8px;
+  }
+
+  .site-subtitle {
+    color: var(--text-dim);
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  /* PROGRESS BAR */
+  .progress-container {
+    max-width: 700px;
+    margin: 0 auto 32px auto;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--border-dim);
+    border: 1px solid var(--border-dim);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.6s ease;
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  /* PANELS */
+  .panel {
+    max-width: 700px;
+    margin: 0 auto 28px auto;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-dim);
+    padding: 24px;
+    position: relative;
+  }
+
+  .panel.solved {
+    border-color: var(--accent-dim);
+    opacity: 0.7;
+  }
+
+  .panel-header {
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: var(--accent-bright);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-dim);
+  }
+
+  .panel-section {
+    margin-bottom: 20px;
+  }
+
+  .panel-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .task-text {
+    background: rgba(51, 255, 51, 0.05);
+    border-left: 2px solid var(--accent);
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .task-target {
+    font-size: 18px;
+    color: var(--accent-bright);
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+
+  /* BIT TOGGLES — PANEL 1 */
+  .bit-display {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    justify-content: center;
+  }
+
+  .bit-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .bit-place-value {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .bit-box {
+    width: 44px;
+    height: 44px;
+    border: 2px solid var(--border-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    color: var(--text-dim);
+    background: var(--bg);
+    transition: all 0.15s ease;
+    user-select: none;
+  }
+
+  .bit-box:hover {
+    border-color: var(--accent-dim);
+    color: var(--accent-dim);
+  }
+
+  .bit-box.on {
+    border-color: var(--accent);
+    color: var(--accent-bright);
+    background: rgba(51, 255, 51, 0.1);
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  .bit-box.flash-error {
+    animation: flash-red 0.4s ease;
+  }
+
+  @keyframes flash-red {
+    0%, 100% { border-color: var(--border-dim); background: var(--bg); }
+    50% { border-color: var(--red); background: var(--red-dim); box-shadow: 0 0 12px rgba(255,51,51,0.4); }
+  }
+
+  .decimal-display {
+    text-align: center;
+    font-size: 15px;
+    margin: 8px 0 16px 0;
+  }
+
+  .decimal-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--accent-bright);
+    text-shadow: 0 0 12px var(--accent-glow);
+    transition: color 0.2s;
+  }
+
+  .decimal-value.correct {
+    text-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent-glow);
+  }
+
+  /* PANEL 2 */
+  .binary-display {
+    text-align: center;
+    font-size: 26px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    color: var(--accent-bright);
+    text-shadow: 0 0 10px var(--accent-glow);
+    margin-bottom: 16px;
+  }
+
+  .nibble-display {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .nibble-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nibble-bits {
+    display: flex;
+    gap: 4px;
+  }
+
+  .nibble-bit {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--accent);
+    background: rgba(51, 255, 51, 0.05);
+  }
+
+  .nibble-bit.one {
+    border-color: var(--accent);
+    color: var(--accent-bright);
+    background: rgba(51, 255, 51, 0.1);
+  }
+
+  .nibble-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .hex-lookup {
+    font-size: 11px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border-dim);
+    padding: 10px;
+    margin-bottom: 16px;
+    font-family: var(--font);
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  .hex-lookup-title {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  /* PANEL 3 */
+  .hex-sequence {
+    font-size: 13px;
+    letter-spacing: 2px;
+    line-height: 2;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border-dim);
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    word-break: break-all;
+    color: var(--accent-bright);
+  }
+
+  .ascii-table-container {
+    overflow-x: auto;
+    margin-bottom: 16px;
+  }
+
+  .ascii-ref {
+    font-size: 10px;
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 500px;
+  }
+
+  .ascii-ref thead th {
+    background: rgba(51,255,51,0.1);
+    border: 1px solid var(--border-dim);
+    padding: 4px 8px;
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--accent);
+  }
+
+  .ascii-ref td {
+    border: 1px solid var(--border-dim);
+    padding: 2px 6px;
+    color: var(--text-dim);
+    font-family: var(--font);
+    font-size: 10px;
+  }
+
+  .ascii-ref tr:hover td {
+    background: rgba(51,255,51,0.05);
+    color: var(--text);
+  }
+
+  .ascii-ref td.chr-cell {
+    color: var(--accent);
+    font-weight: bold;
+  }
+
+  .ascii-ref td.highlight {
+    color: var(--accent-bright);
+    font-weight: bold;
+  }
+
+  /* INPUTS */
+  .input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .input-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+
+  .challenge-input {
+    background: var(--bg);
+    border: 1px solid var(--border-dim);
+    color: var(--accent-bright);
+    font-family: var(--font);
+    font-size: 15px;
+    padding: 8px 12px;
+    outline: none;
+    flex: 1;
+    letter-spacing: 2px;
+  }
+
+  .challenge-input:focus {
+    border-color: var(--accent-dim);
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  .challenge-input.error {
+    animation: input-error 0.4s ease;
+  }
+
+  @keyframes input-error {
+    0%, 100% { border-color: var(--border-dim); box-shadow: none; }
+    50% { border-color: var(--red); box-shadow: 0 0 12px rgba(255,51,51,0.5); }
+  }
+
+  /* BUTTONS */
+  .btn {
+    background: transparent;
+    border: 1px solid var(--accent-dim);
+    color: var(--accent);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 8px 20px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.15s ease;
+  }
+
+  .btn:hover {
+    background: rgba(51, 255, 51, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+  }
+
+  .btn:active {
+    background: rgba(51, 255, 51, 0.2);
+  }
+
+  .btn-proceed {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    font-size: 13px;
+    letter-spacing: 2px;
+    border-color: var(--accent);
+    color: var(--accent-bright);
+    text-align: center;
+  }
+
+  .btn-proceed:hover {
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+
+  /* MESSAGES */
+  .msg {
+    padding: 12px 14px;
+    margin-top: 10px;
+    font-size: 12px;
+    line-height: 1.7;
+    display: none;
+  }
+
+  .msg.error {
+    border-left: 2px solid var(--red);
+    background: var(--red-dim);
+    color: var(--red);
+    display: none;
+  }
+
+  .msg.success {
+    border-left: 2px solid var(--accent);
+    background: rgba(51, 255, 51, 0.07);
+    color: var(--accent-bright);
+    display: none;
+  }
+
+  /* FLAG DISPLAY */
+  .flag-box {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--accent);
+    padding: 20px;
+    margin-top: 20px;
+    text-align: center;
+    box-shadow: 0 0 30px var(--accent-glow);
+    display: none;
+  }
+
+  .flag-box pre {
+    font-family: var(--font);
+    font-size: 13px;
+    color: var(--accent-bright);
+    line-height: 1.8;
+    text-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  .flag-completion {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    text-align: left;
+  }
+
+  /* SOLVED BADGE */
+  .solved-badge {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--accent-dim);
+    display: none;
+  }
+
+  .panel.solved .solved-badge {
+    display: block;
+  }
+
+  /* FOOTER */
+  .site-footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-dim);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .site-footer a {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+
+  .site-footer a:hover {
+    color: var(--accent);
+  }
+
+  /* SCAN LINE EFFECT */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-title">[ AGENCY TRAINING // F05 — EVERYTHING IS A NUMBER ]</div>
+  <div class="site-subtitle">Computers don't know what "A" is. They only know 65. And 65 is really 01000001.</div>
+</header>
+
+<div class="progress-container">
+  <div class="progress-label">TRAINING PROGRESS: <span id="progress-text">0 / 3 PANELS COMPLETE</span></div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+
+<!-- PANEL 1: BINARY BIT TOGGLE -->
+<div class="panel" id="panel-1">
+  <div class="solved-badge">[SOLVED]</div>
+  <div class="panel-header">PANEL 1 // DECIMAL &#x2192; BINARY</div>
+
+  <div class="task-text">
+    Toggle the bits below to represent <span class="task-target">42</span> in binary.<br>
+    Click a bit to turn it ON (1) or OFF (0). The place values are shown above each box.<br>
+    <small style="color: var(--text-dim)">Hint: which powers of 2 add up to 42?</small>
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-label">BIT TOGGLE — 8-BIT VALUE</div>
+    <div class="bit-display" id="bit-display"></div>
+    <div class="decimal-display">
+      Current value: <span class="decimal-value" id="decimal-display">0</span>
+    </div>
+  </div>
+
+  <div id="msg-panel1-error" class="msg error">Not quite — try again. Which columns add up to exactly 42?</div>
+  <div id="msg-panel1-success" class="msg success">
+    Correct. 42 in binary is 00101010 — that is 32 + 8 + 2. Commit this skill to memory: every memory address you will ever see in a debugger is binary underneath.
+  </div>
+  <button class="btn btn-proceed" id="btn-panel1-proceed" style="display:none" onclick="showPanel(2)">
+    CORRECT — PROCEED TO PANEL 2 &#x2192;
+  </button>
+</div>
+
+<!-- PANEL 2: BINARY → HEX -->
+<div class="panel" id="panel-2" style="display:none">
+  <div class="solved-badge">[SOLVED]</div>
+  <div class="panel-header">PANEL 2 // BINARY &#x2192; HEX</div>
+
+  <div class="task-text">
+    Convert the binary number below to hexadecimal.<br>
+    Split it into two nibbles (groups of 4 bits), then use the table to find the hex digit for each.
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-label">TARGET BINARY VALUE</div>
+    <div class="binary-display">10110100</div>
+
+    <div class="panel-label">SPLIT INTO NIBBLES</div>
+    <div class="nibble-display" id="nibble-display"></div>
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-label">HEX DIGIT TABLE — NIBBLE REFERENCE</div>
+    <div class="hex-lookup">
+      <div class="hex-lookup-title">4-BIT PATTERN = HEX DIGIT</div>
+      0000=0 &nbsp;&nbsp; 0001=1 &nbsp;&nbsp; 0010=2 &nbsp;&nbsp; 0011=3<br>
+      0100=4 &nbsp;&nbsp; 0101=5 &nbsp;&nbsp; 0110=6 &nbsp;&nbsp; 0111=7<br>
+      1000=8 &nbsp;&nbsp; 1001=9 &nbsp;&nbsp; 1010=A &nbsp;&nbsp; 1011=B<br>
+      1100=C &nbsp;&nbsp; 1101=D &nbsp;&nbsp; 1110=E &nbsp;&nbsp; 1111=F
+    </div>
+  </div>
+
+  <div class="input-row">
+    <span class="input-label">ANSWER:</span>
+    <input type="text" class="challenge-input" id="input-panel2" maxlength="4"
+      placeholder="two hex digits" autocomplete="off" autocorrect="off" spellcheck="false"
+      onkeydown="if(event.key==='Enter')checkPanel2()">
+    <button class="btn" onclick="checkPanel2()">SUBMIT</button>
+  </div>
+
+  <div id="msg-panel2-error" class="msg error">Not quite — try again. Remember: 1011 maps to which hex digit? And 0100 maps to which?</div>
+  <div id="msg-panel2-success" class="msg success">
+    Correct. 1011 = B (decimal 11), 0100 = 4 (decimal 4). The byte 10110100 is 0xB4. Two hex digits, one byte.
+  </div>
+  <button class="btn btn-proceed" id="btn-panel2-proceed" style="display:none" onclick="showPanel(3)">
+    CORRECT — PROCEED TO PANEL 3 &#x2192;
+  </button>
+</div>
+
+<!-- PANEL 3: HEX → ASCII → FLAG -->
+<div class="panel" id="panel-3" style="display:none">
+  <div class="solved-badge">[SOLVED]</div>
+  <div class="panel-header">PANEL 3 // HEX BYTES &#x2192; ASCII &#x2192; FLAG</div>
+
+  <div class="task-text">
+    Decode the hex byte sequence below to ASCII.<br>
+    Use the reference table to look up each byte. Enter the full decoded string including the flag format.
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-label">HEX SEQUENCE</div>
+    <div class="hex-sequence">
+      46 4C 41 47 7B 62 31 6E 34 72 79 5F 31 73 5F 62 34 73 31 63 7D
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-label">ASCII REFERENCE TABLE (0x20 to 0x7E)</div>
+    <div class="ascii-table-container">
+      <table class="ascii-ref">
+        <thead>
+          <tr>
+            <th>Hex</th><th>Dec</th><th>Chr</th>
+            <th>Hex</th><th>Dec</th><th>Chr</th>
+            <th>Hex</th><th>Dec</th><th>Chr</th>
+            <th>Hex</th><th>Dec</th><th>Chr</th>
+          </tr>
+        </thead>
+        <tbody id="ascii-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="input-row">
+    <span class="input-label">DECODED:</span>
+    <input type="text" class="challenge-input" id="input-panel3"
+      placeholder="FLAG{...}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+      onkeydown="if(event.key==='Enter')checkPanel3()">
+    <button class="btn" onclick="checkPanel3()">SUBMIT</button>
+  </div>
+
+  <div id="msg-panel3-error" class="msg error">Not quite — try again. Start with the first byte: 0x46. Find it in the table. What character does it map to?</div>
+
+  <div class="flag-box" id="flag-box">
+    <pre id="flag-display"></pre>
+    <div class="flag-completion" id="flag-completion"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  F05 — Everything Is a Number &nbsp;|&nbsp; Foundation Track &nbsp;|&nbsp;
+  <a href="hint-1.md">Hint 1</a> &nbsp;|&nbsp;
+  <a href="hint-2.md">Hint 2</a> &nbsp;|&nbsp;
+  <a href="solution.md">Solution</a>
+</footer>
+
+<script>
+  /* ====================================================
+     CONSTANTS
+  ==================================================== */
+  var PLACE_VALUES = [128, 64, 32, 16, 8, 4, 2, 1];
+  var TARGET_DECIMAL = 42;
+  var FLAG = 'FLAG{b1n4ry_1s_b4s1c}';
+
+  // Bytes that appear in the flag hex sequence — used to highlight ASCII table
+  var FLAG_BYTES = [0x46,0x4C,0x41,0x47,0x7B,0x62,0x31,0x6E,
+                    0x34,0x72,0x79,0x5F,0x31,0x73,0x5F,0x62,
+                    0x34,0x73,0x31,0x63,0x7D];
+
+  /* ====================================================
+     STATE
+  ==================================================== */
+  var bits = [0, 0, 0, 0, 0, 0, 0, 0]; // index 0 = MSB (128)
+  var panelsSolved = 0;
+
+  /* ====================================================
+     PANEL 1 — BIT TOGGLE
+  ==================================================== */
+  function buildBitDisplay() {
+    var container = document.getElementById('bit-display');
+    PLACE_VALUES.forEach(function(pv, i) {
+      var col = document.createElement('div');
+      col.className = 'bit-column';
+
+      var label = document.createElement('div');
+      label.className = 'bit-place-value';
+      label.textContent = pv;
+
+      var box = document.createElement('div');
+      box.className = 'bit-box';
+      box.id = 'bit-' + i;
+      box.textContent = '0';
+      box.setAttribute('data-index', i);
+      box.addEventListener('click', function() {
+        toggleBit(parseInt(this.getAttribute('data-index')));
+      });
+
+      col.appendChild(label);
+      col.appendChild(box);
+      container.appendChild(col);
+    });
+  }
+
+  function toggleBit(index) {
+    if (document.getElementById('panel-1').classList.contains('solved')) { return; }
+    bits[index] = bits[index] ? 0 : 1;
+    var box = document.getElementById('bit-' + index);
+    box.textContent = bits[index] ? '1' : '0';
+    if (bits[index]) {
+      box.classList.add('on');
+    } else {
+      box.classList.remove('on');
+    }
+    updateDecimalDisplay();
+    checkPanel1Auto();
+  }
+
+  function getDecimalValue() {
+    return bits.reduce(function(sum, bit, i) { return sum + bit * PLACE_VALUES[i]; }, 0);
+  }
+
+  function updateDecimalDisplay() {
+    var val = getDecimalValue();
+    var el = document.getElementById('decimal-display');
+    el.textContent = val;
+    if (val === TARGET_DECIMAL) {
+      el.classList.add('correct');
+    } else {
+      el.classList.remove('correct');
+    }
+  }
+
+  function checkPanel1Auto() {
+    if (getDecimalValue() === TARGET_DECIMAL) {
+      showMsg('msg-panel1-error', false);
+      solvePanel1();
+    }
+  }
+
+  function solvePanel1() {
+    document.getElementById('panel-1').classList.add('solved');
+    showMsg('msg-panel1-success', true);
+    document.getElementById('btn-panel1-proceed').style.display = 'block';
+    panelsSolved = Math.max(panelsSolved, 1);
+    updateProgress();
+    // Lock bit boxes
+    PLACE_VALUES.forEach(function(_, i) {
+      var box = document.getElementById('bit-' + i);
+      box.style.cursor = 'default';
+    });
+  }
+
+  /* ====================================================
+     PANEL 2 — BINARY → HEX
+  ==================================================== */
+  function buildNibbleDisplay() {
+    // 10110100 — high nibble 1011, low nibble 0100
+    var highBits = [1, 0, 1, 1];
+    var lowBits  = [0, 1, 0, 0];
+    var container = document.getElementById('nibble-display');
+
+    var groups = [
+      { bits: highBits, label: 'HIGH NIBBLE' },
+      { bits: lowBits,  label: 'LOW NIBBLE'  }
+    ];
+
+    groups.forEach(function(g, gi) {
+      var grpDiv = document.createElement('div');
+      grpDiv.className = 'nibble-group';
+
+      var bitsDiv = document.createElement('div');
+      bitsDiv.className = 'nibble-bits';
+      g.bits.forEach(function(b) {
+        var cell = document.createElement('div');
+        cell.className = b ? 'nibble-bit one' : 'nibble-bit';
+        cell.textContent = b;
+        bitsDiv.appendChild(cell);
+      });
+
+      var lblDiv = document.createElement('div');
+      lblDiv.className = 'nibble-label';
+      lblDiv.textContent = g.label;
+
+      grpDiv.appendChild(bitsDiv);
+      grpDiv.appendChild(lblDiv);
+      container.appendChild(grpDiv);
+
+      // Separator between groups
+      if (gi === 0) {
+        var sep = document.createElement('div');
+        sep.style.cssText = 'display:flex;align-items:center;color:var(--text-dim);font-size:20px;padding:0 4px 20px 4px';
+        sep.textContent = '|';
+        container.appendChild(sep);
+      }
+    });
+  }
+
+  function checkPanel2() {
+    var input = document.getElementById('input-panel2');
+    var raw = input.value.trim().toLowerCase();
+    var valid = ['b4', '0xb4'];
+
+    if (valid.indexOf(raw) !== -1) {
+      input.classList.remove('error');
+      showMsg('msg-panel2-error', false);
+      showMsg('msg-panel2-success', true);
+      document.getElementById('btn-panel2-proceed').style.display = 'block';
+      document.getElementById('panel-2').classList.add('solved');
+      panelsSolved = Math.max(panelsSolved, 2);
+      updateProgress();
+      input.disabled = true;
+    } else {
+      showMsg('msg-panel2-error', true);
+      showMsg('msg-panel2-success', false);
+      triggerErrorAnim(input);
+    }
+  }
+
+  /* ====================================================
+     PANEL 3 — HEX → ASCII → FLAG
+  ==================================================== */
+  function buildAsciiTable() {
+    var tbody = document.getElementById('ascii-tbody');
+    var entries = [];
+    for (var code = 0x20; code <= 0x7E; code++) {
+      var chr = (code === 0x20) ? 'SPC' : String.fromCharCode(code);
+      entries.push({
+        hex: code.toString(16).toUpperCase().padStart(2, '0'),
+        dec: code,
+        chr: chr,
+        highlight: FLAG_BYTES.indexOf(code) !== -1
+      });
+    }
+
+    // Layout: 4 columns, each column fills rowCount rows top-to-bottom
+    var rowCount = Math.ceil(entries.length / 4);
+    for (var r = 0; r < rowCount; r++) {
+      var tr = document.createElement('tr');
+      for (var c = 0; c < 4; c++) {
+        var idx = c * rowCount + r;
+        if (idx < entries.length) {
+          var e = entries[idx];
+          var tdHex = document.createElement('td');
+          tdHex.textContent = e.hex;
+          if (e.highlight) { tdHex.classList.add('highlight'); }
+
+          var tdDec = document.createElement('td');
+          tdDec.textContent = e.dec;
+          if (e.highlight) { tdDec.classList.add('highlight'); }
+
+          var tdChr = document.createElement('td');
+          tdChr.className = e.highlight ? 'chr-cell highlight' : 'chr-cell';
+          tdChr.textContent = e.chr;
+
+          tr.appendChild(tdHex);
+          tr.appendChild(tdDec);
+          tr.appendChild(tdChr);
+        } else {
+          tr.appendChild(document.createElement('td'));
+          tr.appendChild(document.createElement('td'));
+          tr.appendChild(document.createElement('td'));
+        }
+      }
+      tbody.appendChild(tr);
+    }
+  }
+
+  function checkPanel3() {
+    var input = document.getElementById('input-panel3');
+    var raw = input.value.trim();
+
+    if (raw === FLAG) {
+      input.classList.remove('error');
+      showMsg('msg-panel3-error', false);
+      document.getElementById('panel-3').classList.add('solved');
+      panelsSolved = 3;
+      updateProgress();
+      input.disabled = true;
+      revealFlag();
+    } else {
+      showMsg('msg-panel3-error', true);
+      triggerErrorAnim(input);
+    }
+  }
+
+  function revealFlag() {
+    var flagBox = document.getElementById('flag-box');
+    var pre = document.getElementById('flag-display');
+    var completion = document.getElementById('flag-completion');
+
+    pre.textContent =
+      '╔══════════════════════════════╗\n' +
+      '║  FLAG{b1n4ry_1s_b4s1c}      ║\n' +
+      '║  TRAINING COMPLETE           ║\n' +
+      '╚══════════════════════════════╝';
+
+    // Build completion text using DOM nodes (no innerHTML)
+    var p1 = document.createTextNode('The bytes ');
+    var s1 = document.createElement('strong');
+    s1.textContent = '46 4C 41 47';
+    var p2 = document.createTextNode(' spell FLAG. The curly braces are ');
+    var s2 = document.createElement('strong');
+    s2.textContent = '7B';
+    var p3 = document.createTextNode(' and ');
+    var s3 = document.createElement('strong');
+    s3.textContent = '7D';
+    var p4 = document.createTextNode('. Every flag you\'ll find in CTF challenges is ultimately just ASCII bytes like these — stored in files, transmitted in packets, or hiding in plain sight. You can read them now.');
+
+    completion.appendChild(p1);
+    completion.appendChild(s1);
+    completion.appendChild(p2);
+    completion.appendChild(s2);
+    completion.appendChild(p3);
+    completion.appendChild(s3);
+    completion.appendChild(p4);
+
+    flagBox.style.display = 'block';
+  }
+
+  /* ====================================================
+     HELPERS
+  ==================================================== */
+  function showMsg(id, visible) {
+    var el = document.getElementById(id);
+    el.style.display = visible ? 'block' : 'none';
+  }
+
+  function triggerErrorAnim(el) {
+    el.classList.remove('error');
+    // Force reflow so animation restarts
+    var _ = el.offsetWidth; // eslint-disable-line no-unused-vars
+    el.classList.add('error');
+  }
+
+  function showPanel(num) {
+    var panel = document.getElementById('panel-' + num);
+    panel.style.display = 'block';
+    setTimeout(function() {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+
+  function updateProgress() {
+    document.getElementById('progress-text').textContent = panelsSolved + ' / 3 PANELS COMPLETE';
+    document.getElementById('progress-fill').style.width = (panelsSolved / 3 * 100) + '%';
+  }
+
+  /* ====================================================
+     INIT
+  ==================================================== */
+  buildBitDisplay();
+  buildNibbleDisplay();
+  buildAsciiTable();
+</script>
+
+</body>
+</html>

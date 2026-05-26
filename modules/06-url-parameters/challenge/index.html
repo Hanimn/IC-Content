@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vaultline — Document Portal</title>
+
+  <!--
+  ================================================================
+  CHALLENGE METADATA
+  ================================================================
+  Module:   06 — URL Parameters
+  Title:    Talking to the Page
+  Tier:     A — Works via file:// (no server needed)
+  Flag:     FLAG{query_strings_are_user_input}
+  Mechanic: Page reads ?access= from URL.
+            Default (no param / access=guest): shows redacted view.
+            access=analyst: shows "analyst" tier, partial content.
+            access=vault: unlocks the restricted archive + flag.
+  Version:  1.0
+
+  INSTRUCTOR NOTES:
+  - To change the flag: edit FLAG and the flagText constant below.
+  - The access levels are: guest (default), analyst, vault (unlocks flag).
+  - "vault" is discoverable by reading the JS — it's named in the
+    checkAccess() function. Students who read View Source or use
+    DevTools Sources will find it.
+  - Two-part challenge:
+      Part 1: Change access=guest → access=analyst (partial unlock,
+              reveals a hint that a higher tier exists)
+      Part 2: Change access=analyst → access=vault (full unlock, flag)
+  ================================================================
+  -->
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #0f1923;
+      color: #cdd6e0;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      background: #080f18;
+      border-bottom: 1px solid #1e2d3d;
+      padding: 0 2rem;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar-brand {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e8f0f8;
+      letter-spacing: 0.06em;
+    }
+
+    .topbar-brand span {
+      color: #3b9eff;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.78rem;
+    }
+
+    .access-badge {
+      background: #1e2d3d;
+      border: 1px solid #2e4560;
+      border-radius: 3px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #7a99b8;
+    }
+
+    .access-badge.analyst { border-color: #3b7abd; color: #3b9eff; }
+    .access-badge.vault   { border-color: #2e7d32; color: #4caf50; }
+
+    /* ── Layout ── */
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* ── Page heading ── */
+    .page-heading {
+      margin-bottom: 2rem;
+    }
+
+    .page-heading h1 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #e8f0f8;
+      margin-bottom: 0.3rem;
+    }
+
+    .page-heading p {
+      font-size: 0.82rem;
+      color: #5a7a96;
+    }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #3b9eff;
+      margin-bottom: 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid #1e2d3d;
+    }
+
+    /* ── Document list ── */
+    .doc-list {
+      margin-bottom: 2.5rem;
+    }
+
+    .doc-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 90px;
+      gap: 1rem;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #141f2c;
+      font-size: 0.82rem;
+    }
+
+    .doc-row.header {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #3d5a78;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #1e2d3d;
+    }
+
+    .doc-row:not(.header):hover {
+      background: #141f2c;
+    }
+
+    .doc-name {
+      color: #cdd6e0;
+    }
+
+    .doc-date {
+      color: #5a7a96;
+      font-size: 0.78rem;
+    }
+
+    .doc-size {
+      color: #5a7a96;
+      font-size: 0.78rem;
+    }
+
+    .doc-status {
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-align: right;
+    }
+
+    .doc-status.available { color: #4caf50; }
+    .doc-status.redacted  { color: #5a7a96; }
+    .doc-status.locked    { color: #e05252; }
+
+    /* ── Access panel ── */
+    .access-panel {
+      background: #080f18;
+      border: 1px solid #1e2d3d;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .access-panel p {
+      font-size: 0.85rem;
+      line-height: 1.65;
+      color: #7a99b8;
+      margin-bottom: 0.8rem;
+    }
+
+    .access-panel p:last-child { margin-bottom: 0; }
+
+    .access-panel .highlight {
+      color: #3b9eff;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* ── Restricted banner ── */
+    .restricted-banner {
+      background: #1a0f0f;
+      border: 1px solid #5a2020;
+      padding: 1rem 1.4rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.82rem;
+      color: #a06060;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .restricted-banner::before {
+      content: '⊘';
+      font-size: 1rem;
+      color: #e05252;
+    }
+
+    /* ── Flag panel (hidden by default) ── */
+    .flag-panel {
+      display: none;
+      background: #0a1a0a;
+      border: 1px solid #2e5a2e;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .flag-panel.visible { display: block; }
+
+    .flag-panel .flag-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #4caf50;
+      margin-bottom: 0.8rem;
+    }
+
+    .flag-panel .flag-value {
+      font-family: 'Courier New', monospace;
+      font-size: 1.05rem;
+      color: #7dd87d;
+      letter-spacing: 0.04em;
+    }
+
+    .flag-panel .flag-note {
+      margin-top: 0.8rem;
+      font-size: 0.78rem;
+      color: #3d6b3d;
+      line-height: 1.6;
+    }
+
+    /* ── Analyst panel (hidden by default) ── */
+    .analyst-panel {
+      display: none;
+      background: #0a1220;
+      border: 1px solid #1e3a5a;
+      padding: 1.2rem 1.4rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.82rem;
+      color: #5a8ab8;
+      line-height: 1.65;
+    }
+
+    .analyst-panel.visible { display: block; }
+
+    .analyst-panel .analyst-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #3b9eff;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <span class="topbar-brand">Vault<span>line</span></span>
+    <div class="topbar-right">
+      <span>Document Portal</span>
+      <span class="access-badge" id="access-badge">GUEST</span>
+    </div>
+  </div>
+
+  <div class="page">
+
+    <div class="page-heading">
+      <h1>Restricted Archive — Q3 2024</h1>
+      <p>Internal financial analysis documents. Access level determines document availability.</p>
+    </div>
+
+    <!-- Restricted banner (shown to guest users) -->
+    <div class="restricted-banner" id="restricted-banner">
+      Your current access level does not permit viewing restricted documents.
+      Contact your administrator to request elevated access.
+    </div>
+
+    <!-- Analyst unlock message (shown to analyst tier) -->
+    <div class="analyst-panel" id="analyst-panel">
+      <div class="analyst-label">Analyst Access Granted</div>
+      You have read access to standard archive documents. Note: a higher access tier
+      exists for the full unredacted archive. Internal codename: <span style="color:#3b9eff;font-family:'Courier New',monospace;">vault</span>.
+    </div>
+
+    <!-- Flag panel (shown to vault tier only) -->
+    <div class="flag-panel" id="flag-panel">
+      <div class="flag-label">Vault Access — Unrestricted Archive</div>
+      <div class="flag-value" id="flag-display"></div>
+      <div class="flag-note">
+        Access granted via URL parameter. In a production system, access level
+        would be verified server-side against the user's authenticated session —
+        not read from the URL.
+      </div>
+    </div>
+
+    <p class="section-label">Archive Documents</p>
+
+    <div class="doc-list">
+      <div class="doc-row header">
+        <span>Document</span>
+        <span>Date</span>
+        <span>Size</span>
+        <span style="text-align:right">Status</span>
+      </div>
+      <div class="doc-row">
+        <span class="doc-name">Q3 Revenue Summary — Redacted.pdf</span>
+        <span class="doc-date">2024-09-30</span>
+        <span class="doc-size">418 KB</span>
+        <span class="doc-status available" id="doc1-status">Available</span>
+      </div>
+      <div class="doc-row">
+        <span class="doc-name">Counterparty Exposure Report — Redacted.pdf</span>
+        <span class="doc-date">2024-09-28</span>
+        <span class="doc-size">1.2 MB</span>
+        <span class="doc-status redacted" id="doc2-status">Redacted</span>
+      </div>
+      <div class="doc-row">
+        <span class="doc-name">Internal Audit: Systems Vulnerabilities — Full.pdf</span>
+        <span class="doc-date">2024-09-15</span>
+        <span class="doc-size">3.7 MB</span>
+        <span class="doc-status locked" id="doc3-status">Locked</span>
+      </div>
+      <div class="doc-row">
+        <span class="doc-name">Acquisition Target Analysis — Unredacted.pdf</span>
+        <span class="doc-date">2024-08-22</span>
+        <span class="doc-size">892 KB</span>
+        <span class="doc-status locked" id="doc4-status">Locked</span>
+      </div>
+      <div class="doc-row">
+        <span class="doc-name">Board Communication — Q3 Discrepancies.pdf</span>
+        <span class="doc-date">2024-08-14</span>
+        <span class="doc-size">245 KB</span>
+        <span class="doc-status locked" id="doc5-status">Locked</span>
+      </div>
+    </div>
+
+    <p class="section-label">Access Information</p>
+
+    <div class="access-panel">
+      <p>
+        Your current access tier: <span class="highlight" id="access-level-display">guest</span>
+      </p>
+      <p>
+        Access is determined by the <span class="highlight">access</span> parameter in the URL.
+        The portal reads this value on each page load to determine which documents
+        are available to you.
+      </p>
+    </div>
+
+  </div>
+
+  <!--
+  ================================================================
+  CHALLENGE LOGIC
+  ================================================================
+  INSTRUCTORS: To change the flag, edit FLAG and flagText below.
+  Access tiers: guest (default) → analyst → vault (flag revealed).
+  The "vault" codename is visible in the analyst panel AND in the
+  JS source — either path leads students to the answer.
+  ================================================================
+  -->
+  <script>
+    // ── Configuration ──────────────────────────────────────────
+    const FLAG     = "FLAG{query_strings_are_user_input}";
+    const flagText = "FLAG{query_strings_are_user_input}";
+
+    // Access tiers: guest < analyst < vault
+    // "vault" is the unlock keyword — discoverable via JS source
+    // or via the hint shown at analyst tier.
+    const ACCESS_LEVELS = {
+      guest:   0,
+      analyst: 1,
+      vault:   2,
+    };
+
+    // ── Read access level from URL ──────────────────────────────
+    const params = new URLSearchParams(window.location.search);
+    const rawAccess = (params.get('access') || 'guest').toLowerCase();
+    const accessLevel = ACCESS_LEVELS[rawAccess] ?? 0;
+    const accessName  = Object.keys(ACCESS_LEVELS).find(
+      k => ACCESS_LEVELS[k] === accessLevel
+    ) || 'guest';
+
+    // ── Update UI ───────────────────────────────────────────────
+    function applyAccess() {
+      // Badge
+      const badge = document.getElementById('access-badge');
+      badge.textContent = accessName.toUpperCase();
+      if (accessName === 'analyst') badge.classList.add('analyst');
+      if (accessName === 'vault')   badge.classList.add('vault');
+
+      // Access level display text
+      document.getElementById('access-level-display').textContent = accessName;
+
+      // Guest: show restricted banner, hide everything else
+      if (accessLevel === ACCESS_LEVELS.guest) {
+        document.getElementById('restricted-banner').style.display = 'flex';
+        return;
+      }
+
+      // Analyst+: hide restricted banner
+      document.getElementById('restricted-banner').style.display = 'none';
+
+      if (accessLevel === ACCESS_LEVELS.analyst) {
+        // Show analyst panel — hints that "vault" tier exists
+        document.getElementById('analyst-panel').classList.add('visible');
+        // Unlock first two documents
+        document.getElementById('doc2-status').textContent  = 'Available';
+        document.getElementById('doc2-status').className    = 'doc-status available';
+      }
+
+      if (accessLevel === ACCESS_LEVELS.vault) {
+        // Show analyst panel (still visible) + flag panel
+        document.getElementById('analyst-panel').classList.add('visible');
+        document.getElementById('flag-panel').classList.add('visible');
+        document.getElementById('flag-display').textContent = flagText;
+        // Unlock all documents
+        ['doc2','doc3','doc4','doc5'].forEach(id => {
+          const el = document.getElementById(id + '-status');
+          el.textContent = 'Available';
+          el.className   = 'doc-status available';
+        });
+      }
+    }
+
+    applyAccess();
+  </script>
+
+</body>
+</html>

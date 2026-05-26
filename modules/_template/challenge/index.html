@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>[Challenge Name] — Web Recon CTF</title>
+
+  <!--
+  ================================================================
+  CHALLENGE METADATA
+  ================================================================
+  Module:   [N] — [Topic Name]
+  Title:    [Challenge Name]
+  Tier:     [A = pure JS, file:// works | B = needs HTTP server]
+  Author:   [name]
+  Version:  1.0
+
+  INSTRUCTOR NOTES:
+  - To change the flag: edit the FLAG constant in the <script> below
+  - Do not change the FLAG value inside this comment block —
+    students may read it as a red herring, but the real flag is in JS
+  - Tier A challenges work when opened directly from the filesystem
+  - Tier B challenges require: python3 -m http.server 8080
+    See instructor-guide/deployment-guide.md
+  ================================================================
+  -->
+
+  <style>
+    /*
+      DESIGN INTENT:
+      - Match the visual theme to the module's story narrative
+      - Deliberately include at least one CSS distraction
+        (e.g., a white-on-white element, display:none div,
+        or data attribute) for inspector-based modules
+      - Keep overall styling minimal — this is a learning tool,
+        not a portfolio piece
+    */
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      background: #0d1117;
+      color: #c9d1d9;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: #58a6ff;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: #8b949e;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+
+    .panel {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      text-align: left;
+    }
+
+    .panel h2 {
+      color: #58a6ff;
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* ============================================================
+       INTENTIONAL HIDING MECHANISM — module-specific
+       Uncomment/modify the technique that fits your module:
+
+       Option 1: display:none (for inspector module)
+    */
+    /* .hidden-content { display: none; } */
+
+       /* Option 2: color camouflage (white on white) */
+    /* .secret-text { color: #ffffff; background: #ffffff; } */
+
+       /* Option 3: data attribute (for inspector module) */
+    /* [data-secret] — accessed via inspector, not visible */
+
+    /* ============================================================ */
+
+    button {
+      background: #238636;
+      color: #ffffff;
+      border: none;
+      padding: 0.6rem 1.4rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.95rem;
+      margin-top: 1rem;
+    }
+
+    button:hover {
+      background: #2ea043;
+    }
+
+    .flag-display {
+      display: none;
+      background: #0d1117;
+      border: 1px solid #238636;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-size: 1.1rem;
+      color: #3fb950;
+      word-break: break-all;
+    }
+
+    .status {
+      color: #f85149;
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+      min-height: 1.2em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>[Challenge Title]</h1>
+    <p class="subtitle">[One-sentence challenge premise — continues the module's story]</p>
+
+    <!-- ============================================================
+         MAIN CHALLENGE AREA
+         Replace this section with content matching your module's
+         narrative and hiding technique.
+
+         Examples by module type:
+         - View Source: put flag in HTML comment below
+         - Inspector: add display:none div or data attribute
+         - Cookies: page shows "Access Denied" until cookie is set
+         - URL Params: page reads window.location.search
+         - Hidden Forms: <input type="hidden" name="price" value="999">
+    ============================================================ -->
+
+    <div class="panel">
+      <h2>Situation</h2>
+      <p>[Challenge narrative. 2–3 sentences. What is the student trying to access or find?
+         What does the page appear to show? What's actually hidden?]</p>
+    </div>
+
+    <!-- [Add challenge-specific UI here: forms, buttons, login fields, etc.] -->
+
+    <div class="status" id="status"></div>
+    <div class="flag-display" id="flag-display"></div>
+
+  </div>
+
+  <!--
+  ================================================================
+  CHALLENGE LOGIC
+  ================================================================
+  INSTRUCTORS: Edit ONLY the FLAG constant value below.
+  Do not rename variables or restructure the script —
+  the lesson and solution.md reference this structure.
+  ================================================================
+  -->
+  <script>
+    // ============================================================
+    // CONFIGURATION — instructors edit this value only
+    // ============================================================
+    const FLAG = "FLAG{replace_with_real_flag_value}";
+
+    // ============================================================
+    // CHALLENGE LOGIC — do not edit below unless rebuilding
+    // ============================================================
+
+    // [Function name should describe what condition reveals the flag]
+    // Example: checkCookie(), checkURLParam(), checkFormSubmit()
+
+    function checkChallenge() {
+      // [Implement the challenge-specific check here]
+      //
+      // Pattern for most Tier A challenges:
+      //   1. Read the relevant input (cookie, URL param, DOM value)
+      //   2. Check if it meets the condition
+      //   3. Call revealFlag() if yes, showError() if no
+      //
+      // Example (cookie check):
+      //   const cookies = document.cookie.split('; ');
+      //   const roleCookie = cookies.find(c => c.startsWith('role='));
+      //   const role = roleCookie ? roleCookie.split('=')[1] : 'guest';
+      //   if (role === 'admin') {
+      //     revealFlag();
+      //   } else {
+      //     showError('Access denied. Role: ' + role);
+      //   }
+    }
+
+    function revealFlag() {
+      const display = document.getElementById('flag-display');
+      const status = document.getElementById('status');
+      display.textContent = FLAG;
+      display.style.display = 'block';
+      status.textContent = '';
+      status.style.color = '#3fb950';
+    }
+
+    function showError(message) {
+      const status = document.getElementById('status');
+      status.textContent = message || 'Access denied.';
+      status.style.color = '#f85149';
+    }
+
+    // [Call checkChallenge() on the right event]
+    // Examples:
+    //   document.addEventListener('DOMContentLoaded', checkChallenge);  // on page load
+    //   document.getElementById('submit-btn').addEventListener('click', checkChallenge);  // on click
+    //   document.getElementById('login-form').addEventListener('submit', checkChallenge);  // on form submit
+
+  </script>
+
+</body>
+</html>

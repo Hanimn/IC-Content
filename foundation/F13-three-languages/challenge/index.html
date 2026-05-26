@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F13 — Layered Labs | IC Training</title>
+
+<!--
+================================================================
+LAYERED LABS // INTERNAL BUILD NOTES
+================================================================
+Build:    layered-labs-static-v1.0
+Tier:     A (vanilla HTML/CSS/JS — works via file://)
+Author:   IC Training Team
+================================================================
+
+The page below is the welcome card for new agents joining the
+Layered Labs orientation programme. Three columns introduce the
+three languages of the web: HTML, CSS, and JavaScript.
+
+INSTRUCTOR NOTES:
+- Three flag fragments are embedded in this file, one per layer.
+- Fragment 1 lives in this comment block (the next line).
+- Fragment 2 lives inside a CSS rule in the <style> block below.
+- Fragment 3 is assigned by a JS click handler in the <script>
+  block at the bottom of this file.
+- Concatenated in source order, fragments form a single FLAG{...}.
+================================================================
+-->
+
+<!-- Fragment 1: FLAG{html_ -->
+
+<style>
+  /* ============================================================
+     Layered Labs — visual styles
+     Group A aesthetic: navy / cyan / Courier
+     ============================================================ */
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  :root {
+    --bg: #060d1a;
+    --bg2: #0a1628;
+    --bg3: #0f1f3a;
+    --accent: #00d4ff;
+    --accent-dim: #0099bb;
+    --accent-glow: rgba(0, 212, 255, 0.15);
+    --green: #00ff88;
+    --green-dim: #00bb66;
+    --red: #ff4455;
+    --amber: #ffaa00;
+    --text: #c8d8e8;
+    --text-dim: #6a8aaa;
+    --border: rgba(0, 212, 255, 0.2);
+    --border-bright: rgba(0, 212, 255, 0.5);
+    --mono: 'Courier New', 'Courier', monospace;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 0 0 4rem;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 1.1rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .site-header .badge {
+    font-size: 0.7rem;
+    color: var(--accent);
+    background: rgba(0,212,255,0.08);
+    border: 1px solid var(--border);
+    padding: 0.2rem 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .site-header h1 {
+    font-size: 0.95rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .site-header .subtitle {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 0.1rem;
+  }
+
+  /* ── Layout ── */
+  main {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 0;
+  }
+
+  .hero {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding: 1.5rem 1rem;
+  }
+  .hero h2 {
+    font-size: 1.4rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .hero p {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* ── Three columns ── */
+  .columns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+  @media (max-width: 800px) {
+    .columns { grid-template-columns: 1fr; }
+  }
+
+  .col {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.25rem;
+    transition: border-color 0.2s;
+  }
+  .col:hover { border-color: var(--border-bright); }
+
+  .col-tag {
+    font-size: 0.65rem;
+    color: var(--bg);
+    background: var(--accent);
+    padding: 0.15rem 0.5rem;
+    letter-spacing: 0.12em;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 0.75rem;
+  }
+  .col h3 {
+    font-size: 1rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+  .col h3 .sub {
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    font-weight: normal;
+    display: block;
+    margin-top: 0.2rem;
+  }
+  .col p {
+    font-size: 0.82rem;
+    color: var(--text);
+    line-height: 1.65;
+  }
+  .col code {
+    background: var(--bg3);
+    color: var(--accent);
+    padding: 0.05rem 0.3rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-size: 0.78rem;
+  }
+
+  /* ── Reveal section ── */
+  .reveal-block {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .reveal-block h3 {
+    font-size: 0.8rem;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .reveal-block p {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 1.25rem;
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .reveal-btn {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    padding: 0.65rem 1.6rem;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+  }
+  .reveal-btn:hover {
+    background: var(--accent-glow);
+    box-shadow: 0 0 12px rgba(0,212,255,0.2);
+  }
+
+  /* ── The hidden carrier ──
+     The element with class="carrier" is set to display:none, so
+     it never renders. But its ::before pseudo-element holds a
+     CSS content: value — readable only by reading this <style>
+     block in View Source.
+  */
+  .carrier { display: none; }
+
+  .carrier::before {
+    content: "css_js_";
+    color: var(--accent);
+  }
+
+  /* ── Submission box ── */
+  .submit-block {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem;
+  }
+  .submit-block h3 {
+    font-size: 0.8rem;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .submit-block p {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+
+  .flag-input {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.6rem 0.85rem;
+    width: 100%;
+    max-width: 480px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    border-radius: 2px;
+  }
+  .flag-input:focus {
+    border-color: var(--accent-dim);
+    box-shadow: 0 0 0 2px rgba(0,212,255,0.1);
+  }
+  .flag-input.error {
+    border-color: var(--red);
+    box-shadow: 0 0 0 2px rgba(255,68,85,0.15);
+  }
+  .flag-input.correct {
+    border-color: var(--green-dim);
+    box-shadow: 0 0 0 2px rgba(0,255,136,0.12);
+  }
+
+  .submit-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 0.75rem;
+  }
+
+  .submit-btn {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    padding: 0.6rem 1.4rem;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+  }
+  .submit-btn:hover {
+    background: var(--accent-glow);
+    box-shadow: 0 0 12px rgba(0,212,255,0.2);
+  }
+
+  .feedback {
+    font-size: 0.78rem;
+    margin-top: 0.6rem;
+    min-height: 1.1em;
+  }
+  .feedback.err { color: var(--red); }
+  .feedback.ok  { color: var(--green); }
+
+  /* ── Status indicator (small dots that hint at click state) ── */
+  .status-strip {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    display: inline-block;
+    transition: background 0.2s;
+  }
+  .status-dot.armed { background: var(--green); }
+
+  /* ── Success panel ── */
+  .success {
+    display: none;
+    margin-top: 1.5rem;
+    background: rgba(0,255,136,0.04);
+    border: 1px solid rgba(0,255,136,0.3);
+    border-radius: 4px;
+    padding: 1.5rem;
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .success.visible { display: block; }
+  .success h4 {
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 0.6rem;
+  }
+  .success .flag-shown {
+    font-size: 1.15rem;
+    color: var(--green);
+    background: rgba(0,255,136,0.08);
+    border: 1px solid rgba(0,255,136,0.25);
+    padding: 0.55rem 1.1rem;
+    display: inline-block;
+    margin: 0.6rem 0;
+    letter-spacing: 0.03em;
+  }
+  .success p {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-top: 0.6rem;
+    max-width: 540px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .success a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--accent-dim);
+  }
+  .success a:hover { color: var(--green); border-bottom-color: var(--green); }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    max-width: 1080px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  footer a {
+    color: var(--accent-dim);
+    text-decoration: none;
+  }
+  footer a:hover { color: var(--accent); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="badge">Foundation</span>
+  <div>
+    <h1>AGENCY TRAINING // F13 — LAYERED LABS</h1>
+    <div class="subtitle">Welcome to the orientation programme</div>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <h2>Welcome to Layered Labs</h2>
+    <p>
+      Every webpage is three languages stacked. Read all three layers
+      to assemble your access flag.
+      <br>One language alone tells you only a third of the story.
+    </p>
+  </section>
+
+  <!-- The hidden carrier element. The visible page never renders it,
+       but a CSS rule in the <style> block above paints text into it
+       via a ::before pseudo-element. To find that text, read the CSS. -->
+  <span class="carrier"></span>
+
+  <section class="columns">
+
+    <article class="col">
+      <span class="col-tag">Layer 01</span>
+      <h3>HTML <span class="sub">// the bones</span></h3>
+      <p>
+        HTML defines what's on the page. Tags like <code>&lt;p&gt;</code>,
+        <code>&lt;h1&gt;</code>, and <code>&lt;button&gt;</code> wrap your
+        content and give it structure. The browser uses HTML to know what
+        elements exist and how they nest. Comments wrapped in
+        <code>&lt;!--&nbsp;--&gt;</code> are skipped when rendering, but
+        they are still in the source.
+      </p>
+    </article>
+
+    <article class="col">
+      <span class="col-tag">Layer 02</span>
+      <h3>CSS <span class="sub">// the paint</span></h3>
+      <p>
+        CSS controls how the page looks. Selectors target elements;
+        properties set their colour, size, position, and visibility.
+        CSS can hide content with <code>display: none</code> — and
+        it can also <em>add</em> content using <code>content:</code>
+        on <code>::before</code> and <code>::after</code> pseudo-elements.
+      </p>
+    </article>
+
+    <article class="col">
+      <span class="col-tag">Layer 03</span>
+      <h3>JavaScript <span class="sub">// the brain</span></h3>
+      <p>
+        JavaScript makes the page do things. Variables hold values;
+        functions do work; event listeners react to clicks and key
+        presses. JS can change the page after it has loaded — which
+        means what you see on screen and what View Source shows can
+        sometimes differ.
+      </p>
+    </article>
+
+  </section>
+
+  <section class="reveal-block">
+    <h3>// Arm the assembly</h3>
+    <p>
+      The third fragment is staged inside the page's JavaScript, but the
+      assignment only fires after this button is clicked. Click to arm,
+      then read the script.
+    </p>
+    <button class="reveal-btn" id="reveal-btn">Arm fragment 3</button>
+    <div class="status-strip">
+      <span class="status-dot" id="dot-1"></span>
+      <span class="status-dot" id="dot-2"></span>
+      <span class="status-dot" id="dot-3"></span>
+      <span id="status-label">Idle — click to arm</span>
+    </div>
+  </section>
+
+  <section class="submit-block">
+    <h3>// Submit the assembled flag</h3>
+    <p>
+      Read all three layers of this page (HTML comments, CSS, JavaScript),
+      concatenate the fragments in source order, and submit the full flag
+      below. The flag has the shape <code>FLAG{...}</code>.
+    </p>
+
+    <input class="flag-input" id="flag-input" type="text"
+           autocomplete="off" autocorrect="off" autocapitalize="off"
+           spellcheck="false" placeholder="FLAG{...}">
+
+    <div class="submit-row">
+      <button class="submit-btn" id="submit-btn">Submit Flag</button>
+      <span class="feedback" id="feedback"></span>
+    </div>
+
+    <div class="success" id="success">
+      <h4>// Access Granted — Three Layers Assembled</h4>
+      <div class="flag-shown" id="flag-shown"></div>
+      <p>
+        You read the page in three languages. That is the skill that
+        unlocks every Web CTF challenge in the rest of the curriculum.
+      </p>
+      <p>
+        Next stop:
+        <a href="../../../modules/01-view-source/README.md">Phase 1 Module 01 — View Source</a>.
+        Then
+        <a href="../../../modules/02-browser-inspector/README.md">Module 02 — The X-Ray Machine</a>
+        will introduce you to DevTools and the live DOM.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  FOUNDATION TRACK — F13 // THREE LANGUAGES, ONE PAGE // file://<br>
+  <span style="margin-top: 0.4rem; display: block;">
+    &lt; <a href="../README.md">F13 README</a> &gt;
+    &nbsp;|&nbsp;
+    <a href="../lesson.md">lesson.md</a>
+    &nbsp;|&nbsp;
+    <a href="../concept-cards.md">concept cards</a>
+    &nbsp;|&nbsp;
+    <a href="hint-1.md">hint-1</a>
+    &nbsp;|&nbsp;
+    <a href="hint-2.md">hint-2</a>
+    &nbsp;|&nbsp;
+    <a href="solution.md">solution</a>
+  </span>
+</footer>
+
+<script>
+  /* ============================================================
+     LAYERED LABS — challenge logic
+     ============================================================
+     The third fragment of the flag is assembled here. It is NOT
+     hard-coded into a single visible variable — it is assigned
+     by the click handler below when the "Arm fragment 3" button
+     is pressed. Read the click handler to find out what value it
+     writes to flagPart3.
+     ============================================================ */
+
+  // Layer 3 storage. Empty until the button is clicked.
+  let flagPart3 = "";
+
+  // Wire up the arm button.
+  const btn       = document.getElementById('reveal-btn');
+  const dot1      = document.getElementById('dot-1');
+  const dot2      = document.getElementById('dot-2');
+  const dot3      = document.getElementById('dot-3');
+  const statusLbl = document.getElementById('status-label');
+
+  btn.addEventListener('click', function () {
+    // When the button is clicked, fragment 3 is written here.
+    flagPart3 = "three_layers}";
+
+    dot1.classList.add('armed');
+    dot2.classList.add('armed');
+    dot3.classList.add('armed');
+    statusLbl.textContent = "Armed — fragment 3 assigned";
+    btn.disabled = true;
+    btn.style.opacity = "0.6";
+    btn.textContent = "Fragment 3 armed";
+  });
+
+  /* ============================================================
+     Submission check
+     ============================================================
+     The full flag for this module is FLAG{html_css_js_three_layers}
+     — formed by concatenating the three fragments hidden across
+     the HTML, CSS, and JavaScript layers of this page.
+     ============================================================ */
+
+  const EXPECTED_FLAG = "FLAG{html_css_js_three_layers}";
+
+  const input    = document.getElementById('flag-input');
+  const submit   = document.getElementById('submit-btn');
+  const feedback = document.getElementById('feedback');
+  const success  = document.getElementById('success');
+  const shown    = document.getElementById('flag-shown');
+
+  function checkFlag() {
+    const val = input.value.trim();
+
+    input.classList.remove('error', 'correct');
+    feedback.classList.remove('err', 'ok');
+
+    if (val === "") {
+      feedback.textContent = "Type the assembled flag first.";
+      feedback.classList.add('err');
+      input.classList.add('error');
+      return;
+    }
+
+    if (val === EXPECTED_FLAG) {
+      input.classList.add('correct');
+      feedback.classList.add('ok');
+      feedback.textContent = "Flag accepted.";
+      shown.textContent = EXPECTED_FLAG;
+      success.classList.add('visible');
+      success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      submit.disabled = true;
+      input.disabled = true;
+    } else {
+      input.classList.add('error');
+      feedback.classList.add('err');
+      // Friendlier feedback if they got close.
+      if (val.toUpperCase().startsWith("FLAG{") && val.endsWith("}")) {
+        feedback.textContent = "Almost — re-check each fragment in source order.";
+      } else {
+        feedback.textContent = "Not quite. The flag has the shape FLAG{...}.";
+      }
+    }
+  }
+
+  submit.addEventListener('click', checkFlag);
+
+  // Allow Enter key to submit.
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { checkFlag(); }
+  });
+
+  // Clear error state when the user types something new.
+  input.addEventListener('input', function () {
+    input.classList.remove('error', 'correct');
+    feedback.textContent = "";
+    feedback.classList.remove('err', 'ok');
+  });
+</script>
+
+</body>
+</html>

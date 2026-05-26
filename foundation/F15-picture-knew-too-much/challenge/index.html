@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>F15 — The Picture That Knew Too Much</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #100c04;
+      --panel:     #1a1200;
+      --panel2:    #221800;
+      --border:    #3a2a00;
+      --amber:     #e8a820;
+      --amber-dim: #a87010;
+      --amber-soft:#c48018;
+      --amber-glow:#ffd060;
+      --green:     #4caf50;
+      --green-soft:#60d060;
+      --red:       #e05050;
+      --text:      #d4c090;
+      --text-dim:  #7a6040;
+      --muted:     #7a6040;
+      --font:      'Courier New', Courier, monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0 0 60px 0;
+    }
+
+    /* HEADER */
+    header.site-header {
+      background: var(--panel);
+      border-bottom: 2px solid var(--amber);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .header-badge {
+      background: var(--amber);
+      color: var(--bg);
+      font-size: 11px;
+      font-weight: bold;
+      padding: 3px 8px;
+      letter-spacing: 0.12em;
+    }
+    .header-title {
+      color: var(--amber);
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .hero {
+      padding: 40px 24px 28px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    .hero-tag {
+      color: var(--amber-dim);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .hero h1 {
+      color: var(--amber-glow);
+      font-size: clamp(20px, 3.4vw, 30px);
+      letter-spacing: 0.05em;
+      line-height: 1.18;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    .hero-subtitle {
+      color: var(--text);
+      font-size: 13px;
+      max-width: 700px;
+    }
+    .hero-meta {
+      display: flex;
+      gap: 24px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    .meta-item { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; }
+    .meta-item span { color: var(--amber); }
+
+    /* LAYOUT */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 24px;
+      padding: 0 24px 60px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    @media (max-width: 800px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* PANELS */
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .panel-header {
+      background: var(--panel2);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .panel-tag {
+      background: var(--amber);
+      color: var(--bg);
+      font-size: 10px;
+      font-weight: bold;
+      padding: 2px 6px;
+      letter-spacing: 0.1em;
+    }
+    .panel-tag.dim { background: var(--border); color: var(--text-dim); }
+    .panel-title {
+      color: var(--amber);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .panel-body { padding: 18px 18px; }
+
+    /* PROGRESS */
+    .progress-row { display: flex; gap: 10px; margin-bottom: 18px; align-items: center; }
+    .progress-dot {
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--panel2);
+    }
+    .progress-dot.done   { background: var(--green); border-color: var(--green); }
+    .progress-dot.active { background: var(--amber); border-color: var(--amber); }
+    .progress-label { font-size: 11px; color: var(--text-dim); margin-left: 4px; letter-spacing: 0.08em; }
+
+    /* CANVAS WRAPPER */
+    .canvas-wrap {
+      background: #050300;
+      border: 1px solid var(--border);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .canvas-caption {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* MAIN PHOTO CANVAS — drawn at 240×160, displayed scaled */
+    canvas.photo-canvas {
+      image-rendering: auto;
+      border: 1px solid #2a1e00;
+      width: 320px;
+      height: 213px;
+    }
+    /* STEGO CANVAS — small, displayed pixel-true and zoomed */
+    canvas.stego-canvas {
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+      border: 1px solid #2a1e00;
+      width: 320px;
+      height: 160px;
+    }
+
+    /* BUTTON */
+    button.btn {
+      background: var(--panel2);
+      border: 1px solid var(--amber-dim);
+      color: var(--amber);
+      font-family: var(--font);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    button.btn:hover {
+      background: var(--border);
+      border-color: var(--amber);
+      color: var(--amber-glow);
+    }
+    button.btn.primary {
+      background: var(--amber);
+      color: var(--bg);
+      border-color: var(--amber);
+      font-weight: bold;
+    }
+    button.btn.primary:hover {
+      background: var(--amber-glow);
+      border-color: var(--amber-glow);
+    }
+    button.btn:disabled {
+      border-color: var(--muted);
+      color: var(--muted);
+      background: transparent;
+      cursor: default;
+    }
+
+    /* EXIF PANEL */
+    .exif-panel {
+      display: none;
+      background: #060400;
+      border: 1px solid var(--amber-dim);
+      padding: 16px 18px;
+      margin-top: 16px;
+      font-size: 13px;
+    }
+    .exif-panel.show {
+      display: block;
+      animation: slideIn 0.4s ease-out;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .exif-header {
+      color: var(--amber);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      margin-bottom: 10px;
+    }
+    .exif-line {
+      display: flex;
+      gap: 12px;
+      padding: 3px 0;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .exif-key {
+      min-width: 130px;
+      color: var(--amber-dim);
+    }
+    .exif-val { color: var(--amber-glow); word-break: break-all; }
+    .exif-line.highlight {
+      background: rgba(232,168,32,0.10);
+      border-left: 3px solid var(--amber);
+      padding-left: 8px;
+      margin: 6px -8px;
+    }
+    .exif-line.highlight .exif-val { color: var(--green-soft); }
+
+    /* EXTRACT OUTPUT */
+    .extract-panel {
+      display: none;
+      background: #060400;
+      border: 1px solid var(--amber-dim);
+      padding: 16px 18px;
+      margin-top: 16px;
+    }
+    .extract-panel.show {
+      display: block;
+      animation: slideIn 0.4s ease-out;
+    }
+    .extract-header {
+      color: var(--amber);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+    }
+    .extract-row {
+      font-size: 12px;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .extract-row .label {
+      color: var(--amber-dim);
+      letter-spacing: 0.08em;
+      display: block;
+      font-size: 10px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .extract-bits {
+      font-size: 12px;
+      color: #d4b060;
+      background: #000800;
+      padding: 8px 10px;
+      border: 1px solid #2a1e00;
+      letter-spacing: 1px;
+      word-break: break-all;
+      max-height: 120px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+    .extract-bytes {
+      font-size: 12px;
+      color: #d4b060;
+      background: #000800;
+      padding: 8px 10px;
+      border: 1px solid #2a1e00;
+      letter-spacing: 1px;
+      word-break: break-all;
+      max-height: 80px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+    .extract-text {
+      font-size: 16px;
+      color: var(--green-soft);
+      background: #000800;
+      padding: 12px 14px;
+      border: 1px solid var(--green);
+      letter-spacing: 0.08em;
+      word-break: break-all;
+    }
+
+    /* SUBMISSION */
+    .submit-input {
+      width: 100%;
+      background: #060400;
+      border: 1px solid var(--border);
+      color: var(--amber-glow);
+      font-family: var(--font);
+      font-size: 16px;
+      padding: 12px 14px;
+      letter-spacing: 0.04em;
+      outline: none;
+      margin-bottom: 12px;
+    }
+    .submit-input:focus { border-color: var(--amber-dim); }
+    .submit-input.correct { border-color: var(--green); }
+    .submit-input.wrong   { border-color: var(--red); }
+
+    .status-msg {
+      font-size: 12px;
+      padding: 10px 12px;
+      border-left: 3px solid;
+      margin-top: 10px;
+      display: none;
+    }
+    .status-msg.success { border-color: var(--green); color: var(--green-soft); background: rgba(76,175,80,0.07); }
+    .status-msg.error   { border-color: var(--red);   color: var(--red);        background: rgba(224,80,80,0.07); }
+    .status-msg.info    { border-color: var(--amber-dim); color: var(--amber); background: rgba(232,168,32,0.06); }
+    .status-msg.show    { display: block; }
+
+    /* FRAGMENT TRACKER */
+    .fragment-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .fragment-pill {
+      flex: 1 1 0;
+      min-width: 200px;
+      background: #060400;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+    .fragment-pill.found { border-color: var(--green); }
+    .fragment-pill .label {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .fragment-pill .value {
+      font-size: 13px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      word-break: break-all;
+    }
+    .fragment-pill.found .value { color: var(--green-soft); }
+
+    /* FLAG TERMINAL */
+    .flag-reveal {
+      display: none;
+      background: #000800;
+      border: 2px solid var(--green);
+      padding: 24px;
+      margin-top: 24px;
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--green-soft);
+    }
+    .flag-reveal.show {
+      display: block;
+      animation: slideIn 0.5s ease-out;
+    }
+    .flag-reveal-title {
+      color: var(--amber-dim);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .flag-line { color: #50a050; margin: 4px 0; font-size: 12px; }
+    .flag-final {
+      color: var(--green-soft);
+      font-size: clamp(14px, 2vw, 18px);
+      letter-spacing: 0.05em;
+      background: var(--bg);
+      padding: 12px 18px;
+      border: 1px solid var(--green);
+      display: inline-block;
+      margin: 12px 0 6px;
+      letter-spacing: 0.06em;
+    }
+    .flag-explain { color: #50a050; margin-top: 10px; font-size: 12px; }
+
+    /* SIDEBAR */
+    .sidebar-note {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+    .sidebar-note + .sidebar-note {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .sidebar-note strong { color: var(--amber); }
+
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .ref-table th {
+      color: var(--amber-dim);
+      text-align: left;
+      padding: 4px 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .ref-table td {
+      padding: 5px 8px;
+      border-bottom: 1px solid #2a1e00;
+      color: var(--text);
+    }
+    .ref-table tr:last-child td { border-bottom: none; }
+    .ref-table .term { color: var(--amber); }
+
+    .hint-links a {
+      display: block;
+      color: var(--amber-dim);
+      text-decoration: none;
+      font-size: 12px;
+      padding: 5px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .hint-links a:hover { color: var(--amber); }
+    .hint-links a:last-child { border-bottom: none; }
+
+    /* FOOTER */
+    footer {
+      margin-top: 48px;
+      padding: 20px 32px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-dim);
+      max-width: 1080px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    footer a { color: var(--amber-dim); text-decoration: none; }
+    footer a:hover { color: var(--amber); }
+
+    .small-note {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.6;
+      margin-top: 6px;
+    }
+
+    .step-text {
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 14px;
+      line-height: 1.7;
+    }
+    .step-text strong { color: var(--amber); }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-badge">F15</div>
+  <div class="header-title">AGENCY TRAINING // F15 — THE PICTURE THAT KNEW TOO MUCH</div>
+</header>
+
+<div class="hero">
+  <div class="hero-tag">Foundation Track — Module 15 — Group C: How Files Work</div>
+  <h1>The Picture That Knew Too Much</h1>
+  <p class="hero-subtitle">A photo arrived from a stranger. Read its hidden notebook. Then look below the pixels and find what was woven inside.</p>
+  <div class="hero-meta">
+    <div class="meta-item">DIFFICULTY: <span>INTERMEDIATE</span></div>
+    <div class="meta-item">TIME: <span>~25 MIN</span></div>
+    <div class="meta-item">PARTS: <span>2</span></div>
+    <div class="meta-item">PREREQ: <span>F05 F06 F07 F08</span></div>
+  </div>
+</div>
+
+<div class="main-grid">
+
+  <!-- LEFT COLUMN -->
+  <div>
+
+    <!-- BRIEFING -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-tag">BRIEFING</div>
+        <div class="panel-title">Mission Briefing</div>
+      </div>
+      <div class="panel-body">
+        <p class="step-text">
+          A photograph was forwarded to the Agency by an anonymous source. It looks unremarkable — a simple landscape: sky, sun, ground. But every photo carries more than what your eye sees.
+        </p>
+        <p class="step-text">
+          <strong>Your task:</strong> recover both flag fragments hidden in the image and combine them.
+        </p>
+        <ul style="font-size:13px; color:var(--text); padding-left:18px; line-height:1.8;">
+          <li><strong>Part 1.</strong> Read the EXIF metadata block. The photo's notebook contains the first half of the flag.</li>
+          <li><strong>Part 2.</strong> Extract the LSB-encoded message from the second image. The lowest red-channel bit of every pixel carries a hidden ASCII string — the second half of the flag.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-row">
+      <div class="progress-dot active" id="dot1"></div>
+      <div class="progress-dot" id="dot2"></div>
+      <div class="progress-dot" id="dot3"></div>
+      <div class="progress-label" id="progress-text">Part 1 of 2 active — read the metadata</div>
+    </div>
+
+    <!-- PART 1 -->
+    <div class="panel" id="part1-panel">
+      <div class="panel-header">
+        <div class="panel-tag">PART 1</div>
+        <div class="panel-title">Read the EXIF Metadata</div>
+      </div>
+      <div class="panel-body">
+        <p class="step-text">
+          Below is the photograph that arrived. To you it is just a picture. To the file format, it is a picture <strong>plus</strong> a small notebook of fields describing how, when, and where it was taken. Click the button to read the notebook.
+        </p>
+
+        <div class="canvas-wrap">
+          <canvas id="photo-canvas" class="photo-canvas" width="240" height="160" aria-label="Anonymous photograph"></canvas>
+          <div class="canvas-caption">FILE: anonymous_tip.jpg &nbsp;|&nbsp; 240 × 160 &nbsp;|&nbsp; received 2024-08-15</div>
+        </div>
+
+        <button class="btn primary" id="read-meta-btn" type="button">Read Metadata (exiftool)</button>
+
+        <div class="exif-panel" id="exif-panel" aria-live="polite">
+          <div class="exif-header">EXIF DUMP // anonymous_tip.jpg</div>
+          <div id="exif-body"></div>
+          <p class="small-note" style="margin-top:12px;">
+            In a real CTF, this output would come from running <strong style="color:var(--amber);">exiftool anonymous_tip.jpg</strong> in your terminal. Here we render the metadata in JavaScript for teaching purposes.
+          </p>
+        </div>
+
+        <div class="status-msg" id="part1-msg"></div>
+      </div>
+    </div>
+
+    <!-- PART 2 -->
+    <div class="panel" id="part2-panel" style="opacity:0.4; pointer-events:none;">
+      <div class="panel-header">
+        <div class="panel-tag dim" id="part2-tag">PART 2</div>
+        <div class="panel-title">Extract the LSB Message</div>
+      </div>
+      <div class="panel-body">
+        <p class="step-text">
+          A second image was attached. It is small (32 × 16 pixels — shown zoomed below) and looks like a coloured gradient. Inside it, the lowest bit of every red channel carries a hidden ASCII message.
+        </p>
+        <p class="step-text">
+          <strong>The algorithm:</strong> read each pixel's R value, take only its last bit (<code>R &amp; 1</code>), collect bits in scan order, group into bytes (8 bits each, MSB first), decode as ASCII. Stop when you hit a zero byte.
+        </p>
+
+        <div class="canvas-wrap">
+          <canvas id="stego-canvas" class="stego-canvas" width="32" height="16" aria-label="Steganography image"></canvas>
+          <div class="canvas-caption">FILE: gradient.png &nbsp;|&nbsp; 32 × 16 &nbsp;|&nbsp; 512 pixels = 512 hidden bits = 64 bytes capacity</div>
+        </div>
+
+        <button class="btn primary" id="extract-btn" type="button">Extract Hidden Message</button>
+
+        <div class="extract-panel" id="extract-panel" aria-live="polite">
+          <div class="extract-header">LSB EXTRACTION // gradient.png</div>
+          <div class="extract-row">
+            <span class="label">Step 1: R-channel LSBs (bits in scan order, first 240)</span>
+            <div class="extract-bits" id="extract-bits"></div>
+          </div>
+          <div class="extract-row">
+            <span class="label">Step 2: Grouped into bytes (8 bits → hex)</span>
+            <div class="extract-bytes" id="extract-bytes"></div>
+          </div>
+          <div class="extract-row">
+            <span class="label">Step 3: Decoded as ASCII (until null byte)</span>
+            <div class="extract-text" id="extract-text"></div>
+          </div>
+        </div>
+
+        <div class="status-msg" id="part2-msg"></div>
+      </div>
+    </div>
+
+    <!-- PART 3: FLAG SUBMISSION -->
+    <div class="panel" id="part3-panel" style="opacity:0.4; pointer-events:none;">
+      <div class="panel-header">
+        <div class="panel-tag dim" id="part3-tag">PART 3</div>
+        <div class="panel-title">Combine the Fragments</div>
+      </div>
+      <div class="panel-body">
+        <p class="step-text">
+          You now have both halves. The full flag is fragment 1 followed immediately by fragment 2. Type the complete flag and submit.
+        </p>
+
+        <div class="fragment-row">
+          <div class="fragment-pill" id="frag1-pill">
+            <div class="label">Fragment 1 — From Metadata</div>
+            <div class="value" id="frag1-value">— not yet recovered —</div>
+          </div>
+          <div class="fragment-pill" id="frag2-pill">
+            <div class="label">Fragment 2 — From LSB</div>
+            <div class="value" id="frag2-value">— not yet recovered —</div>
+          </div>
+        </div>
+
+        <div style="margin-top:18px;">
+          <input type="text" class="submit-input" id="flag-input"
+                 placeholder="FLAG{...}" autocomplete="off" spellcheck="false" />
+          <button class="btn primary" id="submit-btn" type="button">Submit Flag</button>
+          <div class="status-msg" id="part3-msg"></div>
+        </div>
+
+        <!-- FLAG REVEAL -->
+        <div class="flag-reveal" id="flag-reveal">
+          <div class="flag-reveal-title">Mission Complete</div>
+          <div class="flag-line">&gt; INITIATING FRAGMENT FUSION...</div>
+          <div class="flag-line">&gt; FRAGMENT 1 (EXIF Comment field): <span style="color:var(--amber-glow);">FLAG{look_in_the_</span></div>
+          <div class="flag-line">&gt; FRAGMENT 2 (LSB R-channel extract): <span style="color:var(--amber-glow);">metadata_and_below_the_pixels}</span></div>
+          <div class="flag-line">&gt; CONCATENATING...</div>
+          <div class="flag-line">&gt; FLAG VALIDATED.</div>
+          <div class="flag-final" id="flag-final-text"></div>
+          <div class="flag-explain">
+            You read the photo's notebook AND looked below its visible pixels. This is the standard CTF forensics pattern: every image is two layers — metadata you can read and stego you have to extract. Welcome to forensics.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN (SIDEBAR) -->
+  <div>
+
+    <!-- HOW TO SOLVE -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-tag">GUIDE</div>
+        <div class="panel-title">How to Solve</div>
+      </div>
+      <div class="panel-body">
+        <div class="sidebar-note">
+          <strong>Part 1.</strong> Click <strong>Read Metadata</strong>. Look at every line of the EXIF dump. One field will contain a fragment of the flag in plain text. Read carefully — the Comment field is a classic hiding spot.
+        </div>
+        <div class="sidebar-note">
+          <strong>Part 2.</strong> Click <strong>Extract Hidden Message</strong>. The page reads each pixel's red value with <strong>getImageData</strong>, masks off the lowest bit, groups every 8 bits into a byte, and decodes ASCII. The output appears in green.
+        </div>
+        <div class="sidebar-note">
+          <strong>Part 3.</strong> Concatenate fragment 1 and fragment 2 (no extra spaces) and submit.
+        </div>
+      </div>
+    </div>
+
+    <!-- LSB QUICK REFERENCE -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-tag">REF</div>
+        <div class="panel-title">LSB Quick Reference</div>
+      </div>
+      <div class="panel-body">
+        <table class="ref-table">
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="term">LSB</td><td>Least Significant Bit (the lowest bit, value 1)</td></tr>
+            <tr><td class="term">R, G, B</td><td>Red, Green, Blue — each 0–255</td></tr>
+            <tr><td class="term">v &amp; 1</td><td>Mask off everything but the lowest bit</td></tr>
+            <tr><td class="term">8 bits</td><td>Group size for one ASCII character</td></tr>
+            <tr><td class="term">0x00</td><td>Null byte — common end-of-string marker</td></tr>
+          </tbody>
+        </table>
+        <p class="small-note">
+          A 32 × 16 image has 512 pixels. With one bit per pixel (R-channel only), that's 64 hidden bytes — enough for a short message.
+        </p>
+      </div>
+    </div>
+
+    <!-- HINTS -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-tag dim">HELP</div>
+        <div class="panel-title">Hints</div>
+      </div>
+      <div class="panel-body">
+        <div class="hint-links">
+          <a href="hint-1.md">Hint 1 — How to approach each part</a>
+          <a href="hint-2.md">Hint 2 — More specific guidance</a>
+          <a href="solution.md">Solution (spoilers)</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  <a href="../lesson.md">Lesson</a> &nbsp;|&nbsp;
+  <a href="../concept-cards.md">Concept Cards</a> &nbsp;|&nbsp;
+  <a href="../README.md">Module README</a> &nbsp;|&nbsp;
+  <a href="https://exiftool.org/" target="_blank" rel="noopener noreferrer">ExifTool</a>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ───────────────────────────────────────────────────────
+     CONSTANTS
+     ─────────────────────────────────────────────────────── */
+  var FRAGMENT_1 = "FLAG{look_in_the_";
+  var FRAGMENT_2 = "metadata_and_below_the_pixels}";
+  var FULL_FLAG  = FRAGMENT_1 + FRAGMENT_2;
+
+  /* The hidden LSB message (Part 2). */
+  var HIDDEN_MESSAGE = FRAGMENT_2; // "metadata_and_below_the_pixels}"
+
+  /* The simulated EXIF block (Part 1). */
+  var EXIF_FIELDS = [
+    { key: "File Name",      val: "anonymous_tip.jpg" },
+    { key: "File Size",      val: "248 KB" },
+    { key: "MIME Type",      val: "image/jpeg" },
+    { key: "Camera Make",    val: "Apple" },
+    { key: "Camera Model",   val: "iPhone 13 Pro" },
+    { key: "Lens",           val: "26 mm f/1.5" },
+    { key: "ISO",            val: "100" },
+    { key: "Shutter Speed",  val: "1/250 s" },
+    { key: "Aperture",       val: "f/1.5" },
+    { key: "GPS Latitude",   val: "37.7749 N" },
+    { key: "GPS Longitude",  val: "122.4194 W" },
+    { key: "Date Taken",     val: "2024-08-15 14:23:11" },
+    { key: "Software",       val: "iOS 17.4" },
+    { key: "Orientation",    val: "Horizontal (normal)" },
+    { key: "Color Space",    val: "sRGB" },
+    { key: "Comment",        val: "fragment 1 = \"" + FRAGMENT_1 + "\"  (look closer)", highlight: true }
+  ];
+
+  /* ───────────────────────────────────────────────────────
+     PART 1 — DRAW THE PHOTO (a simple sky/sun/ground scene)
+     ─────────────────────────────────────────────────────── */
+  function drawPhoto() {
+    var canvas = document.getElementById("photo-canvas");
+    var ctx = canvas.getContext("2d");
+    var W = canvas.width, H = canvas.height;
+
+    // Sky gradient
+    var sky = ctx.createLinearGradient(0, 0, 0, H * 0.7);
+    sky.addColorStop(0,    "#5fa8d8");
+    sky.addColorStop(0.7,  "#a8d4ec");
+    sky.addColorStop(1,    "#dde9f0");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, H * 0.7);
+
+    // Ground
+    var ground = ctx.createLinearGradient(0, H * 0.7, 0, H);
+    ground.addColorStop(0, "#5a8838");
+    ground.addColorStop(1, "#3a6020");
+    ctx.fillStyle = ground;
+    ctx.fillRect(0, H * 0.7, W, H * 0.3);
+
+    // Distant hills
+    ctx.fillStyle = "#7ca858";
+    ctx.beginPath();
+    ctx.moveTo(0, H * 0.72);
+    ctx.quadraticCurveTo(W * 0.25, H * 0.62, W * 0.5, H * 0.7);
+    ctx.quadraticCurveTo(W * 0.75, H * 0.78, W, H * 0.7);
+    ctx.lineTo(W, H * 0.7);
+    ctx.lineTo(0, H * 0.7);
+    ctx.closePath();
+    ctx.fill();
+
+    // Sun
+    var sunX = W * 0.78, sunY = H * 0.28, sunR = 18;
+    var sunGlow = ctx.createRadialGradient(sunX, sunY, 4, sunX, sunY, sunR * 2.2);
+    sunGlow.addColorStop(0,   "rgba(255,240,180,0.95)");
+    sunGlow.addColorStop(0.4, "rgba(255,220,130,0.55)");
+    sunGlow.addColorStop(1,   "rgba(255,220,130,0)");
+    ctx.fillStyle = sunGlow;
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, sunR * 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fff4c8";
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // A couple of clouds
+    function cloud(cx, cy, scale) {
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
+      ctx.beginPath();
+      ctx.arc(cx,            cy, 9 * scale,  0, Math.PI * 2);
+      ctx.arc(cx + 10*scale, cy - 2*scale, 11 * scale, 0, Math.PI * 2);
+      ctx.arc(cx + 22*scale, cy, 9 * scale,  0, Math.PI * 2);
+      ctx.fill();
+    }
+    cloud(35,  40, 1.1);
+    cloud(140, 28, 0.9);
+
+    // Tiny tree (silhouette)
+    ctx.fillStyle = "#2a4818";
+    ctx.fillRect(W * 0.18 - 2, H * 0.7 - 14, 4, 14);
+    ctx.beginPath();
+    ctx.arc(W * 0.18, H * 0.7 - 18, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Subtle path
+    ctx.strokeStyle = "rgba(60,40,20,0.4)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.4, H);
+    ctx.quadraticCurveTo(W * 0.55, H * 0.85, W * 0.7, H * 0.74);
+    ctx.stroke();
+  }
+
+  /* ───────────────────────────────────────────────────────
+     PART 2 — DRAW THE STEGO IMAGE WITH LSB-ENCODED MESSAGE
+     ─────────────────────────────────────────────────────── */
+
+  /* Convert string to bit array (MSB first within each byte). */
+  function stringToBits(s) {
+    var bits = [];
+    for (var i = 0; i < s.length; i++) {
+      var c = s.charCodeAt(i) & 0xFF;
+      for (var b = 7; b >= 0; b--) {
+        bits.push((c >> b) & 1);
+      }
+    }
+    return bits;
+  }
+
+  function drawStego() {
+    var canvas = document.getElementById("stego-canvas");
+    var ctx = canvas.getContext("2d");
+    var W = canvas.width, H = canvas.height;
+    var imgData = ctx.createImageData(W, H);
+    var data = imgData.data;
+
+    // Build the bit payload: HIDDEN_MESSAGE bytes + 1 null terminator + zero-pad to 512 bits.
+    var payloadBits = stringToBits(HIDDEN_MESSAGE);
+    while (payloadBits.length < W * H) payloadBits.push(0);
+
+    // For each pixel: pick a "natural-looking" colour gradient,
+    // then set the R-channel's lowest bit to the next message bit.
+    var i = 0;
+    for (var y = 0; y < H; y++) {
+      for (var x = 0; x < W; x++) {
+        // A diagonal warm-to-cool gradient with a touch of variation.
+        var t = (x / (W - 1) + y / (H - 1)) * 0.5;
+        var r = Math.round(60 + t * 170);                // 60..230
+        var g = Math.round(40 + (1 - t) * 120 + (x * 3 % 17)); // 40..~177
+        var b = Math.round(80 + (1 - t) * 140);          // 80..220
+
+        // Clamp
+        if (r > 254) r = 254;
+        if (g > 255) g = 255;
+        if (b > 255) b = 255;
+        if (r < 1)   r = 1;
+        if (g < 0)   g = 0;
+        if (b < 0)   b = 0;
+
+        // Embed: clear lowest bit of R, OR in the next payload bit.
+        var bit = payloadBits[i] | 0;
+        r = (r & 0xFE) | bit;
+
+        var p = i * 4;
+        data[p]     = r;
+        data[p + 1] = g;
+        data[p + 2] = b;
+        data[p + 3] = 255;
+        i++;
+      }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+  }
+
+  /* Read the canvas back, extract R-channel LSBs, decode ASCII. */
+  function extractStego() {
+    var canvas = document.getElementById("stego-canvas");
+    var ctx = canvas.getContext("2d");
+    var W = canvas.width, H = canvas.height;
+    var data = ctx.getImageData(0, 0, W, H).data;
+
+    var bits = [];
+    for (var i = 0; i < data.length; i += 4) {
+      bits.push(data[i] & 1);
+    }
+
+    // Group into bytes (MSB first), stop on 0x00.
+    var bytes = [];
+    var chars = [];
+    var done = false;
+    for (var b = 0; b + 8 <= bits.length; b += 8) {
+      var v = 0;
+      for (var k = 0; k < 8; k++) {
+        v = (v << 1) | bits[b + k];
+      }
+      bytes.push(v);
+      if (v === 0) { done = true; break; }
+      if (v >= 32 && v <= 126) {
+        chars.push(String.fromCharCode(v));
+      } else {
+        chars.push("?");
+      }
+    }
+
+    return {
+      bits:  bits,
+      bytes: bytes,
+      text:  chars.join(""),
+      done:  done
+    };
+  }
+
+  /* ───────────────────────────────────────────────────────
+     UI — RENDER EXIF
+     ─────────────────────────────────────────────────────── */
+  function renderExif() {
+    var body = document.getElementById("exif-body");
+    body.textContent = ""; // clear
+
+    EXIF_FIELDS.forEach(function (f) {
+      var row = document.createElement("div");
+      row.className = "exif-line" + (f.highlight ? " highlight" : "");
+
+      var k = document.createElement("span");
+      k.className = "exif-key";
+      k.textContent = f.key;
+
+      var v = document.createElement("span");
+      v.className = "exif-val";
+      v.textContent = f.val;
+
+      row.appendChild(k);
+      row.appendChild(v);
+      body.appendChild(row);
+    });
+  }
+
+  /* ───────────────────────────────────────────────────────
+     UI — STATUS / PROGRESS
+     ─────────────────────────────────────────────────────── */
+  function setMsg(id, text, type) {
+    var el = document.getElementById(id);
+    el.textContent = text;
+    el.className = "status-msg " + type + " show";
+  }
+
+  function unlockPart2() {
+    var p = document.getElementById("part2-panel");
+    p.style.opacity = "1";
+    p.style.pointerEvents = "auto";
+    document.getElementById("part2-tag").classList.remove("dim");
+    document.getElementById("dot1").classList.remove("active");
+    document.getElementById("dot1").classList.add("done");
+    document.getElementById("dot2").classList.add("active");
+    document.getElementById("progress-text").textContent = "Part 2 of 2 active — extract the LSB message";
+    p.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function unlockPart3() {
+    var p = document.getElementById("part3-panel");
+    p.style.opacity = "1";
+    p.style.pointerEvents = "auto";
+    document.getElementById("part3-tag").classList.remove("dim");
+    document.getElementById("dot2").classList.remove("active");
+    document.getElementById("dot2").classList.add("done");
+    document.getElementById("dot3").classList.add("active");
+    document.getElementById("progress-text").textContent = "Both fragments recovered — submit the full flag";
+    p.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  /* ───────────────────────────────────────────────────────
+     EVENT WIRING
+     ─────────────────────────────────────────────────────── */
+  var part1Done = false;
+  var part2Done = false;
+
+  function onReadMetadata() {
+    renderExif();
+    document.getElementById("exif-panel").classList.add("show");
+
+    if (!part1Done) {
+      part1Done = true;
+      setMsg(
+        "part1-msg",
+        "EXIF dump retrieved. Read every field — one of them contains fragment 1 of the flag.",
+        "info"
+      );
+
+      // Mark fragment 1 as found.
+      var pill = document.getElementById("frag1-pill");
+      pill.classList.add("found");
+      document.getElementById("frag1-value").textContent = FRAGMENT_1;
+
+      unlockPart2();
+    }
+  }
+
+  function onExtract() {
+    var result = extractStego();
+
+    // Show first 240 bits in the bit display.
+    var bitsToShow = result.bits.slice(0, 240);
+    var grouped = [];
+    for (var i = 0; i < bitsToShow.length; i += 8) {
+      grouped.push(bitsToShow.slice(i, i + 8).join(""));
+    }
+    document.getElementById("extract-bits").textContent = grouped.join(" ");
+
+    // Show byte values in hex.
+    var byteHex = result.bytes.slice(0, 32).map(function (b) {
+      return b.toString(16).toUpperCase().padStart(2, "0");
+    }).join(" ");
+    document.getElementById("extract-bytes").textContent = byteHex + (result.bytes.length > 32 ? " ..." : "");
+
+    // Show decoded text.
+    document.getElementById("extract-text").textContent = result.text;
+
+    document.getElementById("extract-panel").classList.add("show");
+
+    if (!part2Done) {
+      part2Done = true;
+      setMsg(
+        "part2-msg",
+        "LSB extraction complete. " + result.text.length + " characters recovered before null byte. This is fragment 2.",
+        "info"
+      );
+
+      // Mark fragment 2 as found.
+      var pill = document.getElementById("frag2-pill");
+      pill.classList.add("found");
+      document.getElementById("frag2-value").textContent = result.text;
+
+      unlockPart3();
+    }
+  }
+
+  function onSubmit() {
+    var input = document.getElementById("flag-input");
+    var raw = input.value.trim();
+
+    input.classList.remove("correct", "wrong");
+
+    if (raw === "") {
+      setMsg("part3-msg", "Enter the full flag — fragment 1 immediately followed by fragment 2.", "error");
+      input.classList.add("wrong");
+      return;
+    }
+
+    if (raw === FULL_FLAG) {
+      input.classList.add("correct");
+      setMsg("part3-msg", "Flag verified. Mission complete.", "success");
+
+      var rev = document.getElementById("flag-reveal");
+      document.getElementById("flag-final-text").textContent = FULL_FLAG;
+      rev.classList.add("show");
+      rev.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      document.getElementById("dot3").classList.remove("active");
+      document.getElementById("dot3").classList.add("done");
+      document.getElementById("progress-text").textContent = "All three parts complete";
+    } else if (raw.toLowerCase() === FULL_FLAG.toLowerCase()) {
+      input.classList.add("wrong");
+      setMsg("part3-msg", "Case matters — flags are case-sensitive. Check the underscores and braces too.", "error");
+    } else if (raw.indexOf("FLAG{") !== 0) {
+      input.classList.add("wrong");
+      setMsg("part3-msg", "Flags start with FLAG{ and end with }. Make sure you included both fragments without extra spaces.", "error");
+    } else {
+      input.classList.add("wrong");
+      setMsg("part3-msg", "Not quite. Concatenate fragment 1 and fragment 2 exactly as shown above (no spaces, no commas).", "error");
+    }
+  }
+
+  /* ───────────────────────────────────────────────────────
+     INIT
+     ─────────────────────────────────────────────────────── */
+  document.addEventListener("DOMContentLoaded", function () {
+    drawPhoto();
+    drawStego();
+
+    document.getElementById("read-meta-btn").addEventListener("click", onReadMetadata);
+    document.getElementById("extract-btn").addEventListener("click", onExtract);
+    document.getElementById("submit-btn").addEventListener("click", onSubmit);
+
+    document.getElementById("flag-input").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") onSubmit();
+    });
+  });
+
+}());
+</script>
+
+</body>
+</html>
