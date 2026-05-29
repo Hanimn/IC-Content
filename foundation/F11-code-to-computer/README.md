@@ -43,8 +43,9 @@ F11-code-to-computer/
 
 ## Quick Start
 
-Open [`lesson.md`](lesson.md) and read through, then open [`challenge/index.html`](challenge/index.html) in your browser.
+1. Read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) if you haven't yet.
+2. Open [`lesson.md`](lesson.md) and read through, then open [`challenge/index.html`](challenge/index.html) in your browser.
 
 ---
 
-[← F10: XOR Key](../F10-xor-key/README.md) | [Foundation Track →](../README.md) | [Next: F12 →](../F12-the-computers-notebook/README.md)
+[← F10: XOR Key](../F10-xor-key/README.md) | [Foundation Track →](../README.md) | [Next: F12 →](../F12-computer-notebook/README.md)

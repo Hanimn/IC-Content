@@ -2,6 +2,8 @@
 
 > Your computer doesn't trust the filename. It reads the first few bytes instead.
 
+> **Before you start:** read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) if you haven't yet. The skills in this lesson (file inspection, magic-byte detection) work the same way whether the file is yours or somebody else's. Use them on your own files.
+
 ## Module Info
 
 | Field | Value |

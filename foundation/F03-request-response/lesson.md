@@ -38,7 +38,7 @@ This is the request line. It has three parts separated by spaces:
 
 - `GET` — the **method**. GET means "please give me this resource." It's the most common method — used whenever you load a page, an image, a stylesheet, anything.
 - `/index.html` — the **path**. This is the specific file or resource being requested on the server. Not the full URL — just the part after the domain.
-- `HTTP/1.1` — the **protocol version**. This tells the server which version of HTTP you're speaking. HTTP/1.1 is still the most widely used, though HTTP/2 and HTTP/3 exist.
+- `HTTP/1.1` — the **protocol version**. This tells the server which version of HTTP you're speaking. HTTP/1.1 is the version we'll keep using throughout this curriculum because it's plain text and easy to read by eye. In real browser traffic in 2026 most page loads are HTTP/2 or HTTP/3 — newer versions that compress headers and pack many requests into a single connection — but the *concepts* (methods, paths, headers, status codes) are identical across versions. Learn HTTP/1.1 and HTTP/2 reads the same way once a tool decodes it for you.
 
 **Line 2: `Host: www.example.com`**
 
@@ -54,7 +54,7 @@ This header tells the server what content formats the browser is able to handle.
 
 **Line 5: `Connection: keep-alive`**
 
-This tells the server to stay connected after sending the response, because the browser might ask for more resources (images, stylesheets, scripts). Without this, the connection would close after each request.
+In HTTP/1.1 the connection between your browser and the server stays open by default after each request — that's "keep-alive." It's there so that when your browser needs more resources from the same site (images, stylesheets, scripts, an extra page), it can re-use the connection instead of paying the cost of a new TCP+TLS handshake every time. The header is technically redundant in HTTP/1.1 (it's already the default), but a lot of clients still send it explicitly to be clear. To explicitly *close* the connection, you'd send `Connection: close`. In HTTP/2 and HTTP/3 this control is taken out of the headers entirely — the protocol multiplexes many requests over one long-lived connection by design.
 
 ---
 

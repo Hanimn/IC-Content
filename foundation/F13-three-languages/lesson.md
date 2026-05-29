@@ -10,7 +10,7 @@ Once you can tell those three languages apart, the entire web stops feeling magi
 
 ---
 
-## The Big Idea
+## Bones, Paint, Brain
 
 Every webpage is three layers cooperating:
 
@@ -89,9 +89,32 @@ Anything between `<!--` and `-->` is invisible on screen. But here's the key thi
 
 > **HTML comments are NOT in the rendered page. They ARE in the source.**
 
-That means if you press **Ctrl+U** (View Source), you can read every comment the developer left in their HTML — even though none of them appear on the page itself. Developers leave all sorts of things in comments: notes to themselves, TODO reminders, old code they meant to delete. Sometimes things they really shouldn't have left behind.
+That means if you press **Ctrl+U** (or `Cmd + Option + U` on Chrome/Safari Mac, `Cmd + U` on Firefox Mac) you can read every comment the developer left in their HTML — even though none of them appear on the page itself. Developers leave all sorts of things in comments: notes to themselves, TODO reminders, old code they meant to delete. Sometimes things they really shouldn't have left behind. (For brevity the rest of this lesson just says "Ctrl+U" — substitute the Mac shortcut if that's what you have.)
 
 Module 01 of the main series is built entirely around this idea. F13 is preparing you for it.
+
+> **Try It — HTML sandbox.** Suppose this is the source of a page you opened with Ctrl+U:
+>
+> ```html
+> <!DOCTYPE html>
+> <html>
+> <head><title>Welcome</title></head>
+> <body>
+>   <h1>Welcome to the demo</h1>
+>   <!-- TODO: remove before launch -->
+>   <!-- admin password reset URL: /admin?token=ABC123 -->
+>   <p>Please log in to continue.</p>
+> </body>
+> </html>
+> ```
+>
+> What do you see on the rendered page?
+> What can you find in the source that the rendered page doesn't show?
+>
+> ---
+>
+> Rendered: `Welcome to the demo` (h1) and `Please log in to continue.` (p). Two lines of text, nothing else.
+> Source: those plus two HTML comments. The first is a harmless TODO. The second is the kind of comment that ends careers.
 
 ---
 
@@ -196,6 +219,34 @@ That rule says: before every element with class `warning`, insert the text "WARN
 
 This means **CSS can contain text that View Source on the HTML alone wouldn't reveal**. You have to also read the `<style>` block. The challenge in this module uses this trick.
 
+> **Try It — CSS sandbox.** Source of another page:
+>
+> ```html
+> <!DOCTYPE html>
+> <html>
+> <head>
+> <style>
+>   .label::before { content: "VIP-"; }
+>   .secret { display: none; }
+>   .ghost::before { content: "FLAG{the_paint_speaks}"; opacity: 0.01; }
+> </style>
+> </head>
+> <body>
+>   <div class="label">Visitor</div>
+>   <div class="secret">backup admin code: 4982</div>
+>   <span class="ghost"></span>
+> </body>
+> </html>
+> ```
+>
+> What does the kid SEE on the rendered page? What's actually IN the source?
+>
+> ---
+>
+> Rendered: `VIP-Visitor` (the `::before` adds the prefix). Nothing else — `.secret` is hidden by `display: none`, and `.ghost`'s content is so transparent (opacity 0.01) it's invisible.
+> Source: the visible text PLUS the `backup admin code: 4982` (it's in the HTML, just hidden), PLUS the `FLAG{the_paint_speaks}` literal in the CSS itself. **None of those would show up if you only looked at the rendered page or only Ctrl+F'd it.**
+> The whole point of this lesson: each layer can hide something the others can't reveal.
+
 ---
 
 ## Layer 3 — JavaScript: The Brain
@@ -264,6 +315,33 @@ let x = 5;  // can also go at the end of a line
 
 Same `/* */` syntax as CSS, plus the `//` shortcut for single lines.
 
+> **Try It — JS sandbox.** One more source listing:
+>
+> ```html
+> <!DOCTYPE html>
+> <html>
+> <body>
+>   <h1>Coming soon</h1>
+>   <script>
+>     // dev note: don't ship this
+>     const ADMIN_TOKEN = "T0K3N_dev_only_4982";
+>     /* The launch flag for QA:
+>        FLAG{js_holds_secrets_too} */
+>     console.log("Page loaded.");
+>   </script>
+> </body>
+> </html>
+> ```
+>
+> What does the kid see on the rendered page? What does Ctrl+U show?
+>
+> ---
+>
+> Rendered: just `Coming soon`. The `<script>` block doesn't render anything visible — `console.log` writes to the dev console (which the kid would only see in DevTools), and the rest is comments and a const that nothing displays.
+> Source: everything above. Both the admin token and the FLAG are sitting plainly in the script, readable to anyone who hits Ctrl+U.
+>
+> Three sandboxes. Three layers. Three places a flag could hide. The challenge below uses *all three* — one fragment per layer.
+
 ---
 
 ## The DOM — Why Source and Page Can Disagree
@@ -278,9 +356,7 @@ This means:
 
 View Source shows the *original* HTML the server sent. The DOM shows the *current* state, including everything JavaScript has changed since the page loaded. They're often the same. But on dynamic sites, they can be very different.
 
-Right now, you only know how to read View Source (Ctrl+U). That's enough for this module. But Module 02 of the main series — **The X-Ray Machine / Inspector** — teaches you a tool called **DevTools** that shows you the live DOM. With DevTools you can see what JavaScript has done after the page loaded.
-
-For F13, View Source alone is enough. Don't open DevTools yet — that's the next module's skill, and you'll appreciate it more once you understand the DOM concept.
+In this lesson you'll be using **View Source (Ctrl+U)** because it shows you what the server actually sent — and that's where every fragment of this challenge lives. **DevTools** (`F12` on Win/Linux/Chromebook, `Cmd + Option + I` on Mac) is a separate, more powerful tool that lets you inspect the *live* DOM and watch JavaScript reshape the page in real time. We'll go deep on DevTools in the main web series — Module 02 is built around it. If you already know F12, that's great; you'll use it constantly. For *this* challenge, View Source alone is enough, because all three fragments are baked into the source the server sends. Save the DevTools muscle for when the page is doing something at runtime that View Source can't see.
 
 ---
 
@@ -339,7 +415,7 @@ To assemble the full flag, you'll need to:
 
 The fragments will fit together to form a flag of the shape `FLAG{...}`.
 
-**Important:** Use only **View Source** (Ctrl+U). Don't open DevTools (F12 / Ctrl+Shift+I) yet — that's Module 02's skill. Everything you need for this challenge is findable in View Source alone.
+**Tools:** **View Source** (Ctrl+U) is the right tool here — every fragment is in the source the server sends, so the live-DOM view DevTools provides isn't needed. If you happen to already know DevTools and open it instead, that's fine — you'll see the same fragments. The lesson uses View Source because it's the simplest path to the answer for a kid who's brand new to web inspection.
 
 ---
 

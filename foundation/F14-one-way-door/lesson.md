@@ -14,7 +14,7 @@ That's hashing.
 
 ---
 
-## The story so far
+## Doors With Keys, and One Without
 
 Every cipher you've met until now has been a door with a key. Caesar shifted letters by some number — apply the same shift the other way and the message comes back. XOR mixed plaintext with a key — XOR again with the same key and the plaintext returns. **Encryption is reversible.** That's the whole point of it. You scramble a message, send it, and the person on the other end unscrambles it.
 

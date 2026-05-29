@@ -48,10 +48,11 @@ F12-computer-notebook/
 
 ## Quick Start
 
-1. Read [`lesson.md`](lesson.md) end to end. The walkthrough at the bottom previews the challenge.
-2. Open [`challenge/index.html`](challenge/index.html) in your browser.
-3. Three panels, in order: the memory grid, the stack visualizer, the overflow demo. Each unlocks the next.
-4. Submit the full flag at the bottom.
+1. Read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) if you haven't yet.
+2. Read [`lesson.md`](lesson.md) end to end. The walkthrough at the bottom previews the challenge.
+3. Open [`challenge/index.html`](challenge/index.html) in your browser.
+4. Three panels, in order: the memory grid, the stack visualizer, the overflow demo. Each unlocks the next.
+5. Submit the full flag at the bottom.
 
 ---
 

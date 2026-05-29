@@ -126,7 +126,7 @@ In the challenge for this module, you'll need to use this exact technique to fin
 
 ## Guided Walkthrough — Watching Codes in the Wild
 
-Try these in your browser with DevTools open (F12 → Network tab):
+Try these in your browser with DevTools open (`F12` on Windows/Linux/Chromebook · `Cmd + Option + I` on Mac, then click the **Network** tab):
 
 **Step 1:** Navigate to `https://httpbin.org/status/404`  
 Open the Network tab before you load the page. You'll see the request and a **404** response. The page might show an error or be blank — but the code tells the story.

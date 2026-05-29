@@ -135,6 +135,24 @@ Some bytes worth memorizing:
 | 0x7B | 123 | `{` |
 | 0x7D | 125 | `}` |
 
+> **Try It — 20 seconds.** Decode these three hex bytes to ASCII using the table above:
+>
+> ```
+> 48 49 21
+> ```
+>
+> One byte at a time. Range-check each: which row does it fall into?
+>
+> ---
+>
+> 0x48 is in the `0x41–0x5A` row → it's a capital letter. 0x48 is 7 past 0x41 (= A), so it's the 8th letter: **H**.
+> 0x49 is one past 0x48 → **I**.
+> 0x21 isn't in any row above. It's just past 0x20 (space) — the very first printable character after space. That's `!`.
+>
+> Answer: **`HI!`**
+>
+> You just did what a hex editor does. Every CTF forensics challenge uses this skill.
+
 For CTF work specifically, there's one sequence worth recognizing on sight:
 
 ```

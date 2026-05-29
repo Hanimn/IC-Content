@@ -41,11 +41,12 @@ F05-number-systems/
 
 ## Quick Start
 
-1. Read `lesson.md` from top to bottom (~30 min)
-2. Keep `concept-cards.md` open as a reference
-3. Open `challenge/index.html` in your web browser
-4. Work through all three panels to decode the flag
-5. Check `challenge/hint-1.md` if you get stuck
+1. Read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) if you haven't yet.
+2. Read `lesson.md` from top to bottom (~30 min)
+3. Keep `concept-cards.md` open as a reference
+4. Open `challenge/index.html` in your web browser
+5. Work through all three panels to decode the flag
+6. Check `challenge/hint-1.md` if you get stuck
 
 ---
 

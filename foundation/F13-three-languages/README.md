@@ -45,9 +45,10 @@ F13-three-languages/
 
 ## Quick Start
 
-1. Open [`lesson.md`](lesson.md) and read through the bones / paint / brain analogy.
-2. Open [`challenge/index.html`](challenge/index.html) in your browser.
-3. Capture the flag by reading all three layers of the page.
+1. Read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) if you haven't yet.
+2. Open [`lesson.md`](lesson.md) and read through the bones / paint / brain analogy.
+3. Open [`challenge/index.html`](challenge/index.html) in your browser.
+4. Capture the flag by reading all three layers of the page.
 
 ---
 

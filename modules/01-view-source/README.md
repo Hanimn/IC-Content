@@ -1,6 +1,8 @@
 # Module 01: The Page Behind the Page
 ## Every website is hiding more than it shows.
 
+> **Before you start:** read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) if you haven't yet.
+
 | | |
 |---|---|
 | **Difficulty** | Beginner |

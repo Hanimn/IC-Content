@@ -41,10 +41,11 @@ F06-thinking-in-hex/
 
 ## Quick Start
 
-1. Read [lesson.md](lesson.md) from top to bottom (~25 min)
-2. Review [concept-cards.md](concept-cards.md) to anchor the key terms
-3. Open [challenge/index.html](challenge/index.html) in your web browser
-4. Find the flag hidden in the hex dump
+1. Read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) if you haven't yet.
+2. Read [lesson.md](lesson.md) from top to bottom (~25 min)
+3. Review [concept-cards.md](concept-cards.md) to anchor the key terms
+4. Open [challenge/index.html](challenge/index.html) in your web browser
+5. Find the flag hidden in the hex dump
 
 ---
 

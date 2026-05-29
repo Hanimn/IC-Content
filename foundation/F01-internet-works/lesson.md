@@ -6,7 +6,7 @@ tier: "Fundamentals"
 ---
 ---
 
-## The Story
+## The Librarian and the Catalogue
 
 Picture yourself in a library. Not a small one — an enormous one, with floor-to-ceiling shelves stretching in every direction, millions of books filed in an order only the building itself understands.
 

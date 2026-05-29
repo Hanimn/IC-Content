@@ -2,6 +2,8 @@
 
 > **200 means yes. 404 means lost. 403 means no. The server is always talking — learn to listen.**
 
+> **Before you start:** read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) if you haven't yet.
+
 ---
 
 ## Module Metadata

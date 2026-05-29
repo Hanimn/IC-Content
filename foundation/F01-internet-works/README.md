@@ -41,7 +41,8 @@ F01-internet-works/
 
 ## Quick Start
 
-Open `lesson.md` and read through, then open `challenge/index.html` in your browser.
+1. Read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) if you haven't yet.
+2. Open `lesson.md` and read through, then open `challenge/index.html` in your browser.
 
 ---
 

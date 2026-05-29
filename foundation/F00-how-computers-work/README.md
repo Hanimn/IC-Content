@@ -44,7 +44,8 @@ F00-how-computers-work/
 
 ## Quick Start
 
-Open `lesson.md` and read through, then open `challenge/index.html` in your browser.
+1. Read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) — short, signable, and the rule the whole curriculum is built on.
+2. Open `lesson.md` and read through, then open `challenge/index.html` in your browser.
 
 You don't need to install anything. You don't need to know any code. If you've ever clicked an icon on a screen, you have enough background to start.
 

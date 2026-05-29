@@ -60,10 +60,11 @@ Leave the terminal open while you work. To stop the server, press `Ctrl+C`.
 
 ## Quick Start
 
-1. Start the local server (see above)
-2. Open `lesson.md` and read it top to bottom
-3. Visit `http://localhost:8080` in your browser
-4. Find the flag — it looks like `FLAG{...}`
+1. Read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) if you haven't yet.
+2. Start the local server (see above)
+3. Open `lesson.md` and read it top to bottom
+4. Visit `http://localhost:8080` in your browser
+5. Find the flag — it looks like `FLAG{...}`
 
 ---
 

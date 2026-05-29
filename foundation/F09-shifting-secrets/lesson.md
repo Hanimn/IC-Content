@@ -4,14 +4,7 @@ tagline: "Julius Caesar encrypted his battle plans with a shift. Modern computer
 time: "~25 min reading + ~30 min challenge"
 tier: "Code & Logic"
 ---
-## Julius Caesar encrypted his battle plans with a shift. Modern computers crack it in milliseconds. Let's learn why.
-
-**Time:** ~25 min reading + ~30 min challenge
-**Tools needed:** Web browser (Chrome or Firefox)
-
----
-
-## The Story
+## Caesar's Wheel
 
 The year is 58 BCE. Julius Caesar needs to send orders to his generals across Gaul — but the roads are controlled by hostile tribes, and a captured courier means captured intelligence. He can't trust the messenger with the plain message. So Caesar does something clever: he *shifts* every letter in his orders three places forward in the alphabet. A becomes D. B becomes E. Z wraps around and becomes C. The garbled result is handed to the courier. Even if the enemy captures the message, they see gibberish.
 
@@ -46,6 +39,34 @@ Let's walk through a concrete example. Encrypt the word **HELLO** with a shift o
 Each letter slides forward by 3. When a letter is near the end of the alphabet, it wraps around: X (position 23) with shift 3 becomes A (position 0). The alphabet is circular.
 
 To *decode* a Caesar cipher, you shift back by the same number. Shift KHOOR backward by 3 and you recover HELLO.
+
+> **The Cipher Wheel — paper version.** A Caesar cipher is two alphabets, one rotated against the other:
+>
+> ```
+> Outer (plaintext):   A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+> Inner (cipher, +3):  D E F G H I J K L M N O P Q R S T U V W X Y Z A B C
+> ```
+>
+> To **encrypt** with shift 3: find the plaintext letter on the OUTER row, read the letter directly below it on the INNER row.
+> To **decrypt**: find the ciphertext letter on the INNER row, read the letter directly above it on the OUTER row.
+>
+> That's the entire algorithm. The "wheel" people picture is just these two strips wrapped around a disk so you can spin one without re-typing.
+>
+> **Try It — 30 seconds.** Encrypt the word **CAT** with a shift of **5**.
+>
+> Walk it through: C is position 2 → 2 + 5 = 7 → ?
+>
+> ---
+>
+> C (2) + 5 = 7 → **H**.
+> A (0) + 5 = 5 → **F**.
+> T (19) + 5 = 24 → **Y**.
+>
+> Answer: **`HFY`**.
+>
+> Now decrypt your own answer to check: H − 5 = C ✓, F − 5 = A ✓, Y − 5 = T ✓.
+>
+> If that landed: you've done the Caesar cipher by hand. The challenge at the end of this lesson uses a polished interactive cipher wheel — but the mental algorithm is exactly what you just did.
 
 ### The Key
 

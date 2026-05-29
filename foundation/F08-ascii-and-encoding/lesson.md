@@ -94,6 +94,17 @@ This pattern holds for every letter pair:
 
 This isn't a coincidence. In some encoding and cipher challenges, you can flip between uppercase and lowercase by XORing a character's ASCII value with `0x20` (32). You'll see this pattern again in the XOR module.
 
+> **Try It — 20 seconds.** Two hex bytes: `72 73`. What's the ASCII?
+>
+> Hint: both are above 0x61 (= `a`) and below 0x7A (= `z`), so they're lowercase letters. Count from `a`.
+>
+> ---
+>
+> 0x72 = 0x61 + 0x11. 0x11 is decimal 17. So this is the 18th letter (counting a as 1): a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,**r**.
+> 0x73 is one past 0x72: **s**.
+>
+> Answer: **`rs`**. Two letters, no glamour, but you just decoded a real ASCII byte sequence in your head — the same skill F06 trained, applied to a different range of the table.
+
 ---
 
 ## What Is Encoding?

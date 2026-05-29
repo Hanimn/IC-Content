@@ -2,6 +2,8 @@
 
 > Every letter becomes a number. And groups of numbers can become text that looks like nonsense — until you know the trick.
 
+> **Before you start:** read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) if you haven't yet.
+
 ---
 
 ## Module Metadata

@@ -46,10 +46,11 @@ F02-address-book/
 
 ## Quick Start
 
-1. **Read the lesson** — open `lesson.md` and work through the apartment analogy and all four concept sections.
-2. **Review the concept cards** — `concept-cards.md` gives you a one-page cheat sheet to keep open.
-3. **Attempt the challenge** — open `challenge/index.html` in a browser. No internet connection required.
-4. **Use hints if stuck** — `hint-1.md` first, then `hint-2.md`. Try not to jump straight to `solution.md`.
+1. Read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) if you haven't yet.
+2. **Read the lesson** — open `lesson.md` and work through the apartment analogy and all four concept sections.
+3. **Review the concept cards** — `concept-cards.md` gives you a one-page cheat sheet to keep open.
+4. **Attempt the challenge** — open `challenge/index.html` in a browser. No internet connection required.
+5. **Use hints if stuck** — `hint-1.md` first, then `hint-2.md`. Try not to jump straight to `solution.md`.
 
 ---
 

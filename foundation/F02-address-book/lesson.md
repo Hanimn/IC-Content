@@ -209,7 +209,7 @@ Let's apply this right now.
 
 ### Step 1 — Check if anything is running on localhost
 
-Open your browser's developer tools console (F12 → Console tab) and type:
+Open your browser's developer tools console (`F12` on Windows/Linux/Chromebook · `Cmd + Option + I` on Mac, then click the **Console** tab) and type:
 
 ```javascript
 fetch('http://localhost:8080').then(r => console.log('Running! Status:', r.status)).catch(e => console.log('Nothing there:', e.message))

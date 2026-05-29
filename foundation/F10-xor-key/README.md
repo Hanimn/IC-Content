@@ -2,6 +2,8 @@
 
 > XOR is the Swiss Army knife of cryptography. Apply it twice and you're back where you started. That's either a superpower or a fatal flaw.
 
+> **Before you start:** read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) if you haven't yet.
+
 ---
 
 ## Module Metadata

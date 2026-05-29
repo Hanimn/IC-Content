@@ -6,7 +6,7 @@ tier: "Data & Encoding"
 ---
 ---
 
-## The Story
+## The Spy and the Flashlight
 
 Imagine you're a spy trying to send a message across a dark valley. You can't shout — too risky. You can't write a note — no way to deliver it. All you have is a flashlight. On. Off. On. Off.
 
@@ -84,6 +84,18 @@ Binary: 00101010
 Check: 32 + 8 + 2 = 42. Correct.
 
 **The byte.** Eight bits grouped together is called a **byte**. A byte can hold values from 00000000 (= 0) to 11111111 (= 255). That's 256 different values. Almost everything in computing is measured in bytes: file sizes, memory, network data.
+
+> **Try It — 30 seconds.** You just watched 42 turn into `00101010`. Now do **100**. Walk down the column headers (128, 64, 32, 16, 8, 4, 2, 1) the same way: at each one, ask "is this too big for what's left?" If yes, write 0. If no, write 1 and subtract.
+>
+> Don't peek below the line. Try it on paper or in your head first.
+>
+> ---
+>
+> Walkthrough: 100 < 128 → 0. 100 ≥ 64 → 1, remaining 36. 36 ≥ 32 → 1, remaining 4. 4 < 16 → 0. 4 < 8 → 0. 4 ≥ 4 → 1, remaining 0. 0 < 2 → 0. 0 < 1 → 0.
+>
+> Answer: **`01100100`**. Check: 64 + 32 + 4 = 100. ✓
+>
+> If you got it: you can now turn any number 0-255 into a byte. That's the whole skill. The rest of this lesson is just shortcuts for *reading* it faster.
 
 ---
 

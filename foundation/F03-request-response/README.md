@@ -42,10 +42,11 @@ F03-request-response/
 
 ## Quick Start
 
-1. Read **lesson.md** — work through it top to bottom. Use the guided walkthrough section with your browser open.
-2. Review **concept-cards.md** if any terms feel fuzzy.
-3. Open **challenge/index.html** directly in your browser (no server needed).
-4. If you get stuck: **hint-1.md** → **hint-2.md** → **solution.md**.
+1. Read the [Ethical Hacking Pledge](../../ETHICAL-HACKING-PLEDGE.md) if you haven't yet.
+2. Read **lesson.md** — work through it top to bottom. Use the guided walkthrough section with your browser open.
+3. Review **concept-cards.md** if any terms feel fuzzy.
+4. Open **challenge/index.html** directly in your browser (no server needed).
+5. If you get stuck: **hint-1.md** → **hint-2.md** → **solution.md**.
 
 ---
 

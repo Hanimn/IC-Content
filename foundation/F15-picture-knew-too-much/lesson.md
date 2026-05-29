@@ -201,6 +201,26 @@ Six bits — not yet a full byte, so this two-pixel example doesn't decode to a 
 
 That is the entire LSB extraction algorithm. It looks slow on paper. A computer does it on a 1000×1000 image in milliseconds.
 
+> **Try It — 60 seconds.** Suppose you've extracted the LSBs from 15 pixels (5 bytes' worth) and got this bitstream:
+>
+> ```
+> 01001000 01100101 01101100 01101100 01101111
+> ```
+>
+> Decode it to ASCII. Use the table from F08: `0x41` = A, `0x61` = a, count from there.
+>
+> Hint: each byte is 8 bits. Convert each to decimal or hex first, then look up the character.
+>
+> ---
+>
+> `01001000` = 64 + 8 = 72 = 0x48 = **H**
+> `01100101` = 64 + 32 + 4 + 1 = 101 = 0x65 = **e**
+> `01101100` = 64 + 32 + 8 + 4 = 108 = 0x6C = **l**
+> `01101100` = same → **l**
+> `01101111` = 64 + 32 + 8 + 4 + 2 + 1 = 111 = 0x6F = **o**
+>
+> Answer: **`Hello`**. That's the whole stego-decoding skill — extract LSBs, group into bytes, look up in ASCII. The challenge below scales it up to a full hidden flag.
+
 ---
 
 ## How LSB Stego Is Found in CTF

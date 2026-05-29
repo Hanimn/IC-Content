@@ -4,14 +4,7 @@ tagline: "XOR is the Swiss Army knife of cryptography. Apply it twice and you're
 time: "~35 min reading + ~30 min challenge"
 tier: "Code & Logic"
 ---
-## XOR is the Swiss Army knife of cryptography. Apply it twice and you're back where you started. That's either a superpower or a fatal flaw.
-
-**Time:** ~35 min reading + ~30 min challenge
-**Tools needed:** Web browser (Chrome or Firefox)
-
----
-
-## The Story
+## The Symmetric Padlock
 
 Imagine a padlock with a very strange property: the same combination that locks it also unlocks it. You spin the dial to 42 to close it. You spin the dial to 42 again to open it. There is no separate "lock" and "unlock" — one motion, one combination, both directions. Anyone who knows the combination can open the lock. But without the combination, the box is sealed.
 
@@ -215,7 +208,7 @@ So `0xAC XOR 0x55 = 0xF9`.
 
 **Step 3: Verify in the browser console**
 
-Open your browser, press F12, click the Console tab, and type:
+Open your browser, press `F12` (on Mac: `Cmd + Option + I`), click the **Console** tab, and type:
 
 ```javascript
 (0xAC ^ 0x55).toString(16)

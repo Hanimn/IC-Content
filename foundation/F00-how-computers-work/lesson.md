@@ -6,7 +6,7 @@ tier: "Fundamentals"
 ---
 ---
 
-## The Story
+## The Recipe and the Cook
 
 You've been using computers your whole life. Phones, iPads, Chromebooks, school laptops, smart TVs — all computers. You tap an icon and a thing happens. You type into a box and the screen changes. It feels like magic. It feels like the device just *knows* what to do.
 
@@ -130,12 +130,18 @@ The rest of this series uses these constantly. Learn them now.
 
 | Shortcut (Windows/Linux) | Shortcut (Mac) | What it does |
 |---|---|---|
-| `Ctrl + U` | `Cmd + Option + U` | View page source — see the raw code behind any webpage |
+| `Ctrl + U` | `Cmd + Option + U` (Chrome/Safari) · `Cmd + U` (Firefox) | View page source — see the raw code behind any webpage |
 | `Ctrl + F` | `Cmd + F` | Find — search for text on the current page |
 | `Ctrl + Shift + I` | `Cmd + Option + I` | Open Developer Tools (DevTools) |
 | `Ctrl + C` / `Ctrl + V` | `Cmd + C` / `Cmd + V` | Copy and paste |
 
 `Ctrl + F` and `View Source` will be your two most-used tools from F04 onward. Practise them now.
+
+> **On Safari?** View Source is hidden until you enable it: Safari → Settings → Advanced → tick "Show Develop menu in menu bar." Then the shortcut works. Chrome and Firefox don't need this.
+>
+> **On a Chromebook?** Chromebooks ship with Chrome and the Windows/Linux row applies (`Ctrl + U`, `Ctrl + F`, `Ctrl + Shift + I`).
+>
+> **On a phone?** Most of this series assumes a real keyboard. You can read the lessons on a phone, but the challenges that involve View Source or DevTools are hard to do without one. If a desktop or laptop ever comes free, switch over for the challenges.
 
 ---
 
