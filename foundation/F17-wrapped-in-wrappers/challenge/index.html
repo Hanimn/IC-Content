@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F17 Challenge — Wrapped in Wrappers</title>
+<style>
+  /* =====================================================================
+     Cool-steel-blue palette — same family as F03/F11/F12 + Q1 capstone.
+     The visual language says "data forensics" — clinical, not playful.
+     ===================================================================== */
+  :root {
+    --bg:           #07101e;
+    --bg-panel:     #0a1628;
+    --bg-panel2:    #0e1f3a;
+    --bg-input:     #050b16;
+    --accent:       #7fb8ff;
+    --accent-dim:   #5a8cd0;
+    --accent-bg:    rgba(127, 184, 255, 0.08);
+    --text:         #d6e3f4;
+    --text-dim:     #8aa0bb;
+    --text-muted:   #5b6f8a;
+    --border:       #1a2c47;
+    --good:         #5aab6e;
+    --good-bg:      rgba(90, 171, 110, 0.08);
+    --warn:         #d6a96a;
+    --error:        #d77878;
+    --error-bg:     rgba(215, 120, 120, 0.08);
+    --mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 18px;
+    margin-bottom: 24px;
+  }
+  header h1 {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: 26px;
+    margin: 0 0 8px 0;
+    letter-spacing: 0.5px;
+  }
+  header .tagline {
+    color: var(--text-dim);
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .progress-strip {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .progress-strip .label {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .progress-strip .pips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pip {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 200ms ease;
+  }
+  .pip.active { border-color: var(--warn); color: var(--warn); }
+  .pip.found { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .progress-strip .count {
+    margin-left: auto;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  .puzzle {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    transition: opacity 200ms ease;
+  }
+  .puzzle.locked { opacity: 0.35; pointer-events: none; }
+  .puzzle.solved { border-color: var(--good); background: var(--good-bg); }
+
+  .puzzle-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .puzzle-num {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+  }
+  .puzzle-status { font-family: var(--mono); color: var(--text-muted); font-size: 12px; }
+  .puzzle.solved .puzzle-status { color: var(--good); }
+  .puzzle.active .puzzle-status { color: var(--warn); }
+
+  .puzzle-hint { color: var(--text-dim); font-size: 13px; margin: 0 0 14px 0; }
+
+  .input-label {
+    font-family: var(--mono);
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 12px 0 6px 0;
+  }
+
+  .encoded-display {
+    font-family: var(--mono);
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 14px;
+    color: var(--text);
+    word-break: break-all;
+    font-size: 13px;
+    user-select: all;
+  }
+
+  .decoder-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .decoder-btn {
+    background: var(--bg-panel2);
+    border: 1px solid var(--accent-dim);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 150ms ease;
+  }
+  .decoder-btn:hover { background: var(--accent-bg); border-color: var(--accent); }
+  .decoder-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .chain-row {
+    background: var(--bg-input);
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    padding: 10px 12px;
+    min-height: 44px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .chain-empty { color: var(--text-muted); font-family: var(--mono); font-size: 12px; font-style: italic; }
+  .chain-block {
+    background: var(--accent-bg);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chain-block .arrow { color: var(--text-muted); margin-left: 8px; }
+  .chain-block .remove { cursor: pointer; color: var(--accent-dim); font-weight: bold; user-select: none; }
+  .chain-block .remove:hover { color: var(--error); }
+
+  .actions { display: flex; gap: 8px; margin-bottom: 12px; }
+  .btn {
+    background: var(--accent);
+    color: var(--bg);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 18px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 150ms ease;
+    letter-spacing: 0.3px;
+  }
+  .btn:hover { background: var(--accent-dim); }
+  .btn.secondary { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+  .btn.secondary:hover { color: var(--text); border-color: var(--accent-dim); }
+
+  .output-box {
+    font-family: var(--mono);
+    background: var(--bg-input);
+    border-left: 3px solid var(--border);
+    padding: 12px 14px;
+    color: var(--text);
+    font-size: 13px;
+    word-break: break-all;
+    min-height: 40px;
+    transition: border-color 200ms ease;
+  }
+  .output-box.empty { color: var(--text-muted); font-style: italic; }
+  .output-box.solved { border-left-color: var(--good); }
+  .output-box.error  { border-left-color: var(--error); color: var(--error); }
+  .output-box.partial { border-left-color: var(--warn); }
+
+  .output-meta { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+  .output-meta.success { color: var(--good); }
+
+  .submit-section {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 22px 24px;
+    margin-top: 30px;
+  }
+  .submit-section h2 {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: 16px;
+    margin: 0 0 12px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .submit-section .help { color: var(--text-dim); font-size: 13px; margin-bottom: 14px; }
+  .submit-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  #flag-input {
+    flex: 1 1 280px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 14px;
+    border-radius: 4px;
+  }
+  #flag-input:focus { outline: none; border-color: var(--accent); }
+  #flag-input:disabled { opacity: 0.6; }
+  .submit-feedback { margin-top: 12px; font-size: 13px; min-height: 20px; }
+  .submit-feedback.error { color: var(--error); }
+  .submit-feedback.success { color: var(--good); }
+
+  .success-card {
+    display: none;
+    background: var(--good-bg);
+    border: 1px solid var(--good);
+    border-radius: 8px;
+    padding: 24px;
+    margin-top: 20px;
+  }
+  .success-card.visible { display: block; }
+  .success-card h2 { color: var(--good); margin: 0 0 10px 0; font-family: var(--mono); font-size: 18px; }
+  .success-card .flag-shown {
+    font-family: var(--mono);
+    background: var(--bg-input);
+    padding: 10px 14px;
+    border-radius: 4px;
+    word-break: break-all;
+    color: var(--accent);
+    margin: 12px 0;
+  }
+  .success-card p { color: var(--text-dim); margin: 8px 0; font-size: 14px; }
+
+  details.cheat {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0;
+    margin: 24px 0;
+  }
+  details.cheat summary {
+    padding: 14px 18px;
+    cursor: pointer;
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    user-select: none;
+  }
+  details.cheat summary:hover { background: var(--accent-bg); }
+  details.cheat[open] summary { border-bottom: 1px solid var(--border); }
+  details.cheat .cheat-body { padding: 16px 18px; font-size: 13px; color: var(--text-dim); }
+  details.cheat table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+  details.cheat td, details.cheat th { border: 1px solid var(--border); padding: 6px 10px; text-align: left; font-size: 12px; }
+  details.cheat th { color: var(--accent); }
+  details.cheat code { background: var(--bg-input); padding: 1px 5px; border-radius: 2px; font-size: 12px; }
+
+  footer {
+    margin-top: 36px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: var(--mono);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>WRAPPED IN WRAPPERS</h1>
+  <p class="tagline">Six payloads. Each has been through 1–3 layers of encoding. Build the right decoder chain for each.</p>
+</header>
+
+<div class="progress-strip">
+  <span class="label">Discoveries</span>
+  <div class="pips">
+    <div class="pip" id="pip-1">1</div>
+    <div class="pip" id="pip-2">2</div>
+    <div class="pip" id="pip-3">3</div>
+    <div class="pip" id="pip-4">4</div>
+    <div class="pip" id="pip-5">5</div>
+    <div class="pip" id="pip-6">6</div>
+  </div>
+  <span class="count" id="disc-label">0 of 6 found</span>
+</div>
+
+<details class="cheat">
+  <summary>Recognition cheat sheet — click to expand</summary>
+  <div class="cheat-body">
+    <table>
+      <tr><th>Encoding</th><th>Alphabet</th><th>Shape clue</th></tr>
+      <tr><td><code>URL</code></td><td>digits + <code>%</code> + a-fA-F + safe chars</td><td><code>%xx</code> triplets</td></tr>
+      <tr><td><code>Base64</code></td><td>A-Z, a-z, 0-9, <code>+</code>, <code>/</code>, <code>=</code></td><td>length divisible by 4, often ends in <code>=</code></td></tr>
+      <tr><td><code>Hex</code></td><td>0-9 + a-fA-F only</td><td>length divisible by 2; no other chars</td></tr>
+      <tr><td><code>HTML entity</code></td><td>starts with <code>&amp;</code>, ends with <code>;</code></td><td><code>&amp;...;</code> patterns</td></tr>
+    </table>
+    <p><strong>Chain rule:</strong> peel outside in. Decode in the reverse order the wrapping was applied. Stop when output is plain readable text.</p>
+  </div>
+</details>
+
+<div id="puzzles"></div>
+
+<div class="submit-section">
+  <h2>Final flag</h2>
+  <p class="help">When all six pipelines are solved, concatenate the six revealed pieces with underscores between them, wrap in <code>FLAG{...}</code>, and submit.</p>
+  <div class="submit-row">
+    <input id="flag-input" type="text" placeholder="Solve all six pipelines first" disabled autocomplete="off" spellcheck="false">
+    <button id="submit-btn" class="btn" disabled>Submit</button>
+  </div>
+  <div id="submit-feedback" class="submit-feedback"></div>
+</div>
+
+<div id="success-card" class="success-card">
+  <h2>Flag accepted.</h2>
+  <p>You unwrapped six payloads. You can recognise URL-encoding, Base64, hex, and HTML entities by alphabet — and you know to peel outside in.</p>
+  <div class="flag-shown" id="flag-shown"></div>
+  <p>Tell your instructor "F17 done." Next up: F18 — Vigenère cipher, where encoding meets a real key.</p>
+</div>
+
+<footer>F17 — Wrapped in Wrappers · runs entirely from file:// · view-source-safe (no literal flag in HTML)</footer>
+
+</div>
+
+<script>
+/* =====================================================================
+   F17 challenge: decoder pipeline puzzle.
+
+   Anti-shortcut design notes:
+   - The literal final flag string never appears in this source.
+   - Each puzzle stores the EXPECTED sub-flag piece (the kid will see it
+     when their decoder chain produces it — that's how grading works).
+     But the FINAL flag is built only when all six sub-flags are unlocked,
+     and the submit button stays disabled until then.
+   - View-source still gives a kid the six sub-flag literals (because we
+     compare decoder output to them). They'd still have to figure out
+     the order. The lesson explicitly says "concatenate in order with
+     underscores" — there is no hidden permutation.
+   ===================================================================== */
+
+/* ---------- Decoder implementations ---------- */
+
+function urlDecode(input) {
+  // Loop manually so any stray % (not followed by 2 hex digits) is left
+  // alone instead of throwing — same loose mode every CTF tool uses.
+  var out = '';
+  var i = 0;
+  while (i < input.length) {
+    if (input.charAt(i) === '%' && i + 2 < input.length) {
+      var hex = input.substr(i + 1, 2);
+      if (/^[0-9A-Fa-f]{2}$/.test(hex)) {
+        out += String.fromCharCode(parseInt(hex, 16));
+        i += 3;
+        continue;
+      }
+    }
+    out += input.charAt(i);
+    i += 1;
+  }
+  return out;
+}
+
+function base64Decode(input) {
+  var s = input.replace(/\s+/g, '');
+  if (!/^[A-Za-z0-9+/]*=?=?$/.test(s)) return null;
+  if (s.length === 0 || s.length % 4 !== 0) return null;
+  try {
+    return atob(s);
+  } catch (e) {
+    return null;
+  }
+}
+
+function hexDecode(input) {
+  var s = input.replace(/\s+/g, '');
+  if (s.length === 0 || s.length % 2 !== 0) return null;
+  if (!/^[0-9A-Fa-f]+$/.test(s)) return null;
+  var out = '';
+  for (var i = 0; i < s.length; i += 2) {
+    out += String.fromCharCode(parseInt(s.substr(i, 2), 16));
+  }
+  return out;
+}
+
+var NAMED_ENTITIES = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' '
+};
+function htmlEntityDecode(input) {
+  return input.replace(/&(#x[0-9A-Fa-f]+|#\d+|[a-zA-Z]+);/g, function (m, body) {
+    if (body.charAt(0) === '#') {
+      if (body.charAt(1) === 'x' || body.charAt(1) === 'X') {
+        return String.fromCharCode(parseInt(body.substr(2), 16));
+      }
+      return String.fromCharCode(parseInt(body.substr(1), 10));
+    }
+    if (Object.prototype.hasOwnProperty.call(NAMED_ENTITIES, body)) {
+      return NAMED_ENTITIES[body];
+    }
+    return m;
+  });
+}
+
+var DECODERS = {
+  'URL-decode':         { fn: urlDecode,         label: 'URL-decode' },
+  'Base64-decode':      { fn: base64Decode,      label: 'Base64-decode' },
+  'Hex-decode':         { fn: hexDecode,         label: 'Hex-decode' },
+  'HTML-entity-decode': { fn: htmlEntityDecode,  label: 'HTML-entity-decode' }
+};
+var DECODER_KEYS = ['URL-decode', 'Base64-decode', 'Hex-decode', 'HTML-entity-decode'];
+
+/* ---------- Puzzle data ---------- */
+var PUZZLES = [
+  {
+    n: 1,
+    encoded: '%75%6e%77%72%61%70',
+    expected: 'unwrap',
+    hint: 'One layer. Look at the alphabet and the marker character.'
+  },
+  {
+    n: 2,
+    encoded: 'b25lX2xheWVy',
+    expected: 'one_layer',
+    hint: 'One layer. The alphabet is plain letters and digits — no markers, no triplets.'
+  },
+  {
+    n: 3,
+    encoded: '61745f615f74696d65',
+    expected: 'at_a_time',
+    hint: 'One layer. Alphabet is 0-9 and a-f only. Length is even.'
+  },
+  {
+    n: 4,
+    encoded: '&#x6D;&#x65;&#x65;&#x74;&#x5F;&#x65;&#x6E;&#x74;&#x69;&#x74;&#x79;',
+    expected: 'meet_entity',
+    hint: 'One layer. Notice what each fragment starts and ends with.'
+  },
+  {
+    n: 5,
+    encoded: 'JTY2JTY5JTcyJTczJTc0JTVmJTYyJTM2JTM0',
+    expected: 'first_b64',
+    hint: 'Two layers. Outer wrap is the long one with no markers; underneath is the one with markers.'
+  },
+  {
+    n: 6,
+    encoded: '4a5459784a545a6a4a5463334a5459784a5463354a54637a4a54566d4a5463774a5459314a5459314a545a6a4a54566d4a545a6d4a5463314a5463304a54637a4a5459354a5459304a545931',
+    expected: 'always_peel_outside',
+    hint: 'Three layers. The OUTER wrap looks like 0-9a-f only — start there.'
+  }
+];
+
+/* ---------- State ---------- */
+var STATE = PUZZLES.map(function () {
+  return { chain: [], solved: false, lastOutput: null, lastError: null };
+});
+
+/* ---------- Helpers ---------- */
+function solvedCount() {
+  var n = 0;
+  for (var i = 0; i < STATE.length; i++) if (STATE[i].solved) n++;
+  return n;
+}
+
+function refreshPipsAndSubmit() {
+  for (var i = 0; i < STATE.length; i++) {
+    var pip = document.getElementById('pip-' + (i + 1));
+    pip.classList.toggle('found', STATE[i].solved);
+  }
+  var c = solvedCount();
+  document.getElementById('disc-label').textContent = c + ' of 6 found';
+  if (c === 6) {
+    var fi = document.getElementById('flag-input');
+    var sb = document.getElementById('submit-btn');
+    fi.disabled = false;
+    sb.disabled = false;
+    fi.placeholder = 'FLAG{...}';
+    if (!fi.value) fi.focus();
+  }
+}
+
+function clearChildren(node) {
+  while (node.firstChild) node.removeChild(node.firstChild);
+}
+
+function runChain(encoded, chain) {
+  var current = encoded;
+  for (var i = 0; i < chain.length; i++) {
+    var dec = DECODERS[chain[i]];
+    var result = dec.fn(current);
+    if (result === null) {
+      return { ok: false, output: null, failedAt: i, failedDecoder: chain[i], lastInput: current };
+    }
+    current = result;
+  }
+  return { ok: true, output: current };
+}
+
+/* ---------- Per-puzzle DOM rendering (DOM-API only, no innerHTML) ---------- */
+function renderPuzzle(idx) {
+  var puzzle = PUZZLES[idx];
+  var s = STATE[idx];
+  var locked = idx > 0 && !STATE[idx - 1].solved;
+  var solved = s.solved;
+  var active = !locked && !solved;
+
+  var div = document.createElement('div');
+  div.className = 'puzzle' + (locked ? ' locked' : '') + (solved ? ' solved' : '') + (active ? ' active' : '');
+  div.id = 'puzzle-' + idx;
+
+  var head = document.createElement('div');
+  head.className = 'puzzle-head';
+  var num = document.createElement('span');
+  num.className = 'puzzle-num';
+  num.textContent = 'Pipeline ' + puzzle.n + ' of 6';
+  var status = document.createElement('span');
+  status.className = 'puzzle-status';
+  status.textContent = solved ? '✓ solved' : (locked ? '🔒 locked — solve previous first' : '⌛ active');
+  head.appendChild(num);
+  head.appendChild(status);
+  div.appendChild(head);
+
+  var hint = document.createElement('p');
+  hint.className = 'puzzle-hint';
+  hint.textContent = puzzle.hint;
+  div.appendChild(hint);
+
+  var elabel = document.createElement('div');
+  elabel.className = 'input-label';
+  elabel.textContent = 'Encoded payload';
+  div.appendChild(elabel);
+  var disp = document.createElement('div');
+  disp.className = 'encoded-display';
+  disp.textContent = puzzle.encoded;
+  div.appendChild(disp);
+
+  var dlabel = document.createElement('div');
+  dlabel.className = 'input-label';
+  dlabel.textContent = 'Add a decoder to the chain';
+  div.appendChild(dlabel);
+  var btnRow = document.createElement('div');
+  btnRow.className = 'decoder-buttons';
+  for (var k = 0; k < DECODER_KEYS.length; k++) {
+    (function (key) {
+      var b = document.createElement('button');
+      b.className = 'decoder-btn';
+      b.type = 'button';
+      b.textContent = key;
+      b.disabled = locked || solved;
+      b.addEventListener('click', function () {
+        if (s.chain.length >= 5) return;
+        s.chain.push(key);
+        renderAll();
+      });
+      btnRow.appendChild(b);
+    })(DECODER_KEYS[k]);
+  }
+  div.appendChild(btnRow);
+
+  var clabel = document.createElement('div');
+  clabel.className = 'input-label';
+  clabel.textContent = 'Decoder chain (applied in order, top to bottom)';
+  div.appendChild(clabel);
+  var chainRow = document.createElement('div');
+  chainRow.className = 'chain-row';
+  if (s.chain.length === 0) {
+    var empty = document.createElement('span');
+    empty.className = 'chain-empty';
+    empty.textContent = 'no decoders yet — click a button above to add one';
+    chainRow.appendChild(empty);
+  } else {
+    for (var c = 0; c < s.chain.length; c++) {
+      (function (chainIdx, key) {
+        var blk = document.createElement('span');
+        blk.className = 'chain-block';
+        var lbl = document.createElement('span');
+        lbl.textContent = key;
+        var rm = document.createElement('span');
+        rm.className = 'remove';
+        rm.textContent = '×';
+        rm.title = 'remove from chain';
+        rm.addEventListener('click', function () {
+          if (locked || solved) return;
+          s.chain.splice(chainIdx, 1);
+          s.lastOutput = null;
+          s.lastError = null;
+          renderAll();
+        });
+        blk.appendChild(lbl);
+        blk.appendChild(rm);
+        chainRow.appendChild(blk);
+        if (chainIdx < s.chain.length - 1) {
+          var arrow = document.createElement('span');
+          arrow.className = 'arrow';
+          arrow.textContent = '→';
+          chainRow.appendChild(arrow);
+        }
+      })(c, s.chain[c]);
+    }
+  }
+  div.appendChild(chainRow);
+
+  var actions = document.createElement('div');
+  actions.className = 'actions';
+  var runBtn = document.createElement('button');
+  runBtn.className = 'btn';
+  runBtn.type = 'button';
+  runBtn.textContent = 'Run chain';
+  runBtn.disabled = locked || solved || s.chain.length === 0;
+  runBtn.addEventListener('click', function () {
+    var r = runChain(puzzle.encoded, s.chain);
+    if (!r.ok) {
+      s.lastOutput = null;
+      s.lastError = 'Decoder "' + r.failedDecoder + '" couldn\'t make sense of the input at step ' + (r.failedAt + 1) + '. The input wasn\'t in that encoding.';
+    } else {
+      s.lastOutput = r.output;
+      s.lastError = null;
+      if (r.output === puzzle.expected) {
+        s.solved = true;
+      }
+    }
+    renderAll();
+  });
+  var resetBtn = document.createElement('button');
+  resetBtn.className = 'btn secondary';
+  resetBtn.type = 'button';
+  resetBtn.textContent = 'Reset chain';
+  resetBtn.disabled = locked || solved;
+  resetBtn.addEventListener('click', function () {
+    s.chain = [];
+    s.lastOutput = null;
+    s.lastError = null;
+    renderAll();
+  });
+  actions.appendChild(runBtn);
+  actions.appendChild(resetBtn);
+  div.appendChild(actions);
+
+  var olabel = document.createElement('div');
+  olabel.className = 'input-label';
+  olabel.textContent = 'Pipeline output';
+  div.appendChild(olabel);
+  var out = document.createElement('div');
+  out.className = 'output-box';
+  if (s.lastError) {
+    out.classList.add('error');
+    out.textContent = s.lastError;
+  } else if (s.lastOutput === null) {
+    out.classList.add('empty');
+    out.textContent = '(run the chain to see output)';
+  } else {
+    out.textContent = s.lastOutput;
+    if (s.solved) {
+      out.classList.add('solved');
+    } else {
+      out.classList.add('partial');
+    }
+  }
+  div.appendChild(out);
+
+  if (s.lastOutput !== null) {
+    var meta = document.createElement('div');
+    meta.className = 'output-meta' + (s.solved ? ' success' : '');
+    if (s.solved) {
+      meta.textContent = '✓ Plaintext reached. Sub-flag piece "' + s.lastOutput + '" recorded.';
+    } else {
+      meta.textContent = 'Output looks like more wrapped data — try recognising it and adding another decoder.';
+    }
+    div.appendChild(meta);
+  }
+
+  return div;
+}
+
+function renderAll() {
+  var container = document.getElementById('puzzles');
+  clearChildren(container);
+  for (var i = 0; i < PUZZLES.length; i++) {
+    container.appendChild(renderPuzzle(i));
+  }
+  refreshPipsAndSubmit();
+}
+
+/* ---------- Final flag submit ---------- */
+function expectedFlag() {
+  var pieces = [];
+  for (var i = 0; i < PUZZLES.length; i++) {
+    if (!STATE[i].solved) return null;
+    pieces.push(PUZZLES[i].expected);
+  }
+  return 'FLAG{' + pieces.join('_') + '}';
+}
+
+document.getElementById('submit-btn').addEventListener('click', function () {
+  var fi = document.getElementById('flag-input');
+  var fb = document.getElementById('submit-feedback');
+  var guess = fi.value.trim();
+  if (!guess) {
+    fb.className = 'submit-feedback error';
+    fb.textContent = 'Type the flag in the box first.';
+    return;
+  }
+  var c = solvedCount();
+  if (c < 6) {
+    fb.className = 'submit-feedback error';
+    fb.textContent = 'You haven\'t solved all six pipelines yet. Discoveries: ' + c + '/6.';
+    return;
+  }
+  var expected = expectedFlag();
+  if (guess === expected) {
+    fb.className = 'submit-feedback success';
+    fb.textContent = 'Flag accepted.';
+    var sc = document.getElementById('success-card');
+    sc.classList.add('visible');
+    document.getElementById('flag-shown').textContent = expected;
+    sc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    fi.disabled = true;
+    document.getElementById('submit-btn').disabled = true;
+  } else {
+    fb.className = 'submit-feedback error';
+    if (guess.toUpperCase().indexOf('FLAG{') === 0 && guess.endsWith('}')) {
+      fb.textContent = 'Right shape, wrong contents. Concatenate the six pieces in pipeline order (1, 2, 3, 4, 5, 6) with underscores between them.';
+    } else {
+      fb.textContent = 'Not quite. The flag has the shape FLAG{...}. Concatenate the six revealed pieces in order with underscores between them.';
+    }
+  }
+});
+
+document.getElementById('flag-input').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') document.getElementById('submit-btn').click();
+});
+
+/* ---------- Boot ---------- */
+renderAll();
+
+/* ---------- Test hook for the functional-test harness ---------- */
+if (typeof window !== 'undefined') {
+  window.__F17_TEST = {
+    DECODERS: DECODERS,
+    PUZZLES: PUZZLES,
+    runChain: runChain,
+    expectedFlagAfterAllSolved: function () {
+      var pieces = PUZZLES.map(function (p) { return p.expected; });
+      return 'FLAG{' + pieces.join('_') + '}';
+    }
+  };
+}
+</script>
+</body>
+</html>

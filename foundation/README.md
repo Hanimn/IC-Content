@@ -1,6 +1,6 @@
 # Foundation Track
 
-**17 modules · Prerequisites for CTF challenges across all five categories**
+**18 modules · Prerequisites for CTF challenges across all five categories**
 
 Before diving into CTF challenges, you need to know how computers work, how the internet works, how data is stored, and how secrets are kept and broken. This track covers all of it — no experience required.
 
@@ -27,12 +27,13 @@ Before diving into CTF challenges, you need to know how computers work, how the 
 | [F14](F14-one-way-door/) | The One-Way Door | Hashing, SHA-256, file integrity | Crypto, Forensics |
 | [F15](F15-picture-knew-too-much/) | The Picture That Knew Too Much | EXIF metadata, LSB steganography | Forensics |
 | [F16](F16-terminal-is-just-a-text-box/) | The Terminal Is Just A Text Box | Unix CLI: file, strings, cat, grep, find, xxd | Forensics, RE, BinExp (any non-Web CTF) |
+| [F17](F17-wrapped-in-wrappers/) | Wrapped in Wrappers | URL-encoding, HTML entities, decoder chains | Web (every URL), Forensics (every payload), Crypto (every warm-up) |
 
 ---
 
 ## Choose Your Learning Path
 
-You don't have to do all 17 modules before starting challenges. Pick the path that matches your goal.
+You don't have to do all 18 modules before starting challenges. Pick the path that matches your goal.
 
 ### Brand New to Computers? Start at F00
 If you've used iPads, Chromebooks, and websites but have never thought about what's underneath — start at F00. It introduces files, programs, the browser, servers, source code, and the keyboard shortcuts every later module assumes you know.
@@ -49,10 +50,10 @@ If you're already comfortable with files, folders, browsers, and the difference 
 The fastest path to the web challenges:
 
 ```
-F00 → F01 → F02 → F03 → F04 → F13 → Module 00 → Module 01
+F00 → F01 → F02 → F03 → F04 → F13 → F17 → Module 00 → Module 01
 ```
 
-F01–F04 cover DNS, IP addresses, HTTP, and status codes. F13 covers HTML/CSS/JavaScript — the three languages every webpage is built from. With F13 in your toolkit, Phase 1 Module 01 (View Source) and Module 02 (DOM Inspector) make sense from the first paragraph.
+F01–F04 cover DNS, IP addresses, HTTP, and status codes. F13 covers HTML/CSS/JavaScript — the three languages every webpage is built from. F17 closes a gap every web challenge assumes you've already met: URL-encoding (`%xx`) and HTML entities. With F13 and F17 in your toolkit, Phase 1 Module 01 (View Source) and Module 02 (DOM Inspector) make sense from the first paragraph.
 
 ---
 
@@ -60,10 +61,10 @@ F01–F04 cover DNS, IP addresses, HTTP, and status codes. F13 covers HTML/CSS/J
 Forensics challenges involve digging through files, images, and data to find hidden information:
 
 ```
-F00 → F05 → F06 → F07 → F08 → F14 → F15 → F16
+F00 → F05 → F06 → F07 → F08 → F14 → F15 → F16 → F17
 ```
 
-Build up from number systems and hex (F05–F06), file formats (F07), encoding (F08), then add file integrity verification (F14) and metadata + steganography (F15). F16 — the Unix CLI toolbox — comes last because it lets you actually run `file`, `strings`, `xxd`, and `grep` against real artifacts. Without F16 the earlier lessons are conceptual; with F16 they become operational.
+Build up from number systems and hex (F05–F06), file formats (F07), encoding (F08), then add file integrity verification (F14) and metadata + steganography (F15). F16 — the Unix CLI toolbox — comes next because it lets you actually run `file`, `strings`, `xxd`, and `grep` against real artifacts. F17 closes the chain by teaching the meta-skill of recognising and unwrapping layered encodings — the shape every captured payload turns out to have.
 
 ---
 
@@ -71,10 +72,10 @@ Build up from number systems and hex (F05–F06), file formats (F07), encoding (
 Crypto challenges involve decoding ciphers, breaking encryption, and working with hashes:
 
 ```
-F00 → F05 → F06 → F08 → F09 → F10 → F14
+F00 → F05 → F06 → F08 → F09 → F10 → F14 → F17
 ```
 
-Build from binary/hex (F05–F06), encoding (F08), classical ciphers (F09), XOR (F10), then hashing (F14) — the one cryptographic primitive that doesn't have a reverse function.
+Build from binary/hex (F05–F06), encoding (F08), classical ciphers (F09), XOR (F10), then hashing (F14) — the one cryptographic primitive that doesn't have a reverse function. F17 caps the path with the meta-skill of unwrapping layered encodings, which every intro Crypto challenge expects you to do before the actual cryptanalysis begins.
 
 ---
 
@@ -104,10 +105,10 @@ You need binary arithmetic, hex, XOR, the source-vs-binary distinction (F11), an
 Go straight through in order:
 
 ```
-F00 → F01 → F02 → F03 → F04 → F05 → F06 → F07 → F08 → F09 → F10 → F11 → F12 → F13 → F14 → F15
+F00 → F01 → F02 → F03 → F04 → F05 → F06 → F07 → F08 → F09 → F10 → F11 → F12 → F13 → F14 → F15 → F16 → F17
 ```
 
-Takes roughly 8–10 hours total. After this, every CTF category is open.
+Takes roughly 9–11 hours total. After this, every CTF category is open.
 
 ---
 
@@ -122,9 +123,13 @@ F00 ──┬──→ F01 ──→ F02 ──→ F03 ──→ F04 ──→ F
                         │
                         ├──→ F08 ─┬──→ F09 ──→ F10      (Group D: Secrets)
                         │         │              │
-                        │         └──→ F14       │
+                        │         ├──→ F14       │
+                        │         │              │
+                        │         └──→ F17       │       (Group C: Encoding chains)
                         │                        │
-                        └──→ F11 ──→ F12  ←──────┘     (Group E: Programs / BinExp)
+                        └──→ F11 ──→ F12  ←──────┘       (Group E: Programs / BinExp)
+                                      │
+                                      └──→ F16          (Group F: Shell — gates everything operational)
 ```
 
 F00 has no prerequisites — it's the universal entry point for anyone new to IT.
@@ -174,6 +179,7 @@ F01 and F05 each have F00 as their only prerequisite (or none, if you already ha
 | **F07** | Your computer doesn't trust filenames. It reads the first few bytes instead. Those bytes identify the format. |
 | **F08** | Every letter is a number. Groups of numbers become Base64 — binary data disguised as printable text. |
 | **F15** | A photo isn't just pixels. There's a notebook of metadata behind it, and sometimes a hidden message inside the pixels themselves. |
+| **F17** | After F08 you can decode Base64. After F06 you can read hex. F17 adds URL-encoding (the most common encoding on the internet) and the meta-skill of recognising and chaining decoders to peel a wrapped payload outside in. *(Aesthetic: cool steel blue — sits in the data-forensics visual family.)* |
 
 ---
 
@@ -234,6 +240,7 @@ Each module has a challenge with a flag. Collect them all.
 | F14 | `FLAG{75236d9b9eb82460}` (derived at runtime from `sha256("orion-gui-binary")[:16]`) |
 | F15 | `FLAG{look_in_the_metadata_and_below_the_pixels}` |
 | F16 | `FLAG{strings_in_binaries_trust_bytes_not_names_and_pipes_chain_them}` |
+| F17 | `FLAG{unwrap_one_layer_at_a_time_meet_entity_first_b64_always_peel_outside}` (assembled at runtime from six per-pipeline sub-flag pieces) |
 
 ---
 
