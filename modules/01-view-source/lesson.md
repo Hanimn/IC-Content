@@ -1,6 +1,6 @@
 ---
 title: "The Page Behind the Page"
-tagline: "### What Is HTML Source?"
+tagline: "Every website is hiding more than it shows. The trick is knowing how to look."
 time: "~25 min reading + ~20 min challenge"
 tier: "Tier 1: Discovery"
 ---

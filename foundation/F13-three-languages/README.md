@@ -60,4 +60,4 @@ This module makes sure that doesn't happen. After F13, you can open any webpage'
 
 ---
 
-[← F12 — The Computer's Notebook](../F12-computers-notebook/README.md) | [Foundation Track](../README.md) | [Next: F14 →](../F14-one-way-door/README.md)
+[← F12 — The Computer's Notebook](../F12-computer-notebook/README.md) | [Foundation Track](../README.md) | [Next: F14 →](../F14-one-way-door/README.md)

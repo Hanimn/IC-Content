@@ -10,7 +10,7 @@
 |---|---|
 | **Difficulty** | Beginner |
 | **Time** | ~30 min reading + ~20 min challenge |
-| **Prerequisites** | [F01 — The Postman Problem](../F01-postman-problem/README.md), [F02 — The Address Book](../F02-address-book/README.md) |
+| **Prerequisites** | [F01 — The Postman Problem](../F01-internet-works/README.md), [F02 — The Address Book](../F02-address-book/README.md) |
 | **Tools** | Web browser (any — Chrome, Firefox, Safari) |
 | **Flag** | `FLAG{headers_tell_the_story}` |
 

@@ -55,6 +55,23 @@ jobs:
           cache: "npm"
           cache-dependency-path: ".github/scripts/package.json"
 
+      # Cheap content-shape checks first — they're dependency-free, run in
+      # under a second, and catch the regression categories the 2026-05 audit
+      # had to hand-fix (broken inter-lesson links from rename drift, missing
+      # Pledge link in module READMEs, broken H3-as-tagline frontmatter).
+      # Running them BEFORE the MDX validator means an author who's only
+      # tripped one of these gets fast feedback without waiting for the
+      # `npm install` step.
+
+      - name: Check inter-lesson markdown links
+        run: node .github/scripts/check-links.mjs
+
+      - name: Check Pledge link presence
+        run: node .github/scripts/check-pledge-links.mjs
+
+      - name: Check frontmatter tagline shape
+        run: node .github/scripts/check-taglines.mjs
+
       - name: Install validator deps
         working-directory: .github/scripts
         # No package-lock in the content repo (one isn't checked in to keep

@@ -59,4 +59,4 @@ Understanding why Caesar fails teaches you the properties that *real* encryption
 
 ---
 
-[← F08 — ASCII and Encoding](../F08-ascii-and-encoding/README.md) | [Back to Series](../../README.md) | [F10 — XOR Cipher →](../F10-xor-cipher/README.md)
+[← F08 — ASCII and Encoding](../F08-ascii-and-encoding/README.md) | [Back to Series](../../README.md) | [F10 — The XOR Key →](../F10-xor-key/README.md)

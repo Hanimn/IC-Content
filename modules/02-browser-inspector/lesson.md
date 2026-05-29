@@ -1,6 +1,6 @@
 ---
 title: "The X-Ray Machine"
-tagline: "### View Source vs. the Inspector — What's the Difference?"
+tagline: "View Source shows you what the server sent. The Inspector shows you what's actually there right now — and the difference is where security flaws hide."
 time: "~30 min reading + ~25 min challenge"
 tier: "Tier 1: Discovery"
 ---

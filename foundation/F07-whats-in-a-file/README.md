@@ -11,7 +11,7 @@
 | Difficulty | Beginner |
 | Reading time | ~25 min |
 | Challenge time | ~25 min |
-| Prerequisites | [F05 — Everything Is a Number](../F05-everything-is-a-number/README.md), [F06 — Thinking in Hex](../F06-thinking-in-hex/README.md) |
+| Prerequisites | [F05 — Everything Is a Number](../F05-number-systems/README.md), [F06 — Thinking in Hex](../F06-thinking-in-hex/README.md) |
 | Tools | Web browser |
 | Unlocks | Forensics track (file carving, magic bytes, steganography detection) |
 

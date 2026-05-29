@@ -1,6 +1,6 @@
 ---
 title: "Digital Breadcrumbs"
-tagline: "### What Are Cookies?"
+tagline: "Every visit you make leaves a trace. The site decides what to write down — but the browser keeps the receipt, and you can read it."
 time: "~30 min reading + ~25 min challenge"
 tier: "Tier 1: Discovery"
 ---
