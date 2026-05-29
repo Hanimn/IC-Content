@@ -1,4 +1,9 @@
-# F10 — The XOR Key
+---
+title: "The XOR Key"
+tagline: "### XOR: Exclusive Or"
+time: "~35 min reading + ~30 min challenge"
+tier: "Code & Logic"
+---
 ## XOR is the Swiss Army knife of cryptography. Apply it twice and you're back where you started. That's either a superpower or a fatal flaw.
 
 **Time:** ~35 min reading + ~30 min challenge

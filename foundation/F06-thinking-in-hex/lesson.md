@@ -1,5 +1,9 @@
-# F06 — Thinking in Hex
-
+---
+title: "Thinking in Hex"
+tagline: "Two digits in hex can represent anything a byte can hold. That's why everyone in security speaks it."
+time: ""
+tier: "Data & Encoding"
+---
 > Two digits in hex can represent anything a byte can hold. That's why everyone in security speaks it.
 
 ---
@@ -234,12 +238,12 @@ That's 14 bytes on row 1. The row has 16 slots but only 14 bytes were in the fil
 | 4C | 76 | L |
 | 41 | 65 | A |
 | 47 | 71 | G |
-| 7B | 123 | { |
+| 7B | 123 | `{` |
 | 74 | 116 | t |
 | 65 | 101 | e |
 | 73 | 115 | s |
 | 74 | 116 | t |
-| 7D | 125 | } |
+| 7D | 125 | `}` |
 | 0A | 10 | (newline — `.`) |
 | 00 | 0 | (null — `.`) |
 | 00 | 0 | (null — `.`) |

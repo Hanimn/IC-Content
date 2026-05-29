@@ -1,4 +1,9 @@
-# Module 05: The Map They Forgot to Hide
+---
+title: "The Map They Forgot to Hide"
+tagline: "Here's the thing about a polite request: it's not a lock."
+time: "~30 min reading + ~25 min challenge"
+tier: "Tier 1: Discovery"
+---
 ## Some doors aren't locked — they're just not on the map.
 
 **Time:** ~30 min reading + ~25 min challenge

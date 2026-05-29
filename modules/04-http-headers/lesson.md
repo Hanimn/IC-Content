@@ -1,4 +1,9 @@
-# Module 04: The Envelope, Not the Letter
+---
+title: "The Envelope, Not the Letter"
+tagline: "*Before you start:* This module requires a local HTTP server. See the setup instructions in `README.md`."
+time: "~35 min reading + ~30 min challenge"
+tier: "Tier 1: Discovery"
+---
 ## Web requests carry more than just the page.
 
 **Time:** ~35 min reading + ~30 min challenge

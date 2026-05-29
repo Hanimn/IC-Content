@@ -1,5 +1,9 @@
-# F12 — The Computer's Notebook: Lesson
-
+---
+title: "The Computer's Notebook"
+tagline: "Every byte the computer remembers lives at a numbered desk. Sometimes the wrong byte ends up at the wrong desk."
+time: ""
+tier: "Security Concepts"
+---
 > Every byte the computer remembers lives at a numbered desk. Sometimes the wrong byte ends up at the wrong desk.
 
 ---

@@ -1,5 +1,9 @@
-# F01: The Postman Problem — Lesson
-
+---
+title: "The Postman Problem"
+tagline: "You walk up to the desk and say: \"I'd like The Hitchhiker's Guide to the Galaxy, please.\""
+time: ""
+tier: "Fundamentals"
+---
 ---
 
 ## The Story

@@ -1,4 +1,9 @@
-# Module 06: Talking to the Page
+---
+title: "Talking to the Page"
+tagline: "You've been shopping online and you click a product. Look at the address bar:"
+time: "~30 min reading + ~25 min challenge"
+tier: "Tier 2: Manipulation"
+---
 ## The URL is a conversation — and you can change what you say.
 
 **Time:** ~30 min reading + ~25 min challenge

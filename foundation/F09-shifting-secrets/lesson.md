@@ -1,4 +1,9 @@
-# F09 — Shifting Secrets
+---
+title: "Shifting Secrets"
+tagline: "### What Is a Cipher?"
+time: "~25 min reading + ~30 min challenge"
+tier: "Code & Logic"
+---
 ## Julius Caesar encrypted his battle plans with a shift. Modern computers crack it in milliseconds. Let's learn why.
 
 **Time:** ~25 min reading + ~30 min challenge

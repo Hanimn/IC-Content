@@ -1,4 +1,9 @@
-# Module 08: The Lock With No Key
+---
+title: "The Lock With No Key"
+tagline: "The result is a locked door with the key taped to the front."
+time: "~35 min reading + ~30 min challenge"
+tier: "Tier 3: Authentication"
+---
 ## The most common way in isn't a hack — it's a guess.
 
 **Time:** ~35 min reading + ~30 min challenge

@@ -1,5 +1,9 @@
-# F05: Everything Is a Number — Lesson
-
+---
+title: "Everything Is a Number"
+tagline: "Now imagine a computer is the world's most elaborate flashlight system."
+time: ""
+tier: "Data & Encoding"
+---
 ---
 
 ## The Story

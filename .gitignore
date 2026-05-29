@@ -27,3 +27,21 @@ scripts/run_k2_*.py
 scripts/llm.py
 scripts/benchmark_kimi*.json
 scripts/benchmark_kimi*.py
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Loose dev/QA screenshots dropped at the repo root. Real lesson screenshots
+# belong inside foundation/<slug>/ or modules/<slug>/, not here.
+/*.png
+
+# Playwright MCP dumps from local dev sessions.
+/.playwright-mcp/
+
+# Validator deps — installed in CI via `npm install` from the manifest in
+# .github/scripts/package.json. We intentionally do NOT commit a lockfile
+# (this is a 3-package CI-only manifest; pinned ^semver in package.json is
+# sufficient and avoids Dependabot churn on a content repo).
+/.github/scripts/node_modules/
+/.github/scripts/package-lock.json

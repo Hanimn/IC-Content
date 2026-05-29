@@ -1,4 +1,9 @@
-# Module 01: The Page Behind the Page
+---
+title: "The Page Behind the Page"
+tagline: "### What Is HTML Source?"
+time: "~25 min reading + ~20 min challenge"
+tier: "Tier 1: Discovery"
+---
 ## Every website is hiding more than it shows.
 
 **Time:** ~25 min reading + ~20 min challenge

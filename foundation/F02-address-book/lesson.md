@@ -1,5 +1,9 @@
-# F02: The Address Book — Lesson
-
+---
+title: "The Address Book"
+tagline: "Every device on the internet has an address. Two digits from the right tell you if it ever leaves the building."
+time: ""
+tier: "Fundamentals"
+---
 > Every device on the internet has an address. Two digits from the right tell you if it ever leaves the building.
 
 ---

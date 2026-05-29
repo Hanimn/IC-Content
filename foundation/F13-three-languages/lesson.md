@@ -1,5 +1,9 @@
-# F13 — Three Languages, One Page
-
+---
+title: "Three Languages, One Page"
+tagline: "Every webpage is three layers cooperating:"
+time: ""
+tier: "Security Concepts"
+---
 You've been looking at webpages your whole life. Login forms, news articles, video players, games, school portals — all of it lives in your browser. They look like very different things on screen. But under the hood, every single webpage in the world is built out of the same three languages, stacked on top of each other.
 
 Once you can tell those three languages apart, the entire web stops feeling magical and starts feeling readable. That's the goal of this module.

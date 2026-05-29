@@ -1,5 +1,9 @@
-# F00: How Computers Actually Work — Lesson
-
+---
+title: "How Computers Actually Work"
+tagline: "By the end you'll never look at your laptop the same way again."
+time: ""
+tier: "Fundamentals"
+---
 ---
 
 ## The Story

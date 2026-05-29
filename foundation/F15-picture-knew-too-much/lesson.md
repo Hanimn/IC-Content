@@ -1,5 +1,9 @@
-# F15 — The Picture That Knew Too Much
-
+---
+title: "The Picture That Knew Too Much"
+tagline: "You save it. You move on."
+time: ""
+tier: "Security Concepts"
+---
 ## A Photo From a Stranger
 
 A photo arrives from someone you don't know. It's just a picture — a sunny street, a coffee shop, a person leaning against a wall. Nothing unusual.

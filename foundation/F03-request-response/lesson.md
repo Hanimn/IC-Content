@@ -1,5 +1,9 @@
-# F03 — The Request and the Response
-
+---
+title: "The Request and the Response"
+tagline: "This is what Module 04 in the main series is all about. But first, you need to understand the format itself."
+time: ""
+tier: "Fundamentals"
+---
 You've been sending letters your whole life without reading the envelope. Every time your browser loads a page, it sends a formal, text-based message to a server — and the server sends one back. These messages have a very specific format. Once you can read them, a whole new layer of the web becomes visible.
 
 This is what Module 04 in the main series is all about. But first, you need to understand the format itself.

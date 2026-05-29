@@ -1,4 +1,9 @@
-# Module 07: The Form's Secret Life
+---
+title: "The Form's Secret Life"
+tagline: "You're on a checkout page. The price says £9.99. You click \"Buy Now.\" Your browser sends that purchase to the server."
+time: "~30 min reading + ~25 min challenge"
+tier: "Tier 2: Manipulation"
+---
 ## Forms carry more data than they show.
 
 **Time:** ~30 min reading + ~25 min challenge

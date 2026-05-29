@@ -1,5 +1,9 @@
-# F11 — From Code to Computer: Lesson
-
+---
+title: "From Code to Computer"
+tagline: "A program is words you can read. A binary is the same words after a translator gets done with them — but pieces always slip through."
+time: ""
+tier: "Code & Logic"
+---
 > A program is words you can read. A binary is the same words after a translator gets done with them — but pieces always slip through.
 
 ---

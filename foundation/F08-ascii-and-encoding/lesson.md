@@ -1,5 +1,9 @@
-# F08 — ASCII All the Way Down: Lesson
-
+---
+title: "ASCII All the Way Down"
+tagline: "### Key Ranges to Memorise"
+time: ""
+tier: "Data & Encoding"
+---
 ## The Story Behind Every Character
 
 Every message you've ever typed — every text, every email, every line of code — is stored as a list of numbers. `H` is 72. `e` is 101. `l` is 108. The word "Hello" is stored as `72 101 108 108 111`.
@@ -45,8 +49,8 @@ The curly braces and underscore matter because CTF flags almost always look like
 | 50  | 32  | 2   | 51  | 33  | 3   | 52  | 34  | 4   |
 | 53  | 35  | 5   | 54  | 36  | 6   | 55  | 37  | 7   |
 | 56  | 38  | 8   | 57  | 39  | 9   | 58  | 3A  | :   |
-| 59  | 3B  | ;   | 60  | 3C  | <   | 61  | 3D  | =   |
-| 62  | 3E  | >   | 63  | 3F  | ?   | 64  | 40  | @   |
+| 59  | 3B  | ;   | 60  | 3C  | `<` | 61  | 3D  | =   |
+| 62  | 3E  | `>` | 63  | 3F  | ?   | 64  | 40  | @   |
 | 65  | 41  | A   | 66  | 42  | B   | 67  | 43  | C   |
 | 68  | 44  | D   | 69  | 45  | E   | 70  | 46  | F   |
 | 71  | 47  | G   | 72  | 48  | H   | 73  | 49  | I   |
@@ -66,8 +70,8 @@ The curly braces and underscore matter because CTF flags almost always look like
 | 113 | 71  | q   | 114 | 72  | r   | 115 | 73  | s   |
 | 116 | 74  | t   | 117 | 75  | u   | 118 | 76  | v   |
 | 119 | 77  | w   | 120 | 78  | x   | 121 | 79  | y   |
-| 122 | 7A  | z   | 123 | 7B  | {   | 124 | 7C  | \|  |
-| 125 | 7D  | }   | 126 | 7E  | ~   |     |     |     |
+| 122 | 7A  | z   | 123 | 7B  | `{` | 124 | 7C  | \|  |
+| 125 | 7D  | `}` | 126 | 7E  | ~   |     |     |     |
 
 Keep this table open when you work CTF challenges. With practice, you'll start to recognise the key values automatically.
 

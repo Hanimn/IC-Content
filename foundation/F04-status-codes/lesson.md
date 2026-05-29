@@ -1,5 +1,9 @@
-# F04 Lesson — The Status Code Switchboard
-
+---
+title: "The Status Code Switchboard"
+tagline: "Every time your browser talks to a server, the server replies with a three-digit number before it says anything else."
+time: ""
+tier: "Fundamentals"
+---
 ---
 
 ## The Instrument Panel

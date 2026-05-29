@@ -1,5 +1,9 @@
-# F07 — What's in a File?
-
+---
+title: "What's in a File?"
+tagline: "Later, at headquarters, they tear it open — and find a map."
+time: ""
+tier: "Data & Encoding"
+---
 ## The Spy and the Envelope
 
 A spy intercepts an envelope. The outside says "Birthday Card." They tuck it under their arm and carry it across the border without a second glance.

@@ -1,4 +1,9 @@
-# Module 03: Digital Breadcrumbs
+---
+title: "Digital Breadcrumbs"
+tagline: "### What Are Cookies?"
+time: "~30 min reading + ~25 min challenge"
+tier: "Tier 1: Discovery"
+---
 ## Every visit leaves a trace — and that trace can be changed.
 
 **Time:** ~30 min reading + ~25 min challenge

@@ -1,4 +1,9 @@
-# Module 02: The X-Ray Machine
+---
+title: "The X-Ray Machine"
+tagline: "### View Source vs. the Inspector — What's the Difference?"
+time: "~30 min reading + ~25 min challenge"
+tier: "Tier 1: Discovery"
+---
 ## See the bones of any webpage.
 
 **Time:** ~30 min reading + ~25 min challenge

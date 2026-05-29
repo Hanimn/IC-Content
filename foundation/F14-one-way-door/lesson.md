@@ -1,5 +1,9 @@
-# Lesson — The One-Way Door
-
+---
+title: "The One-Way Door"
+tagline: "You get a stained filter and a sad puddle."
+time: ""
+tier: "Security Concepts"
+---
 You have a smoothie. Strawberries, banana, a splash of milk, a swirl of honey. You drink half, decide you want the strawberries back, and pour what's left through a coffee filter.
 
 You get a stained filter and a sad puddle.

@@ -1,0 +1,68 @@
+name: Validate MDX
+
+# Catches MDX compile failures (bare `{`, `<`, etc.) BEFORE they reach main
+# and crash agent-x's Vercel build. Runs on:
+#   - PRs targeting main
+#   - direct pushes to main (the current single-author workflow)
+#
+# Versions of the MDX toolchain are pinned in .github/scripts/package.json
+# to match what IC-Page/agent-x runs at runtime (next-mdx-remote/rsc). If you
+# bump them on the agent-x side, bump them here too — keeping the two in
+# lockstep is the whole point of running this in CI.
+#
+# Security note: this workflow uses no `${{ github.event.* }}` interpolations
+# in `run:` blocks (no PR title/body/branch refs etc.). The only inputs to
+# any shell command are the version pins from a static package.json. No
+# injection surface from untrusted PR content.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "foundation/**"
+      - "modules/**"
+      - ".github/workflows/validate.yml"
+      - ".github/scripts/**"
+  push:
+    branches: [main]
+    paths:
+      - "foundation/**"
+      - "modules/**"
+      - ".github/workflows/validate.yml"
+      - ".github/scripts/**"
+  # Manual trigger for ad-hoc runs.
+  workflow_dispatch:
+
+# Drop default permissions to minimum read-only — this job only reads the
+# checkout and reports a status; it never writes back.
+permissions:
+  contents: read
+
+jobs:
+  validate-mdx:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Match agent-x's local environment (Node 22.x).
+          node-version: "22"
+          # Cache validator deps so cold-start CI doesn't re-download
+          # @mdx-js/mdx + remark-gfm on every run.
+          cache: "npm"
+          cache-dependency-path: ".github/scripts/package.json"
+
+      - name: Install validator deps
+        working-directory: .github/scripts
+        # No package-lock in the content repo (one isn't checked in to keep
+        # the .github/ surface tiny). `npm install` is fine for this — it's
+        # a 3-package, single-purpose, CI-only manifest.
+        run: npm install --no-audit --no-fund
+
+      - name: Validate MDX
+        # Run from the repo root so process.cwd() in validate.mjs sees
+        # foundation/ and modules/ at the expected paths.
+        run: node .github/scripts/validate.mjs
