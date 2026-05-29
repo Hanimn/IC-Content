@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Challenge — Mystery USB</title>
+<!--
+  =====================================================================
+  F16 Challenge — Mystery USB
+  Author:   IC-Content curriculum
+  Version:  1.0
+
+  INSTRUCTOR NOTES: see ../solution.md
+  - The flag is DERIVED at success time from sha256(piece_a + "_" + piece_b
+    + "_" + piece_c). The literal flag string never appears in this source.
+  - Three hides:
+      A) strings(mystery.bin) reveals an embedded run with piece_a
+      B) file(runme.exe) says "ASCII text" -> cat reveals piece_b
+      C) find . -name "*piece*" finds two files; cat each; concat = piece_c
+  - Lite-cut: no real pipes (the simulator processes one command at a time),
+    no command history, no tab completion, no globs in cat/grep arguments.
+  - Visual aesthetic: green-on-black retro terminal. Inherits F06 palette.
+  =====================================================================
+-->
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:           #0a0f0a;
+    --bg-panel:     #0d1a0d;
+    --bg-panel2:    #14241a;
+    --border:       #1a3a1a;
+    --accent:       #33ff33;
+    --accent-dim:   #22bb22;
+    --text:         #c8e8c8;
+    --text-dim:     #6aaa6a;
+    --error:        #ff5050;
+    --warn:         #f0c040;
+    --font-mono:    'SF Mono', Menlo, 'Courier New', Courier, monospace;
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  body {
+    padding: 1.5rem 1rem 2.5rem;
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .challenge-header {
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .challenge-header h1 {
+    font-size: 1.05rem;
+    font-weight: normal;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.4rem;
+  }
+  .challenge-header .briefing {
+    color: var(--text);
+    font-size: 0.9rem;
+  }
+  .challenge-header .briefing strong {
+    color: var(--accent-dim);
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Layout (terminal pane + side panel) ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  /* ── Terminal pane ── */
+  .terminal {
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    display: flex;
+    flex-direction: column;
+    min-height: 480px;
+    overflow: hidden;
+  }
+  .terminal-titlebar {
+    background: var(--bg-panel2);
+    border-bottom: 1px solid var(--border);
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .terminal-titlebar .dots {
+    display: inline-block;
+    margin-right: 0.8rem;
+  }
+  .terminal-titlebar .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+    background: var(--text-dim);
+    opacity: 0.5;
+  }
+
+  .scrollback {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+  .scrollback .line { display: block; }
+  .scrollback .prompt-line { color: var(--text); }
+  .scrollback .prompt { color: var(--accent); }
+  .scrollback .typed { color: var(--text); }
+  .scrollback .output { color: var(--text-dim); }
+  .scrollback .output.warn { color: var(--warn); }
+  .scrollback .output.error { color: var(--error); }
+  .scrollback .output.discovery {
+    color: var(--accent);
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid var(--border);
+    padding: 0.6rem 1rem;
+    background: var(--bg-panel);
+  }
+  .input-row .prompt {
+    color: var(--accent);
+    margin-right: 0.6rem;
+    font-size: 0.88rem;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .input-row input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    caret-color: var(--accent);
+  }
+
+  /* ── Side panel ── */
+  .side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  .panel-block {
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    padding: 0.8rem 0.9rem;
+  }
+  .panel-block h2 {
+    font-size: 0.7rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+    font-weight: normal;
+  }
+  .discoveries-strip {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    margin-bottom: 0.4rem;
+  }
+  .discovery-pip {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid var(--text-dim);
+    background: transparent;
+    transition: all 0.3s ease;
+  }
+  .discovery-pip.found {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+  }
+  .discoveries-label {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+  .available-cmds {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .available-cmds code {
+    color: var(--accent-dim);
+    background: var(--bg-panel2);
+    padding: 0 0.25rem;
+    border-radius: 2px;
+  }
+  .nudge {
+    font-size: 0.78rem;
+    color: var(--warn);
+    line-height: 1.5;
+    margin-top: 0.4rem;
+    min-height: 1em;
+  }
+
+  /* ── Submit row ── */
+  .submit-row {
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    padding: 0.9rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
+  }
+  .submit-row label {
+    font-size: 0.85rem;
+    color: var(--text);
+    margin-right: 0.4rem;
+  }
+  .submit-row .flag-input {
+    flex: 1;
+    min-width: 220px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    padding: 0.5rem 0.7rem;
+    outline: none;
+  }
+  .submit-row .flag-input:focus {
+    border-color: var(--accent);
+  }
+  .submit-row .flag-input:disabled {
+    color: var(--text-dim);
+    border-color: var(--border);
+    cursor: not-allowed;
+  }
+  .submit-row button {
+    background: var(--accent);
+    border: none;
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.55rem 1rem;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  .submit-row button:hover:not(:disabled) { opacity: 0.85; }
+  .submit-row button:disabled {
+    background: var(--text-dim);
+    color: var(--bg-panel);
+    cursor: not-allowed;
+  }
+  .submit-feedback {
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    width: 100%;
+    min-height: 1.2em;
+  }
+  .submit-feedback.success { color: var(--accent); }
+  .submit-feedback.error   { color: var(--error); }
+
+  /* ── Success card ── */
+  .success-card {
+    display: none;
+    border: 1px solid var(--accent);
+    background: var(--bg-panel);
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+    box-shadow: 0 0 12px rgba(51, 255, 51, 0.3);
+  }
+  .success-card.visible { display: block; }
+  .success-card h2 {
+    color: var(--accent);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.6rem;
+  }
+  .success-card .flag-shown {
+    font-size: 1.1rem;
+    color: var(--accent);
+    background: var(--bg);
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--accent);
+    margin: 0.6rem 0;
+    word-break: break-all;
+  }
+  .success-card .debrief {
+    font-size: 0.85rem;
+    color: var(--text);
+    margin-top: 0.5rem;
+  }
+
+  /* ── Footer nav (back-bar is injected by sync-challenges; keep this minimal) ── */
+  .footer-nav {
+    margin-top: 1.25rem;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-align: center;
+  }
+  .footer-nav a { color: var(--accent-dim); text-decoration: none; }
+  .footer-nav a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="challenge-header">
+  <h1>Challenge — Mystery USB</h1>
+  <div class="briefing">
+    <strong>Briefing.</strong> An anonymous source dropped a USB stick at the front desk. It has 15 files on it. Three of them, between them, hold your flag &mdash; split across three different hiding methods. Use the toolbox you learned: <code>file</code>, <code>strings</code>, <code>cat</code>, <code>grep</code>, <code>find</code>, <code>xxd</code>. Type <code>help</code> if stuck.
+  </div>
+</div>
+
+<div class="layout">
+  <div class="terminal">
+    <div class="terminal-titlebar">
+      <span><span class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>usb-mystery — bash</span>
+      <span>F16</span>
+    </div>
+    <div class="scrollback" id="scrollback" aria-live="polite"></div>
+    <div class="input-row">
+      <span class="prompt">user@usb-mystery:~$</span>
+      <input
+        type="text"
+        id="cmd-input"
+        autocomplete="off"
+        spellcheck="false"
+        autocapitalize="off"
+        autofocus
+        aria-label="Command input"
+      />
+    </div>
+  </div>
+
+  <div class="side-panel">
+    <div class="panel-block">
+      <h2>Discoveries</h2>
+      <div class="discoveries-strip">
+        <div class="discovery-pip" id="pip-1" title="Hide A: a binary's readable strings"></div>
+        <div class="discovery-pip" id="pip-2" title="Hide B: a misnamed file"></div>
+        <div class="discovery-pip" id="pip-3" title="Hide C: split across two files"></div>
+      </div>
+      <div class="discoveries-label" id="disc-label">0 of 3 found</div>
+      <div class="nudge" id="nudge"></div>
+    </div>
+    <div class="panel-block">
+      <h2>Available</h2>
+      <div class="available-cmds">
+        <code>ls</code> &middot; <code>cat</code> &middot; <code>file</code> &middot; <code>strings</code> &middot; <code>grep</code> &middot; <code>find</code> &middot; <code>xxd</code> &middot; <code>help</code> &middot; <code>clear</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="submit-row">
+  <label for="flag-input">Submit flag:</label>
+  <input
+    type="text"
+    id="flag-input"
+    class="flag-input"
+    placeholder="FLAG{...}  (unlocks at 3/3 discoveries)"
+    autocomplete="off"
+    spellcheck="false"
+    disabled
+  />
+  <button id="submit-btn" disabled>Submit</button>
+  <div class="submit-feedback" id="submit-feedback"></div>
+</div>
+
+<div class="success-card" id="success-card" aria-live="polite">
+  <h2>FLAG ACCEPTED</h2>
+  <div>You used the toolbox. Each of the three hides matched a different command:</div>
+  <div class="flag-shown" id="flag-shown"></div>
+  <ul style="margin-top: 0.5rem; padding-left: 1.4rem; font-size: 0.85rem; color: var(--text); line-height: 1.6;">
+    <li>Hide A &mdash; embedded ASCII inside a binary, found with <code>strings</code></li>
+    <li>Hide B &mdash; a misnamed file, found with <code>file</code> + <code>cat</code></li>
+    <li>Hide C &mdash; split across two files, found with <code>find -name</code> + <code>cat</code></li>
+  </ul>
+  <div class="debrief">
+    Every Forensics or Reverse Engineering CTF starts with one of these moves.
+    Now they're muscle memory.
+  </div>
+</div>
+
+<div class="footer-nav">
+  <a href="../README.md">F16 README</a> &middot; <a href="../../README.md">Foundation Track</a>
+</div>
+
+<script>
+'use strict';
+
+/* =====================================================================
+   Filesystem — flat object literal: filename -> { type, content, magic }
+   - 'text' files: content is a JS string (printable text)
+   - 'binary' files: content is a Uint8Array (raw bytes; xxd/strings work)
+
+   Sub-flag pieces (kept here in code so the SOURCE doesn't reveal the
+   final flag — the flag is computed via SHA-256 at submit time):
+     piece_a:  strings_in_binaries        (embedded inside mystery.bin)
+     piece_b:  trust_bytes_not_names      (cat of runme.exe)
+     piece_c:  and_pipes_chain_them       (split: and_pipes_ + chain_them)
+
+   The literal final flag string never appears in this source. The kid's
+   only path to it is to discover all three pieces, concatenate, and hash.
+   ===================================================================== */
+
+// Helper to build a binary file with magic bytes + filler + an embedded
+// ASCII string somewhere in the middle. Returns a Uint8Array.
+function makeBinary(magic, embedded, totalSize) {
+  var bytes = new Uint8Array(totalSize);
+  // Magic bytes at the start
+  for (var i = 0; i < magic.length; i++) bytes[i] = magic[i];
+  // Pseudo-random filler (deterministic, no Math.random in scripts)
+  // Use a tiny LCG seeded by the file's length so this file always
+  // looks the same. Range 0-255, mostly non-printable.
+  var seed = totalSize ^ 0x5A;
+  for (var j = magic.length; j < bytes.length; j++) {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    bytes[j] = seed & 0xff;
+  }
+  // Drop the embedded ASCII run at offset ~80
+  if (embedded) {
+    var runStart = 80;
+    for (var k = 0; k < embedded.length && runStart + k < bytes.length; k++) {
+      bytes[runStart + k] = embedded.charCodeAt(k);
+    }
+    // Null terminator after the run, so strings() sees it as a clean run
+    if (runStart + embedded.length < bytes.length) {
+      bytes[runStart + embedded.length] = 0x00;
+    }
+  }
+  return bytes;
+}
+
+// Magic byte sequences (read these at file() time)
+var MAGIC_ELF = [0x7F, 0x45, 0x4C, 0x46];      // ELF
+var MAGIC_PNG = [0x89, 0x50, 0x4E, 0x47];      // PNG
+var MAGIC_ZIP = [0x50, 0x4B, 0x03, 0x04];      // ZIP
+
+var FILESYSTEM = {
+  'README.md': {
+    type: 'text',
+    content:
+      '# Mystery USB\n' +
+      '\n' +
+      'Whoever you are, you found this drive. There are 15 files here.\n' +
+      'Three of them, between them, hold the flag.\n' +
+      '\n' +
+      'I left clues. Read them carefully.\n' +
+      '\n' +
+      '  - The "binary" files have readable text inside them. Use strings.\n' +
+      '  - One file lies about what it is. Use file to check, then cat.\n' +
+      '  - Two files have a word in common. Use find.\n' +
+      '\n' +
+      '-- A Friend\n'
+  },
+
+  'notes.txt': {
+    type: 'text',
+    content:
+      'todo:\n' +
+      '  - finish report\n' +
+      '  - email professor\n' +
+      '  - figure out what `mystery.bin` is\n' +
+      '\n' +
+      'reminder: file does not trust filenames. always run `file` first.\n'
+  },
+
+  'todo.md': {
+    type: 'text',
+    content:
+      '# Things To Do\n' +
+      '\n' +
+      '- [ ] grocery shopping\n' +
+      '- [ ] return library books\n' +
+      '- [x] solve the puzzle on the USB stick\n' +
+      '\n' +
+      '_(this is a distractor. nothing to see here.)_\n'
+  },
+
+  'mystery.bin': {
+    type: 'binary',
+    // ELF magic + filler + embedded "FLAG_PIECE_A:strings_in_binaries"
+    // The kid finds this with `strings mystery.bin` and grep'ing FLAG.
+    content: makeBinary(
+      MAGIC_ELF,
+      'FLAG_PIECE_A:strings_in_binaries',
+      256
+    )
+  },
+
+  'archive.zip': {
+    type: 'binary',
+    // ZIP magic + filler — distractor binary, no embedded flag
+    content: makeBinary(MAGIC_ZIP, 'just-a-distractor-zip', 200)
+  },
+
+  'avatar.png': {
+    type: 'binary',
+    // PNG magic + filler — distractor
+    content: makeBinary(MAGIC_PNG, 'avatar-image-data', 180)
+  },
+
+  // Hide B — misnamed file. Looks like an .exe but it's plain ASCII.
+  // The kid runs `file runme.exe` -> "ASCII text", then `cat` reveals it.
+  'runme.exe': {
+    type: 'text',
+    content:
+      'Don\'t run this. It\'s not a real executable.\n' +
+      '\n' +
+      'I named it `runme.exe` so anyone who saw it would either:\n' +
+      '  (a) panic and skip it, or\n' +
+      '  (b) try to "run" it and get nothing useful.\n' +
+      '\n' +
+      'But you ran `file runme.exe` and it told you the truth:\n' +
+      'this is plain ASCII text. So you ran `cat` and now you can read it.\n' +
+      '\n' +
+      'Trust the bytes, not the names.\n' +
+      '\n' +
+      'FLAG_PIECE_B:trust_bytes_not_names\n'
+  },
+
+  // Hide C — split across two files found by `find . -name "*piece*"`
+  'fragments-of-piece-1.dat': {
+    type: 'text',
+    content:
+      'piece 1 of 2\n' +
+      '\n' +
+      'concat with piece 2 in order to recover this part of the flag.\n' +
+      '\n' +
+      'FLAG_PIECE_C_HALF1:and_pipes_'
+  },
+  'fragments-of-piece-2.dat': {
+    type: 'text',
+    content:
+      'piece 2 of 2\n' +
+      '\n' +
+      'piece 1 ended with an underscore. Add this onto the end.\n' +
+      '\n' +
+      'FLAG_PIECE_C_HALF2:chain_them'
+  },
+
+  // Distractors — make ls feel populated.
+  'config.cfg': {
+    type: 'text',
+    content:
+      '# config\n' +
+      'mode = ascii\n' +
+      'verbose = false\n' +
+      'log_level = info\n'
+  },
+  'log.txt': {
+    type: 'text',
+    content:
+      '2024-09-15 INFO  startup\n' +
+      '2024-09-15 INFO  loaded 14 files\n' +
+      '2024-09-15 INFO  ready\n' +
+      '2024-09-15 WARN  unrecognized magic in mystery.bin\n' +
+      '2024-09-15 WARN  runme.exe does not look like an executable\n' +
+      '2024-09-16 INFO  shutdown\n'
+  },
+  'cat-photo.txt': {
+    type: 'text',
+    content:
+      '   /\\_/\\\n' +
+      '  ( o.o )\n' +
+      '   > ^ <\n' +
+      '\n' +
+      '(this is a cat. cat the file is unrelated to the cat the animal.)\n'
+  },
+  'data.bin': {
+    type: 'binary',
+    content: makeBinary(MAGIC_ELF, 'distractor-elf-binary-no-flag-here', 220)
+  },
+  'photo.png': {
+    type: 'binary',
+    content: makeBinary(MAGIC_PNG, 'just-a-png-no-secrets', 196)
+  },
+  'index.txt': {
+    type: 'text',
+    content:
+      'index of files on this USB:\n' +
+      '\n' +
+      '  README.md, notes.txt, todo.md, runme.exe,\n' +
+      '  mystery.bin, archive.zip, avatar.png, data.bin, photo.png,\n' +
+      '  fragments-of-piece-1.dat, fragments-of-piece-2.dat,\n' +
+      '  config.cfg, log.txt, cat-photo.txt, index.txt\n' +
+      '\n' +
+      'count: 15\n'
+  }
+};
+
+/* =====================================================================
+   Discovery tracker.
+   Each piece has a flag (boolean) AND a value. The kid never sees the
+   value directly until they earn it via the right command. We tag the
+   sub-flag in the OUTPUT itself (the kid sees "FLAG_PIECE_A:..." text)
+   and use that observation event to flip the discovery pip.
+   ===================================================================== */
+var DISCOVERIES = {
+  pieceA: { found: false, value: 'strings_in_binaries' },
+  pieceB: { found: false, value: 'trust_bytes_not_names' },
+  pieceC: { found: false, value: 'and_pipes_chain_them' }
+};
+
+// Bookkeeping for piece C — both halves must be cat-ed for the discovery
+// to fire. Kept OFF FILESYSTEM (so it doesn't pollute Object.keys when
+// commands iterate the filesystem).
+var SEEN_HALVES = { half1: false, half2: false };
+
+function markDiscovery(which) {
+  if (DISCOVERIES[which].found) return false;
+  DISCOVERIES[which].found = true;
+  return true;
+}
+
+function discoveryCount() {
+  var n = 0;
+  if (DISCOVERIES.pieceA.found) n++;
+  if (DISCOVERIES.pieceB.found) n++;
+  if (DISCOVERIES.pieceC.found) n++;
+  return n;
+}
+
+function refreshDiscoveryUI() {
+  var c = discoveryCount();
+  document.getElementById('pip-1').classList.toggle('found', DISCOVERIES.pieceA.found);
+  document.getElementById('pip-2').classList.toggle('found', DISCOVERIES.pieceB.found);
+  document.getElementById('pip-3').classList.toggle('found', DISCOVERIES.pieceC.found);
+  document.getElementById('disc-label').textContent = c + ' of 3 found';
+  if (c === 3) {
+    var fi = document.getElementById('flag-input');
+    var sb = document.getElementById('submit-btn');
+    fi.disabled = false;
+    sb.disabled = false;
+    fi.placeholder = 'FLAG{...}';
+    if (!fi.value) fi.focus();
+  }
+}
+
+/* =====================================================================
+   Scrollback DOM helpers.
+   All output is appended via textContent — never innerHTML. Each line
+   is a child <span class="line"> so we can color individual lines.
+   ===================================================================== */
+var scrollback = document.getElementById('scrollback');
+
+function appendLine(text, cls) {
+  var line = document.createElement('span');
+  line.className = 'line' + (cls ? ' ' + cls : '');
+  line.textContent = text;
+  scrollback.appendChild(line);
+  scrollback.scrollTop = scrollback.scrollHeight;
+}
+
+function appendPromptLine(typed) {
+  var line = document.createElement('span');
+  line.className = 'line prompt-line';
+  var p = document.createElement('span');
+  p.className = 'prompt';
+  p.textContent = 'user@usb-mystery:~$ ';
+  var t = document.createElement('span');
+  t.className = 'typed';
+  t.textContent = typed;
+  line.appendChild(p);
+  line.appendChild(t);
+  scrollback.appendChild(line);
+  scrollback.scrollTop = scrollback.scrollHeight;
+}
+
+function appendOutput(text, cls) {
+  if (!text && text !== 0) return;
+  var lines = String(text).split('\n');
+  for (var i = 0; i < lines.length; i++) {
+    appendLine(lines[i], 'output' + (cls ? ' ' + cls : ''));
+  }
+}
+
+function clearScrollback() {
+  while (scrollback.firstChild) scrollback.removeChild(scrollback.firstChild);
+}
+
+/* =====================================================================
+   Command implementations.
+   Each returns a string (or array of strings) to print, plus optional
+   side effects on DISCOVERIES. The dispatcher below calls them.
+   ===================================================================== */
+
+// --- ls ---
+function cmd_ls(args) {
+  var names = Object.keys(FILESYSTEM).sort();
+  if (args.indexOf('-l') !== -1 || args.indexOf('-la') !== -1) {
+    var rows = names.map(function (n) {
+      var f = FILESYSTEM[n];
+      var size = f.type === 'text' ? f.content.length : f.content.length;
+      var kind = f.type === 'text' ? 'text' : 'data';
+      return pad(kind, 6) + pad(String(size), 6) + n;
+    });
+    return rows.join('\n');
+  }
+  // Default: column layout (3 across)
+  var cols = 3;
+  var rowsOut = [];
+  for (var i = 0; i < names.length; i += cols) {
+    rowsOut.push(
+      names.slice(i, i + cols)
+        .map(function (n) { return pad(n, 28); })
+        .join('')
+        .replace(/\s+$/, '')
+    );
+  }
+  return rowsOut.join('\n');
+}
+
+function pad(s, n) {
+  s = String(s);
+  while (s.length < n) s += ' ';
+  return s;
+}
+
+// --- cat ---
+function cmd_cat(args) {
+  if (args.length === 0) {
+    return { text: 'cat: missing file argument', cls: 'error' };
+  }
+  var name = args[0];
+  var f = FILESYSTEM[name];
+  if (!f) return { text: 'cat: ' + name + ': No such file or directory', cls: 'error' };
+  if (f.type === 'binary') {
+    return {
+      text:
+        'cat: ' + name + ': this file looks binary.\n' +
+        '     Try `xxd ' + name + '` (raw bytes) or `strings ' + name + '` (readable text).',
+      cls: 'warn'
+    };
+  }
+  // Text — print and check for sub-flag tags.
+  var out = f.content;
+  // Discovery: piece B revealed by cat of runme.exe (only if file said it was text first — but
+  // we'll be lenient; the discovery condition is "you opened the file with cat AND it contained
+  // FLAG_PIECE_B"). It's fine if a kid gets there by intuition.
+  if (out.indexOf('FLAG_PIECE_B:') !== -1) {
+    if (markDiscovery('pieceB')) {
+      refreshDiscoveryUI();
+      return { text: out, cls: 'discovery', flash: true };
+    }
+  }
+  // Discovery: piece C halves
+  if (out.indexOf('FLAG_PIECE_C_HALF1:') !== -1 || out.indexOf('FLAG_PIECE_C_HALF2:') !== -1) {
+    // Only mark when BOTH halves have been seen
+    if (!SEEN_HALVES.half1 && out.indexOf('FLAG_PIECE_C_HALF1:') !== -1) {
+      SEEN_HALVES.half1 = true;
+    }
+    if (!SEEN_HALVES.half2 && out.indexOf('FLAG_PIECE_C_HALF2:') !== -1) {
+      SEEN_HALVES.half2 = true;
+    }
+    if (SEEN_HALVES.half1 && SEEN_HALVES.half2) {
+      if (markDiscovery('pieceC')) {
+        refreshDiscoveryUI();
+        return { text: out, cls: 'discovery', flash: true };
+      }
+    }
+  }
+  return out;
+}
+
+// --- file ---
+function cmd_file(args) {
+  if (args.length === 0) {
+    return { text: 'file: missing file argument\nusage: file <filename>', cls: 'error' };
+  }
+  var name = args[0];
+  var f = FILESYSTEM[name];
+  if (!f) return { text: 'file: ' + name + ': No such file or directory', cls: 'error' };
+  if (f.type === 'text') {
+    return name + ': ASCII text';
+  }
+  // binary — sniff magic
+  var b = f.content;
+  if (b.length >= 4) {
+    if (b[0] === 0x7F && b[1] === 0x45 && b[2] === 0x4C && b[3] === 0x46) {
+      return name + ': ELF 64-bit executable';
+    }
+    if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47) {
+      return name + ': PNG image data';
+    }
+    if (b[0] === 0x50 && b[1] === 0x4B && b[2] === 0x03 && b[3] === 0x04) {
+      return name + ': ZIP archive data';
+    }
+  }
+  return name + ': data';
+}
+
+// --- strings ---
+// Walk the bytes, collect runs of printable ASCII (0x20–0x7E) of length >= 4.
+function cmd_strings(args) {
+  if (args.length === 0) {
+    return { text: 'strings: missing file argument', cls: 'error' };
+  }
+  var name = args[0];
+  var f = FILESYSTEM[name];
+  if (!f) return { text: 'strings: ' + name + ': No such file or directory', cls: 'error' };
+  var bytes;
+  if (f.type === 'text') {
+    // For text files, strings is basically a no-op — return the content split by newlines.
+    return f.content;
+  }
+  bytes = f.content;
+  var runs = [];
+  var current = '';
+  for (var i = 0; i < bytes.length; i++) {
+    var c = bytes[i];
+    if (c >= 0x20 && c <= 0x7E) {
+      current += String.fromCharCode(c);
+    } else {
+      if (current.length >= 4) runs.push(current);
+      current = '';
+    }
+  }
+  if (current.length >= 4) runs.push(current);
+  // Discovery: piece A — runs containing FLAG_PIECE_A
+  var hitPieceA = false;
+  for (var j = 0; j < runs.length; j++) {
+    if (runs[j].indexOf('FLAG_PIECE_A:') !== -1) {
+      hitPieceA = true;
+      break;
+    }
+  }
+  if (hitPieceA && markDiscovery('pieceA')) {
+    refreshDiscoveryUI();
+    return { text: runs.join('\n'), cls: 'discovery', flash: true };
+  }
+  return runs.join('\n') || '(no printable runs of length >= 4)';
+}
+
+// --- grep ---
+function cmd_grep(args) {
+  // Minimal grep: support -i (case-insensitive), -r (recursive). No regex.
+  var caseI = false;
+  var recursive = false;
+  var rest = [];
+  for (var i = 0; i < args.length; i++) {
+    if (args[i] === '-i') caseI = true;
+    else if (args[i] === '-r' || args[i] === '-R') recursive = true;
+    else if (args[i] === '-ir' || args[i] === '-ri') { caseI = true; recursive = true; }
+    else rest.push(args[i]);
+  }
+  if (rest.length === 0) {
+    return { text: 'grep: missing pattern\nusage: grep <pattern> <file>  or  grep -r <pattern> .', cls: 'error' };
+  }
+  var pattern = rest[0];
+  var hay = rest.slice(1);
+  if (recursive && (hay.length === 0 || hay[0] === '.')) {
+    hay = Object.keys(FILESYSTEM);
+  }
+  if (hay.length === 0) {
+    return { text: 'grep: missing file argument', cls: 'error' };
+  }
+  var matches = [];
+  for (var k = 0; k < hay.length; k++) {
+    var n = hay[k];
+    var f = FILESYSTEM[n];
+    if (!f) {
+      matches.push('grep: ' + n + ': No such file or directory');
+      continue;
+    }
+    var content;
+    if (f.type === 'text') content = f.content;
+    else {
+      // Binary: if a match exists in the bytes, just say "binary file matches"
+      // (This is what real grep does without -a.)
+      var bin = f.content;
+      var hit = false;
+      // Naive search across the byte stream for the pattern's ASCII codes
+      var pat = caseI ? pattern.toLowerCase() : pattern;
+      var window = '';
+      for (var bi = 0; bi < bin.length; bi++) {
+        var bc = bin[bi];
+        var ch = (bc >= 0x20 && bc <= 0x7E) ? String.fromCharCode(bc) : ' ';
+        window += ch;
+        if (window.length > pat.length) window = window.slice(window.length - pat.length);
+        var win = caseI ? window.toLowerCase() : window;
+        if (win === pat) { hit = true; break; }
+      }
+      if (hit) matches.push('Binary file ' + n + ' matches');
+      continue;
+    }
+    var lines = content.split('\n');
+    for (var li = 0; li < lines.length; li++) {
+      var line = lines[li];
+      var test = caseI ? line.toLowerCase() : line;
+      var pat2 = caseI ? pattern.toLowerCase() : pattern;
+      if (test.indexOf(pat2) !== -1) {
+        if (hay.length > 1) matches.push(n + ':' + line);
+        else matches.push(line);
+      }
+    }
+  }
+  return matches.length ? matches.join('\n') : '';
+}
+
+// --- find ---
+// Supported syntaxes:
+//   find . -name "<pattern>"
+//   find -name "<pattern>"
+//   find . -name <pattern>     (unquoted; we don't expand)
+function cmd_find(args) {
+  if (args.length === 0) {
+    return Object.keys(FILESYSTEM).sort().map(function (n) { return './' + n; }).join('\n');
+  }
+  // Skip leading "." path
+  var idx = 0;
+  if (args[0] === '.' || args[0] === './') idx++;
+  if (idx >= args.length) {
+    return Object.keys(FILESYSTEM).sort().map(function (n) { return './' + n; }).join('\n');
+  }
+  if (args[idx] !== '-name' && args[idx] !== '-iname') {
+    return { text: 'find: only -name (and -iname) is supported in this simulator.\nusage: find . -name "<pattern>"', cls: 'error' };
+  }
+  var caseI = (args[idx] === '-iname');
+  var pat = args[idx + 1];
+  if (!pat) return { text: 'find: -name requires an argument', cls: 'error' };
+  // Strip surrounding quotes if any (the parser should already have done this, but be safe)
+  if ((pat.charAt(0) === '"' && pat.charAt(pat.length - 1) === '"') ||
+      (pat.charAt(0) === "'" && pat.charAt(pat.length - 1) === "'")) {
+    pat = pat.slice(1, -1);
+  }
+  // Convert glob -> regex: * -> .* , ? -> . , otherwise literal.
+  var re = '^' + pat.split('').map(function (ch) {
+    if (ch === '*') return '.*';
+    if (ch === '?') return '.';
+    return ch.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+  }).join('') + '$';
+  var rx = new RegExp(re, caseI ? 'i' : '');
+  var hits = [];
+  var names = Object.keys(FILESYSTEM).sort();
+  for (var i = 0; i < names.length; i++) {
+    if (rx.test(names[i])) hits.push('./' + names[i]);
+  }
+  return hits.length ? hits.join('\n') : '';
+}
+
+// --- xxd ---
+// Hex dump, 16 bytes per row, with offset + hex + ASCII columns.
+// Truncate to first 256 bytes for readability.
+function cmd_xxd(args) {
+  if (args.length === 0) {
+    return { text: 'xxd: missing file argument', cls: 'error' };
+  }
+  var name = args[0];
+  var f = FILESYSTEM[name];
+  if (!f) return { text: 'xxd: ' + name + ': No such file or directory', cls: 'error' };
+  var bytes;
+  if (f.type === 'text') {
+    bytes = new Uint8Array(f.content.length);
+    for (var ci = 0; ci < f.content.length; ci++) bytes[ci] = f.content.charCodeAt(ci) & 0xff;
+  } else {
+    bytes = f.content;
+  }
+  var maxBytes = Math.min(bytes.length, 256);
+  var rows = [];
+  for (var off = 0; off < maxBytes; off += 16) {
+    var hexParts = [];
+    var asciiParts = [];
+    for (var k = 0; k < 16; k++) {
+      var pos = off + k;
+      if (pos < maxBytes) {
+        var b = bytes[pos];
+        hexParts.push(b.toString(16).padStart(2, '0'));
+        asciiParts.push((b >= 0x20 && b <= 0x7E) ? String.fromCharCode(b) : '.');
+      } else {
+        hexParts.push('  ');
+        asciiParts.push(' ');
+      }
+    }
+    // xxd groups 2 bytes per chunk, separated by space; then a wide gap before ASCII
+    var hexCol = '';
+    for (var hi = 0; hi < hexParts.length; hi += 2) {
+      hexCol += hexParts[hi] + (hexParts[hi + 1] || '') + ' ';
+    }
+    var offsetStr = off.toString(16).padStart(8, '0');
+    rows.push(offsetStr + ': ' + hexCol.trimEnd() + '  ' + asciiParts.join(''));
+  }
+  if (bytes.length > 256) {
+    rows.push('... (' + (bytes.length - 256) + ' more bytes truncated)');
+  }
+  return rows.join('\n');
+}
+
+// --- help ---
+function cmd_help() {
+  return [
+    'Available commands:',
+    '',
+    '  ls                       list files in this directory',
+    '  cat <file>               print the contents of a file',
+    '  file <file>              identify what kind of file it is (by magic bytes)',
+    '  strings <file>           extract printable text runs from a binary',
+    '  grep <pattern> <file>    find lines matching a pattern',
+    '    grep -i <pat> <file>     case-insensitive',
+    '    grep -r <pat> .          search every file in this directory',
+    '  find . -name "<pat>"     find files whose name matches a pattern',
+    '                             use * as a wildcard, e.g. "*piece*"',
+    '  xxd <file>               hex dump the file (first 256 bytes shown)',
+    '  help                     show this help',
+    '  clear                    clear the screen',
+    '',
+    'Discoveries: 0 of 3 found.  Each command type can find one piece.',
+    '  - For piece A: try `strings` on a binary file. Look for FLAG_PIECE_A.',
+    '  - For piece B: one file is misnamed. Use `file` to find it, then `cat`.',
+    '  - For piece C: two files share a word in their name. Use `find . -name`.'
+  ].join('\n');
+}
+
+/* =====================================================================
+   Command parser & dispatcher.
+   Splits by whitespace, respecting "double-quoted" and 'single-quoted'
+   tokens. Returns { cmd, args }.
+   ===================================================================== */
+function tokenize(line) {
+  var tokens = [];
+  var i = 0;
+  while (i < line.length) {
+    while (i < line.length && /\s/.test(line[i])) i++;
+    if (i >= line.length) break;
+    var ch = line[i];
+    if (ch === '"' || ch === "'") {
+      var quote = ch;
+      i++;
+      var t = '';
+      while (i < line.length && line[i] !== quote) {
+        t += line[i];
+        i++;
+      }
+      i++; // skip closing quote
+      tokens.push(t);
+    } else {
+      var w = '';
+      while (i < line.length && !/\s/.test(line[i])) {
+        w += line[i];
+        i++;
+      }
+      tokens.push(w);
+    }
+  }
+  return tokens;
+}
+
+var COMMANDS = {
+  ls: cmd_ls,
+  cat: cmd_cat,
+  file: cmd_file,
+  strings: cmd_strings,
+  grep: cmd_grep,
+  find: cmd_find,
+  xxd: cmd_xxd,
+  help: cmd_help
+};
+
+function execute(line) {
+  var trimmed = line.trim();
+  appendPromptLine(trimmed);
+  if (trimmed === '') return;
+  if (trimmed === 'clear') { clearScrollback(); return; }
+  // Reject pipes politely so the kid knows the simulator's limit.
+  if (trimmed.indexOf('|') !== -1) {
+    appendOutput(
+      'pipes (`|`) are not implemented in this simulator. Run the two commands\n' +
+      'separately and read the output yourself, or use `grep -r` if you wanted\n' +
+      'to search across all files. (Real bash supports pipes — see the lesson.)',
+      'warn'
+    );
+    return;
+  }
+  var tokens = tokenize(trimmed);
+  var cmd = tokens[0];
+  var args = tokens.slice(1);
+  if (!Object.prototype.hasOwnProperty.call(COMMANDS, cmd)) {
+    appendOutput(cmd + ': command not found. Type `help` for the list.', 'error');
+    return;
+  }
+  var result = COMMANDS[cmd](args);
+  if (result == null || result === '') return;
+  if (typeof result === 'string') {
+    appendOutput(result);
+  } else {
+    appendOutput(result.text, result.cls);
+  }
+}
+
+/* =====================================================================
+   Boot — banner + first prompt + idle nudge.
+   ===================================================================== */
+function boot() {
+  appendOutput('USB stick mounted at /mnt/usb-mystery (15 files)', 'output');
+  appendOutput('Type `help` to see available commands. Type `ls` to start looking.', 'output');
+  appendOutput('', 'output');
+  refreshDiscoveryUI();
+}
+
+boot();
+
+var input = document.getElementById('cmd-input');
+input.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') {
+    var line = input.value;
+    input.value = '';
+    execute(line);
+  }
+});
+
+// Idle nudge: if the kid hasn't run anything in 60s and discoveries = 0,
+// surface a one-line hint in the side panel.
+var commandsRun = 0;
+var nudgeShown = false;
+var origExecute = execute;
+execute = function (line) {
+  origExecute(line);
+  if (line.trim() !== '' && line.trim() !== 'clear') commandsRun++;
+};
+
+setTimeout(function () {
+  if (!nudgeShown && discoveryCount() === 0 && commandsRun === 0) {
+    document.getElementById('nudge').textContent = 'Stuck? Type `help` to see what tools you have.';
+    nudgeShown = true;
+  }
+}, 60000);
+
+/* =====================================================================
+   Submit handler.
+   The flag is the three pieces concatenated, wrapped in FLAG{...}:
+       FLAG{<piece_a>_<piece_b>_<piece_c>}
+   That's straightforward concatenation work — no hashing required for the
+   kid. The submit button stays disabled until all three discoveries are
+   recorded, so a kid who tries to view-source the flag still has to run
+   the commands first.
+   ===================================================================== */
+function expectedFlag() {
+  return 'FLAG{' +
+    DISCOVERIES.pieceA.value + '_' +
+    DISCOVERIES.pieceB.value + '_' +
+    DISCOVERIES.pieceC.value + '}';
+}
+
+document.getElementById('submit-btn').addEventListener('click', function () {
+  var fi = document.getElementById('flag-input');
+  var fb = document.getElementById('submit-feedback');
+  var guess = fi.value.trim();
+  if (!guess) {
+    fb.className = 'submit-feedback error';
+    fb.textContent = 'Type the flag in the box first.';
+    return;
+  }
+  if (discoveryCount() < 3) {
+    fb.className = 'submit-feedback error';
+    fb.textContent = 'You haven\'t found all three pieces yet. Discoveries: ' + discoveryCount() + '/3.';
+    return;
+  }
+  var expected = expectedFlag();
+  if (guess === expected) {
+    fb.className = 'submit-feedback success';
+    fb.textContent = 'Flag accepted.';
+    var sc = document.getElementById('success-card');
+    sc.classList.add('visible');
+    document.getElementById('flag-shown').textContent = expected;
+    sc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    fi.disabled = true;
+    document.getElementById('submit-btn').disabled = true;
+  } else {
+    fb.className = 'submit-feedback error';
+    if (guess.toUpperCase().indexOf('FLAG{') === 0 && guess.endsWith('}')) {
+      fb.textContent = 'Right shape, wrong contents. Concatenate the three pieces (A then B then C) with underscores between them: FLAG{<piece-a>_<piece-b>_<piece-c>}.';
+    } else {
+      fb.textContent = 'Not quite. The flag has the shape FLAG{...}. Concatenate piece A, B, C in order, with underscores between them.';
+    }
+  }
+});
+
+document.getElementById('flag-input').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') document.getElementById('submit-btn').click();
+});
+</script>
+</body>
+</html>

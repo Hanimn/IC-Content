@@ -1,6 +1,6 @@
 # Foundation Track
 
-**16 modules · Prerequisites for CTF challenges across all five categories**
+**17 modules · Prerequisites for CTF challenges across all five categories**
 
 Before diving into CTF challenges, you need to know how computers work, how the internet works, how data is stored, and how secrets are kept and broken. This track covers all of it — no experience required.
 
@@ -26,12 +26,13 @@ Before diving into CTF challenges, you need to know how computers work, how the 
 | [F13](F13-three-languages/) | Three Languages, One Page | HTML / CSS / JavaScript | Phase 1 Web Modules |
 | [F14](F14-one-way-door/) | The One-Way Door | Hashing, SHA-256, file integrity | Crypto, Forensics |
 | [F15](F15-picture-knew-too-much/) | The Picture That Knew Too Much | EXIF metadata, LSB steganography | Forensics |
+| [F16](F16-terminal-is-just-a-text-box/) | The Terminal Is Just A Text Box | Unix CLI: file, strings, cat, grep, find, xxd | Forensics, RE, BinExp (any non-Web CTF) |
 
 ---
 
 ## Choose Your Learning Path
 
-You don't have to do all 16 modules before starting challenges. Pick the path that matches your goal.
+You don't have to do all 17 modules before starting challenges. Pick the path that matches your goal.
 
 ### Brand New to Computers? Start at F00
 If you've used iPads, Chromebooks, and websites but have never thought about what's underneath — start at F00. It introduces files, programs, the browser, servers, source code, and the keyboard shortcuts every later module assumes you know.
@@ -59,10 +60,10 @@ F01–F04 cover DNS, IP addresses, HTTP, and status codes. F13 covers HTML/CSS/J
 Forensics challenges involve digging through files, images, and data to find hidden information:
 
 ```
-F00 → F05 → F06 → F07 → F08 → F14 → F15
+F00 → F05 → F06 → F07 → F08 → F14 → F15 → F16
 ```
 
-Build up from number systems and hex (F05–F06), file formats (F07), encoding (F08), then add file integrity verification (F14) and metadata + steganography (F15).
+Build up from number systems and hex (F05–F06), file formats (F07), encoding (F08), then add file integrity verification (F14) and metadata + steganography (F15). F16 — the Unix CLI toolbox — comes last because it lets you actually run `file`, `strings`, `xxd`, and `grep` against real artifacts. Without F16 the earlier lessons are conceptual; with F16 they become operational.
 
 ---
 
@@ -81,10 +82,10 @@ Build from binary/hex (F05–F06), encoding (F08), classical ciphers (F09), XOR 
 RE challenges involve reading code, understanding compiled programs, and extracting information from binaries:
 
 ```
-F00 → F05 → F06 → F08 → F11
+F00 → F05 → F06 → F08 → F11 → F16
 ```
 
-Number systems and encoding are the foundation. F11 then connects them to actual programs — what compilation produces, why strings still survive, and how to find them.
+Number systems and encoding are the foundation. F11 then connects them to actual programs — what compilation produces, why strings still survive, and how to find them. F16 puts you in front of a terminal so you can run `strings`, `file`, and `grep` for real instead of by hand.
 
 ---
 
@@ -92,10 +93,10 @@ Number systems and encoding are the foundation. F11 then connects them to actual
 Binary exploitation involves manipulating how programs execute — overflows, shellcode, memory corruption:
 
 ```
-F00 → F05 → F06 → F10 → F11 → F12
+F00 → F05 → F06 → F10 → F11 → F12 → F16
 ```
 
-You need binary arithmetic, hex, XOR, the source-vs-binary distinction (F11), and a memory model with the stack (F12) before any real BinExp module makes sense.
+You need binary arithmetic, hex, XOR, the source-vs-binary distinction (F11), and a memory model with the stack (F12) before any real BinExp module makes sense. F16 then gives you the shell every BinExp tutorial assumes (running `xxd`, `strings`, `objdump` is daily life in this category).
 
 ---
 
@@ -232,6 +233,7 @@ Each module has a challenge with a flag. Collect them all.
 | F13 | `FLAG{html_css_js_three_layers}` |
 | F14 | `FLAG{75236d9b9eb82460}` (derived at runtime from `sha256("orion-gui-binary")[:16]`) |
 | F15 | `FLAG{look_in_the_metadata_and_below_the_pixels}` |
+| F16 | `FLAG{strings_in_binaries_trust_bytes_not_names_and_pipes_chain_them}` |
 
 ---
 
