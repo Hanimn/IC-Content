@@ -1,1 +1,0 @@
-FLAG{change-me-F12-kebab}
