@@ -253,6 +253,6 @@ When you've done it, submit the flag in the input box at the bottom.
 - Try `strings /bin/ls` on a Linux or Mac terminal sometime. Page through the output. You'll recognise function names, error messages, and locale strings — pieces of the program's English vocabulary leaking out.
 - The `-n` flag controls the minimum length. `strings -n 8 /bin/ls` cuts the noise.
 
-**Next:** [F12 — The Computer's Notebook](../F12-the-computers-notebook/README.md)
+**Next:** [F12 — The Computer's Notebook](../F12-computer-notebook/README.md)
 
 F11 taught you that compiled programs leak readable strings. F12 looks at the *other* place a running program leaks information: memory. Same principle — values stored as bytes, hiding in plain sight.

@@ -1,6 +1,10 @@
 # Solution — F14
 
-**Flag:** `FLAG{hashes_are_fingerprints_not_locks}`
+**Flag:** `FLAG{75236d9b9eb82460}`
+
+> The flag is derived at success time from `SHA-256("orion-gui-binary")`,
+> truncated to the first 16 hex characters. The literal flag string never
+> appears in the page's source — that's the entire point of the redesign.
 
 ---
 

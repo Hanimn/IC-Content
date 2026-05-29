@@ -330,7 +330,7 @@
   <div class="flag-reveal" id="flag-reveal">
     <h2>VERIFIED. The tampered file has been identified.</h2>
     <p>You used the avalanche effect of SHA-256 to detect a single-byte change in a binary. That is exactly how every software publisher, every certificate authority, and every blockchain in the world catches tampering.</p>
-    <div class="flag-text" id="flag-text">FLAG{hashes_are_fingerprints_not_locks}</div>
+    <div class="flag-text" id="flag-text"></div>
     <p>A hash is not a lock. It is a fingerprint — and the smallest change in the original leaves a completely different fingerprint behind.</p>
     <p><a class="next-link" href="../../F15-picture-knew-too-much/README.md">Continue to F15 — The Picture That Knew Too Much →</a></p>
   </div>
@@ -345,8 +345,16 @@
 <script>
   'use strict';
 
-  const FLAG = 'FLAG{hashes_are_fingerprints_not_locks}';
+  // The flag for this challenge is DERIVED from the SHA-256 of the
+  // tampered filename — the very thing the lesson is teaching. We never
+  // store the literal flag string anywhere in this script, so View-Source
+  // doesn't hand it out. The flag is computed at the moment of success.
   const TAMPERED_FILENAME = 'orion-gui-binary';
+
+  async function deriveFlag(filename) {
+    const fullHash = await sha256Hex(filename);
+    return 'FLAG{' + fullHash.slice(0, 16) + '}';
+  }
 
   async function sha256Hex(text) {
     const buf = new TextEncoder().encode(text);
@@ -538,7 +546,7 @@
   const flagReveal = document.getElementById('flag-reveal');
   const flagText = document.getElementById('flag-text');
 
-  submitBtn.addEventListener('click', () => {
+  submitBtn.addEventListener('click', async () => {
     const guess = filenameInput.value.trim();
     if (!guess) {
       submitFeedback.className = 'submit-feedback error';
@@ -548,7 +556,9 @@
     if (guess === TAMPERED_FILENAME) {
       submitFeedback.className = 'submit-feedback success';
       submitFeedback.textContent = 'Correct.';
-      flagText.textContent = FLAG;
+      // Build the flag at success time from the SHA-256 of the filename.
+      // The flag IS hash output — a fitting end for a hashing lesson.
+      flagText.textContent = await deriveFlag(TAMPERED_FILENAME);
       flagReveal.classList.add('shown');
       submitBtn.disabled = true;
       filenameInput.disabled = true;

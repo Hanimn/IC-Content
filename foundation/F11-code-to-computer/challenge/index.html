@@ -620,18 +620,9 @@
 
   /* =====================================================================
      BYTE ARRAY — fake compiled binary "orion" (584 bytes)
-     Embedded strings (in order of appearance):
-       0x020  "Welcome to OrionScan v1.0"
-       0x060  "Usage: orion [options]"
-       0x086  "init"          (decoy, length 4)
-       0x093  "DEBUG"         (decoy, length 5)
-       0x0E0  "FLAG{strings_survive_compilation}"   <-- the flag
-       0x118  "__main"
-       0x140  "ERROR: file not found"
-       0x17A  "v1.0"          (decoy, length 4)
-       0x1A0  "https://debug.orion.local/api"
-       0x1F0  "(c) 2024 Orion Systems"
-     Everything else is non-printable noise (or null padding at the end).
+     Layout (offsets, decoys, the flag location, and the printable runs)
+     is documented in ../solution.md. Don't list the flag here — that
+     defeats the entire challenge.
      ===================================================================== */
   var BYTES = [
     0x7F, 0x45, 0x4C, 0x46, 0x02, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,

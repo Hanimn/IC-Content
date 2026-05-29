@@ -1,6 +1,6 @@
 ---
 title: "ASCII All the Way Down"
-tagline: "### Key Ranges to Memorise"
+tagline: "Every letter you see on a screen is, underneath, just a number — and Base64 is the trick that lets numbers travel as letters."
 time: ""
 tier: "Data & Encoding"
 ---

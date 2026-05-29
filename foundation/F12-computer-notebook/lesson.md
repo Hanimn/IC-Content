@@ -138,17 +138,18 @@ Now the user types `Alexander` (10 characters). The function tries to save all 1
 
 `0x1004 → 0x1007` was the return address.
 
-It is no longer the return address. It now spells `ander` — well, the first 4 bytes of `ander` — interpreted as a number. The original bookmark is gone. When the function tries to return, the CPU obediently reads the new value and jumps to "the address that happens to be the bytes for `ande`."
+It is no longer the return address. It now spells `ande` — the four bytes that landed in the slot, interpreted as a number. The original bookmark is gone. When the function tries to return, the CPU obediently reads the new value and jumps to "the address that happens to be the bytes for `ande`."
 
 That's almost certainly garbage and the program crashes. But notice what really happened: *the user's input controlled the return address.* The CPU jumped wherever the input said.
 
 This is the **picture of a buffer overflow**. It is not a magic spell. It is not a clever exploit, yet. It is the most obvious thing in the world: a slot too small was overrun, and what spilled out landed in the slot next door, and the slot next door was load-bearing.
 
 ```
-  4-byte slot          ┌── return address ──┐
-  ┌────┐               ┌────┐
-  │Alex│ ander         │ander│  ← overwritten
-  └────┘               └────┘
+  4-byte slot         ┌── return address ──┐    next byte
+  ┌────┐              ┌────┐                    ┌─┐
+  │Alex│              │ande│  ← overwritten     │r│  ← spilled
+  └────┘              └────┘                    └─┘
+   0x1000              0x1004                   0x1008
 ```
 
 A real attacker isn't named Alexander. A real attacker types exactly the right bytes to make the return address point to the address of their choice. Code they smuggled in. A library function they want to abuse. The exact mechanism varies by attack — and you'll learn those in Phase 2 — but the *picture* is always this one.

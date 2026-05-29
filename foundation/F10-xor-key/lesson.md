@@ -1,6 +1,6 @@
 ---
 title: "The XOR Key"
-tagline: "### XOR: Exclusive Or"
+tagline: "XOR is the Swiss Army knife of cryptography. Apply it twice and you're back where you started — either a superpower or a fatal flaw."
 time: "~35 min reading + ~30 min challenge"
 tier: "Code & Logic"
 ---
@@ -340,4 +340,4 @@ JavaScript XOR: a ^ b
 
 ---
 
-[← F09](../F09-shifting-secrets/README.md) | [Foundation Track](../README.md) | [Advanced Track →](../../advanced/README.md)
+[← F09](../F09-shifting-secrets/README.md) | [Foundation Track](../README.md) | [F11 →](../F11-code-to-computer/README.md)

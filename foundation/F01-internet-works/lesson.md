@@ -63,9 +63,9 @@ Root Nameserver: "Try the .com nameserver"
     ↓
 .com Nameserver: "Try example.com's nameserver at 205.251.196.1"
     ↓
-example.com Nameserver: "The IP is 93.184.216.34"
+example.com Nameserver: "The IP is 104.20.23.154"
     ↓
-Your browser connects to 93.184.216.34
+Your browser connects to 104.20.23.154
 ```
 
 Each step in the chain is a referral — "I don't know, but I know who does." The **root nameservers** are the top of the hierarchy: there are only 13 sets of them in the world, and they know which nameservers handle each top-level domain (`.com`, `.org`, `.uk`, etc.). The **TLD nameservers** (Top-Level Domain) know which nameservers handle each domain within their zone. The **authoritative nameserver** for a specific domain knows the exact IP addresses for that domain's hosts.
@@ -133,20 +133,27 @@ You can watch DNS in action right now, in your browser, without any special tool
 
 **Step 1:** Open a new browser tab.
 
-**Step 2:** Go to [https://dnschecker.org](https://dnschecker.org). In the search box, type `example.com` and press Enter. You'll see a list of DNS servers around the world, each reporting the IP address they have on record for that domain. The address you'll see is `93.184.216.34` — that's the actual server behind example.com, maintained by IANA as a demonstration domain.
+**Step 2:** Go to [https://dnschecker.org](https://dnschecker.org). In the search box, type `example.com` and press Enter. You'll see a list of DNS servers around the world, each reporting the IP address they have on record for that domain. As of 2026 you'll likely see something starting with `104.20.…` or `172.66.…` — example.com is hosted on Cloudflare's network, and the answer can change as DNS records are updated. The exact number doesn't matter. What matters is: every server in the list returns the *same* answer, and that answer is the address your browser will actually connect to.
 
-**Step 3:** In your browser's address bar, try typing `93.184.216.34` directly — just the number, no `www` or `.com`. Press Enter. You should see the same example.com page load. You just bypassed the DNS lookup entirely. The browser connected directly to the IP address. The domain name was just a convenient label.
+**Step 3:** Now try typing that IP directly into your address bar — just the number, no `www` or `.com`. Press Enter.
 
-**Step 4:** Think about what just happened. When you typed `example.com`, your computer:
+You'll probably *not* see example.com. You might see a different page, an error, a "this site can't provide a secure connection" warning, or nothing at all. **That's not a bug — it's a feature of the modern web.** It teaches you something important:
+
+A single server IP usually hosts many different websites. When you connect by IP alone, the server has no idea *which* of those sites you wanted. The piece of information that says "I want example.com, not someone else hosted on this same machine" is the **Host header** in the HTTP request — and your browser only sends that header when you type the *name*, not the IP. (For HTTPS sites the same role is played by the **SNI** field in the TLS handshake; same idea, earlier in the conversation.)
+
+So the IP gets you to the right *building*. The Host header / SNI tells the front desk which *apartment* you want. Both are needed. F03 will return to this in detail.
+
+**Step 4:** Think about what just happened when you typed `example.com` (the working version). Your computer:
 1. Checked its local cache (probably empty)
 2. Asked a DNS resolver for the IP
-3. Got back `93.184.216.34`
-4. Opened a TCP connection to that address on port 80
-5. Sent an HTTP `GET /` request
-6. Received an HTTP response with the HTML
-7. Rendered the page
+3. Got back something like `104.20.23.154`
+4. Opened a TCP connection to that address on port 443 (HTTPS)
+5. Performed a TLS handshake, including the SNI field announcing `example.com`
+6. Sent an HTTP `GET /` request, including the `Host: example.com` header
+7. Received an HTTP response with the HTML
+8. Rendered the page
 
-And you saw step 3 (the IP) directly when you used dnschecker.org. The rest is invisible — but it happened, every time, in about 50 milliseconds.
+You saw step 3 (the IP) directly when you used dnschecker.org. The rest is invisible — but it happened, every time, in well under a second.
 
 ---
 

@@ -357,4 +357,4 @@ Once you've captured this flag, you're ready for the main web series:
 - **Phase 1 Module 02 — The X-Ray Machine** — introduces DevTools and the live DOM. The DOM section above is exactly what makes this module click.
 - Every Web CTF challenge from this point forward assumes you can read all three languages. You can.
 
-[← F12 — The Computer's Notebook](../F12-computers-notebook/README.md) | [Foundation Track](../README.md) | [Next: F14 →](../F14-one-way-door/README.md)
+[← F12 — The Computer's Notebook](../F12-computer-notebook/README.md) | [Foundation Track](../README.md) | [Next: F14 →](../F14-one-way-door/README.md)

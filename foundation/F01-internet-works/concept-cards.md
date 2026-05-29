@@ -34,9 +34,9 @@ Root Nameserver: "Try the .com nameserver"
     ↓
 .com Nameserver: "Try example.com's nameserver at 205.251.196.1"
     ↓
-example.com Nameserver: "The IP is 93.184.216.34"
+example.com Nameserver: "The IP is 104.20.23.154"
     ↓
-Your browser connects to 93.184.216.34
+Your browser connects to 104.20.23.154
     ↓
 TCP handshake → HTTP request → page loads
 ```
@@ -60,7 +60,7 @@ TCP handshake → HTTP request → page loads
 | `127.0.0.1` | Localhost — your own machine |
 | `8.8.8.8` | Google's public DNS resolver |
 | `1.1.1.1` | Cloudflare's public DNS resolver |
-| `93.184.216.34` | The IP address for `example.com` |
+| `104.20.23.154` | An IP currently behind `example.com` (Cloudflare-hosted; the exact value can change) |
 | Port `80` | Default port for HTTP |
 | Port `443` | Default port for HTTPS |
 

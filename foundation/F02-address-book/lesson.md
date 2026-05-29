@@ -44,7 +44,7 @@ Here are some examples of what IPv4 addresses look like:
 
 ```
 8.8.8.8          — Google's public DNS server
-93.184.216.34    — example.com
+104.20.23.154    — example.com (currently; the value can change)
 192.168.1.1      — a typical home router
 10.0.0.1         — an internal corporate network gateway
 127.0.0.1        — something very special (more on this soon)

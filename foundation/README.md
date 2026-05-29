@@ -230,7 +230,7 @@ Each module has a challenge with a flag. Collect them all.
 | F11 | `FLAG{strings_survive_compilation}` |
 | F12 | `FLAG{the_stack_remembers_where_to_go_back}` |
 | F13 | `FLAG{html_css_js_three_layers}` |
-| F14 | `FLAG{hashes_are_fingerprints_not_locks}` |
+| F14 | `FLAG{75236d9b9eb82460}` (derived at runtime from `sha256("orion-gui-binary")[:16]`) |
 | F15 | `FLAG{look_in_the_metadata_and_below_the_pixels}` |
 
 ---

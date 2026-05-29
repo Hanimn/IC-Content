@@ -43,6 +43,8 @@ F15-picture-knew-too-much/
 
 ## Quick Start
 
+> **Read this first:** [ETHICAL-HACKING-PLEDGE](../../ETHICAL-HACKING-PLEDGE.md). This module teaches you how to extract GPS coordinates from photos and read hidden messages inside images. Both skills are dual-use — they're how forensics analysts find missing children and how stalkers track strangers. Practise on your own files and the demonstration challenge below. Never on someone who didn't agree to be looked at.
+
 1. Read `lesson.md` end-to-end.
 2. Skim `concept-cards.md` to anchor the terms.
 3. Open `challenge/index.html` in your browser. The challenge runs entirely from `file://` — no server needed.

@@ -1,6 +1,6 @@
 ---
 title: "Shifting Secrets"
-tagline: "### What Is a Cipher?"
+tagline: "Julius Caesar encrypted his battle plans with a shift. Modern computers crack it in milliseconds. Let's learn why."
 time: "~25 min reading + ~30 min challenge"
 tier: "Code & Logic"
 ---
@@ -222,4 +222,4 @@ See `challenge/solution.md` for the complete step-by-step walkthrough.
 
 ---
 
-[← F08 — ASCII and Encoding](../F08-ascii-and-encoding/README.md) | [Back to Series](../../README.md) | [F10 — XOR Cipher →](../F10-xor-cipher/README.md)
+[← F08 — ASCII and Encoding](../F08-ascii-and-encoding/README.md) | [Back to Series](../../README.md) | [F10 — The XOR Key →](../F10-xor-key/README.md)

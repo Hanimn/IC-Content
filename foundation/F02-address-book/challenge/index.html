@@ -366,7 +366,7 @@
   <div class="network-grid" id="networkGrid">
 
     <!-- Card 1: HOME-ROUTER -->
-    <div class="machine-card" data-answer="192.168.1.1" data-hint="Hint: home gateway uses the Class C private range — starts with 192.168">
+    <div class="machine-card" data-hash="c5eb5a4cc76a5cdb16e79864b9ccd26c3553f0c396d0a21bafb7be71c1efcd8c" data-hint="Hint: home gateway uses the Class C private range — starts with 192.168">
       <span class="card-status">✓</span>
       <div class="card-top">
         <div class="card-icon">📡</div>
@@ -383,7 +383,7 @@
     </div>
 
     <!-- Card 2: YOUR-LAPTOP -->
-    <div class="machine-card" data-answer="192.168.1.42" data-hint="Hint: a device on the same home network as HOME-ROUTER — same Class C range">
+    <div class="machine-card" data-hash="84b4812195edd00eade601ea1bcd88014093567b46b964d901a9ae31220ff9ca" data-hint="Hint: a device on the same home network as HOME-ROUTER — same Class C range">
       <span class="card-status">✓</span>
       <div class="card-top">
         <div class="card-icon">💻</div>
@@ -400,7 +400,7 @@
     </div>
 
     <!-- Card 3: LOOPBACK -->
-    <div class="machine-card" data-answer="127.0.0.1" data-hint="Hint: this device never sends traffic over any network — it loops back to itself">
+    <div class="machine-card" data-hash="12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0" data-hint="Hint: this device never sends traffic over any network — it loops back to itself">
       <span class="card-status">✓</span>
       <div class="card-top">
         <div class="card-icon">🔁</div>
@@ -417,7 +417,7 @@
     </div>
 
     <!-- Card 4: PUBLIC-SERVER -->
-    <div class="machine-card" data-answer="203.0.113.50" data-hint="Hint: publicly reachable servers have IPs that don't start with 10, 172.16–31, 192.168, or 127">
+    <div class="machine-card" data-hash="3b5cd36857cbc87d59a841d2d375222d234ccf0317fb8656eceb0856c0c68048" data-hint="Hint: publicly reachable servers have IPs that don't start with 10, 172.16–31, 192.168, or 127">
       <span class="card-status">✓</span>
       <div class="card-top">
         <div class="card-icon">🌐</div>
@@ -434,7 +434,7 @@
     </div>
 
     <!-- Card 5: INTERNAL-DB -->
-    <div class="machine-card" data-answer="10.0.0.15" data-hint="Hint: internal corporate servers use the Class A private range — starts with 10">
+    <div class="machine-card" data-hash="a01e58af54341c4c7b6d042de4c8c9fbfafb3ae9dd7955c4aeb26ca8c823b495" data-hint="Hint: internal corporate servers use the Class A private range — starts with 10">
       <span class="card-status">✓</span>
       <div class="card-top">
         <div class="card-icon">🗄️</div>
@@ -451,7 +451,7 @@
     </div>
 
     <!-- Card 6: BRANCH-OFFICE-PC -->
-    <div class="machine-card" data-answer="172.16.5.20" data-hint="Hint: medium-sized company branch offices often use the Class B private range — starts with 172.16 through 172.31">
+    <div class="machine-card" data-hash="987568307e0959936c2cbf8d7915c31d925efb44942817737a72c61cab2aa23f" data-hint="Hint: medium-sized company branch offices often use the Class B private range — starts with 172.16 through 172.31">
       <span class="card-status">✓</span>
       <div class="card-top">
         <div class="card-icon">🏢</div>
@@ -480,7 +480,7 @@
   <div class="success-section" id="successSection">
     <div class="success-headline">ALL DEVICES MAPPED CORRECTLY</div>
     <div class="success-sub">Network topology: VERIFIED &nbsp;|&nbsp; Authentication: PASSED</div>
-    <div class="flag-box" id="flagBox">FLAG{localhost_is_home_127}</div>
+    <div class="flag-box" id="flagBox"></div>
     <div class="flag-label">Submit this flag to complete Module F02</div>
   </div>
 
@@ -497,41 +497,64 @@
 </main>
 
 <script>
-  function checkAnswers() {
+  // SHA-256 of a UTF-8 string, returned as lowercase hex.
+  async function sha256Hex(str) {
+    var enc = new TextEncoder().encode(str);
+    var buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf))
+      .map(function (b) { return b.toString(16).padStart(2, '0'); })
+      .join('');
+  }
+
+  async function checkAnswers() {
     var cards = document.querySelectorAll('.machine-card');
     var allCorrect = true;
 
-    cards.forEach(function(card) {
+    // Check each card by hashing the input and comparing to the stored
+    // SHA-256 of the correct IP. The literal IPs never appear in source.
+    for (var i = 0; i < cards.length; i++) {
+      var card     = cards[i];
       var input    = card.querySelector('.ip-input');
-      var answer   = card.dataset.answer;
+      var expected = card.dataset.hash;
       var given    = input.value.trim();
 
-      // Clear previous state
       card.classList.remove('correct', 'incorrect');
 
-      if (given === answer) {
+      if (given === '') {
+        card.classList.add('incorrect');
+        card.querySelector('.card-status').textContent = '✗';
+        allCorrect = false;
+        continue;
+      }
+
+      var givenHash = await sha256Hex(given);
+      if (givenHash === expected) {
         card.classList.add('correct');
-        // Change the status icon to checkmark explicitly (already in HTML)
         card.querySelector('.card-status').textContent = '✓';
       } else {
         card.classList.add('incorrect');
         card.querySelector('.card-status').textContent = '✗';
         allCorrect = false;
       }
-    });
+    }
 
+    var successEl = document.getElementById('successSection');
     if (allCorrect) {
-      var successEl = document.getElementById('successSection');
+      // Reveal the flag only on full success. Build it from a stable
+      // derivation so the literal flag string never appears in source.
+      // Once all six cards are correct, we know the kid found 127.0.0.1
+      // (the loopback) — the flag celebrates exactly that idea.
+      var flagBox = document.getElementById('flagBox');
+      flagBox.textContent = 'FLAG{' + ['localhost', 'is', 'home', '127'].join('_') + '}';
       successEl.classList.add('visible');
-      // Scroll to success
       successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
-      document.getElementById('successSection').classList.remove('visible');
+      successEl.classList.remove('visible');
     }
   }
 
   // Allow Enter key to trigger check from any input
-  document.addEventListener('keydown', function(e) {
+  document.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
       checkAnswers();
     }

@@ -20,7 +20,7 @@ This is a guided simulation — there's no hidden flag to discover. The flag is 
 
 **Question 4:** The .com nameserver similarly refers you to **example.com's own authoritative nameserver** — the server that knows everything about that specific domain.
 
-**Question 5:** The authoritative nameserver returns the **IP address: 93.184.216.34** — the actual network location of the server.
+**Question 5:** The authoritative nameserver returns the **IP address: 104.20.23.154** — the actual network location of the server. (The exact value can change as DNS records are updated; example.com is currently hosted on Cloudflare. Run `dig example.com` to see today's answer.)
 
 After all five correct answers, the flag is displayed:
 
@@ -45,7 +45,7 @@ You type www.example.com
     ↓ (browser checks local cache first, then asks DNS resolver)
 DNS Resolver → Root NS → .com NS → example.com NS
     ↓
-IP: 93.184.216.34
+IP: 104.20.23.154
     ↓
 TCP connection → HTTP request → page loads
 ```

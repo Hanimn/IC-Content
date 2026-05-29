@@ -16,6 +16,20 @@ The photo knew more than it told you. This module teaches you how to make it tal
 
 ---
 
+## A One-Page Pause Before You Start
+
+This is the most powerful single skill in the Foundation track. By the end of this lesson you'll be able to pull GPS coordinates out of a photo someone took, and read messages hidden inside ordinary-looking images. That ability is exactly what investigators, journalists, and forensics analysts use to do real-world good — and exactly what stalkers and abusers use to hurt people.
+
+The line between those two outcomes is consent. Practise on your own photos. Practise on the demonstration files in this challenge and on public CTF datasets that exist for this purpose. **Don't** run `exiftool` on photos a friend or classmate sent you, on Instagram or TikTok or Discord posts, or on photos you found online of someone who didn't agree to be looked at — even if it's "just curiosity," even if "they posted it publicly," even if you're "not going to do anything with it." That's what doxxing is. The pledge you signed at the start of the curriculum applies hardest right here:
+
+> [ETHICAL-HACKING-PLEDGE](../../ETHICAL-HACKING-PLEDGE.md) — read or re-read it before continuing.
+
+If at any point in the next 2,200 words you feel the impulse to "try this on a real person's photo to see what happens," that's the impulse the pledge is talking about. Stop, close the tab, do something else for ten minutes, and come back when the curiosity points at your own files instead.
+
+---
+
+---
+
 ## Data About Data: Metadata
 
 Every file you've ever opened carries a small bundle of notes that describe the file itself. These notes are called **metadata** — literally "data about data."
@@ -240,7 +254,7 @@ The tools you'll use mirror what real CTF forensics looks like: read the metadat
 
 **What unlocks next:** Phase 2 Forensics modules dive deeper into file-level investigation — recovering deleted files, parsing packet captures, breaking apart malware samples. The picture-investigation skills you've started here scale up directly.
 
-The next time someone sends you a photo, you might find yourself wondering what else is in it.
+The next time you take a photo, you'll know there's a notebook tucked invisibly behind it. The next time you post one, you'll know what's in that notebook before the strangers do. Use the skills on your own files, on public CTF datasets, on the demonstration challenge below — never on someone who didn't agree to be looked at. That's the whole job.
 
 ---
 

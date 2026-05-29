@@ -588,14 +588,42 @@ INSTRUCTOR NOTES:
   });
 
   /* ============================================================
-     Submission check
-     ============================================================
-     The full flag for this module is FLAG{html_css_js_three_layers}
-     — formed by concatenating the three fragments hidden across
-     the HTML, CSS, and JavaScript layers of this page.
+     Submission check.
+
+     The flag is composed at runtime from the three fragments hidden
+     across the HTML, CSS, and JavaScript layers of THIS file. Source
+     order matters. We read each fragment from the live page so the
+     literal flag string never appears in this script — that's the
+     entire point of the challenge.
+
+     - Fragment 1 lives in an HTML comment near the top of the body.
+       It can't be queried from the DOM (browsers don't expose comment
+       text via querySelector). We extract it from document.documentElement.outerHTML.
+     - Fragment 2 lives in a CSS ::before content rule on .carrier.
+       getComputedStyle reads it back.
+     - Fragment 3 is assigned by a click handler into the variable
+       flagPart3 (above) when the kid clicks "Arm fragment 3".
+
+     See ../solution.md for the canonical flag.
      ============================================================ */
 
-  const EXPECTED_FLAG = "FLAG{html_css_js_three_layers}";
+  function readExpectedFlag() {
+    // Fragment 1 — find the "Fragment 1: FLAG{...}" comment in the source.
+    const html = document.documentElement.outerHTML;
+    const m1 = html.match(/Fragment\s+1:\s*(FLAG\{[^\s>-]+)/);
+    const part1 = m1 ? m1[1] : "";
+
+    // Fragment 2 — pseudo-element content on .carrier.
+    const carrier = document.querySelector('.carrier');
+    let part2 = "";
+    if (carrier) {
+      const raw = getComputedStyle(carrier, '::before').content || "";
+      part2 = raw.replace(/^["']|["']$/g, ''); // strip surrounding quotes
+    }
+
+    // Fragment 3 — assigned by the click handler into flagPart3.
+    return part1 + part2 + (flagPart3 || "");
+  }
 
   const input    = document.getElementById('flag-input');
   const submit   = document.getElementById('submit-btn');
@@ -616,11 +644,12 @@ INSTRUCTOR NOTES:
       return;
     }
 
-    if (val === EXPECTED_FLAG) {
+    const expected = readExpectedFlag();
+    if (val === expected) {
       input.classList.add('correct');
       feedback.classList.add('ok');
       feedback.textContent = "Flag accepted.";
-      shown.textContent = EXPECTED_FLAG;
+      shown.textContent = expected;
       success.classList.add('visible');
       success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       submit.disabled = true;

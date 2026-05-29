@@ -46,10 +46,10 @@
 
 ```
 SHA-256("Hello, world.") =
-  315f5bdb76d078c43b8ac0064e4a0164612b1fce77c869345bfc94c75894edd3
+  f8c3bf62a9aa3e6fc1619c250e48abe7519373d3edf41be62eb5dc45199af2ef
 
 SHA-256("Hello, world!") =
-  d9014c4624844aa5bac314773d6b689ad467fa4e1d1a50a1b8a99d5a95f72ff5
+  315f5bdb76d078c43b8ac0064e4a0164612b1fce77c869345bfc94c75894edd3
 ```
 
 One byte different. Outputs share zero structure.

@@ -64,8 +64,8 @@ A hex dump is a standardized way of displaying binary data. Instead of just a wa
 
 ```
 Offset    Hex bytes (16 per row)                       ASCII
-00000000  48 65 6C 6C 6F 2C 20 57  6F 72 6C 64 21 0A  Hello, World!.
-00000010  46 4C 41 47 7B 74 65 73  74 7D 0A 00 00 00  FLAG{test}....
+00000000  48 65 6C 6C 6F 2C 20 57  6F 72 6C 64 21 0A 00 00  Hello, World!...
+00000010  46 4C 41 47 7B 74 65 73  74 7D 0A 00 00 00 00 00  FLAG{test}......
 ```
 
 This layout is so universal that if you work in security for any length of time, you'll see it in hex editors, forensics tools, debuggers, and CTF writeups. Learning to read it is like learning to read a clock — it feels mechanical at first, then becomes instant.
@@ -91,7 +91,7 @@ Why show the offset in hex? Because when you're analyzing a large file or memory
 ### Column 2: The Hex Bytes
 
 ```
-48 65 6C 6C 6F 2C 20 57  6F 72 6C 64 21 0A
+48 65 6C 6C 6F 2C 20 57  6F 72 6C 64 21 0A 00 00
 ```
 
 This is the raw content of the 16 bytes in that row, shown as hex pairs separated by spaces. Notice the slightly larger gap in the middle — that splits the 16 bytes into two groups of 8. It's just for readability. The data is continuous; the visual split is a convention.
@@ -104,7 +104,7 @@ Each two-character group is one byte:
 ### Column 3: The ASCII Column
 
 ```
-Hello, World!.
+Hello, World!...
 ```
 
 This is the same 16 bytes interpreted as ASCII characters. Here's the rule:
@@ -205,8 +205,8 @@ Hex dumps appear in every category of CTF challenges:
 Let's read the example hex dump from earlier, byte by byte.
 
 ```
-00000000  48 65 6C 6C 6F 2C 20 57  6F 72 6C 64 21 0A  Hello, World!.
-00000010  46 4C 41 47 7B 74 65 73  74 7D 0A 00 00 00  FLAG{test}....
+00000000  48 65 6C 6C 6F 2C 20 57  6F 72 6C 64 21 0A 00 00  Hello, World!...
+00000010  46 4C 41 47 7B 74 65 73  74 7D 0A 00 00 00 00 00  FLAG{test}......
 ```
 
 **Row 1 (offset 0x00000000):**
@@ -227,8 +227,10 @@ Let's read the example hex dump from earlier, byte by byte.
 | 64 | 100 | d |
 | 21 | 33 | ! |
 | 0A | 10 | (newline — shows as `.`) |
+| 00 | 0 | (null — `.`) |
+| 00 | 0 | (null — `.`) |
 
-That's 14 bytes on row 1. The row has 16 slots but only 14 bytes were in the file at this point (the file is short).
+That's a full 16 bytes on row 1: the 14-byte `"Hello, World!\n"` payload, followed by two null bytes that pad the rest of the row. `xxd` always shows 16 bytes per row when there's data left in the file — it never leaves blank slots in the middle of a file.
 
 **Row 2 (offset 0x00000010):**
 
@@ -245,6 +247,8 @@ That's 14 bytes on row 1. The row has 16 slots but only 14 bytes were in the fil
 | 74 | 116 | t |
 | 7D | 125 | `}` |
 | 0A | 10 | (newline — `.`) |
+| 00 | 0 | (null — `.`) |
+| 00 | 0 | (null — `.`) |
 | 00 | 0 | (null — `.`) |
 | 00 | 0 | (null — `.`) |
 | 00 | 0 | (null — `.`) |
