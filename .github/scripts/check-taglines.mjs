@@ -30,6 +30,10 @@ const ROOT = process.cwd();
 const TRACK_DIRS = [
   { label: "foundation", dir: path.join(ROOT, "foundation") },
   { label: "modules",    dir: path.join(ROOT, "modules") },
+  // Capstones don't have lesson.md files — they're challenge-only — so the
+  // tagline check is naturally a no-op for them. We include the dir so the
+  // script doesn't surprise-fail if capstones one day adds lesson.mds.
+  { label: "capstones",  dir: path.join(ROOT, "capstones") },
 ];
 const MIN_TAGLINE_LEN = 10;
 

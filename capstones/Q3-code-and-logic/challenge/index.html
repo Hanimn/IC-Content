@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Capstone Q3 — Extract the Embedded Secret (Coming Soon)</title>
+<style>
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --bg: #0e0a06;
+    --panel: #1a1408;
+    --border: #3d2e12;
+    --accent: #c8a870;
+    --text: #e8d5b0;
+    --text-dim: #a09070;
+    --font-mono: 'SF Mono', Menlo, 'Courier New', Courier, monospace;
+  }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--font-mono); font-size: 14px; line-height: 1.6;
+    min-height: 100vh;
+  }
+  body { padding: 2rem 1.5rem; max-width: 720px; margin: 0 auto; }
+  .header {
+    border: 1px solid var(--border); background: var(--panel);
+    padding: 1.5rem; margin-bottom: 1.5rem;
+  }
+  h1 {
+    color: var(--accent);
+    font-size: 1.1rem; font-weight: normal;
+    text-transform: uppercase; letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+  }
+  .tier { color: var(--text-dim); font-size: 0.85rem; }
+  .body p { margin: 0.8rem 0; }
+  .body ul { margin: 0.8rem 0 0.8rem 1.5rem; }
+  .body li { margin: 0.3rem 0; }
+  .body code {
+    color: var(--accent);
+    background: var(--panel);
+    padding: 0.05rem 0.3rem;
+    border-radius: 2px;
+  }
+  .footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>Capstone Q3 — Extract the Embedded Secret</h1>
+    <div class="tier">Tier 3 · Code &amp; Logic · gates after F09–F11</div>
+  </div>
+
+  <div class="body">
+    <p><strong>Coming soon.</strong></p>
+    <p>This capstone will require you to combine the three skills you built in Tier 3 (Code &amp; Logic):</p>
+    <ul>
+      <li><strong>F09</strong> — Caesar cipher / ROT13</li>
+      <li><strong>F10</strong> — XOR encryption with a repeating key</li>
+      <li><strong>F11</strong> — extracting strings from a compiled binary</li>
+    </ul>
+    <p>The challenge: a fake compiled program contains an XOR-encrypted payload. The decryption key is hidden in the program's strings — but it's been Caesar-shifted to throw off a casual reader. You'll <code>strings</code> the binary (F11), recognize the shifted hint, brute-force or eyeball the Caesar shift (F09), then XOR-decrypt the payload to recover the flag (F10).</p>
+    <p>For now, the lesson tier is here but the chained challenge isn't built yet. Come back after the other capstones land — Q1 (Fundamentals) is fully playable in the meantime.</p>
+  </div>
+
+  <div class="footer">
+    <a href="../../Q1-fundamentals/challenge/index.html">← Try Q1 (live)</a> &middot;
+    <a href="../README.md">Q3 README</a> &middot;
+    <a href="../../README.md">All Capstones</a>
+  </div>
+</body>
+</html>

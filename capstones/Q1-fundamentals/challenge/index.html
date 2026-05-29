@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Capstone Q1 — The Mystery Letter</title>
+<!--
+  =====================================================================
+  Capstone Q1 — The Mystery Letter
+  Author:   IC-Content curriculum (audit priority #2 expansion)
+  Version:  1.0
+
+  INSTRUCTOR NOTES: see ../solution.md
+  - The flag is built at submit time from the Tab 4 redirect chain's
+    discovered building name. The literal flag string never appears in
+    this source, so View-Source on the page does not reveal it.
+  - 5 tabs, sequentially gated. Each tab's correct answer becomes the
+    stated input to the next. Wrong answers don't punish — they explain.
+  - Aesthetic: cool steel blue (F03 / web-tier family), monospace for
+    technical readouts.
+  =====================================================================
+-->
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:           #07101e;
+    --bg-panel:     #0a1628;
+    --bg-panel2:    #0e1f3a;
+    --border:       #1f3a5c;
+    --accent:       #7fb8ff;
+    --accent-dim:   #5a8cd0;
+    --text:         #d0e2ff;
+    --text-dim:     #8aa8d0;
+    --good:         #5aab6e;
+    --warn:         #f0c040;
+    --error:        #ff5060;
+    --font-sans:    'SF Pro Text', -apple-system, system-ui, sans-serif;
+    --font-mono:    'SF Mono', Menlo, 'Courier New', Courier, monospace;
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+  body { padding: 1.5rem 1rem 2.5rem; max-width: 920px; margin: 0 auto; }
+
+  /* ── Header ── */
+  .briefing {
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .briefing h1 {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    margin-bottom: 0.6rem;
+  }
+  .briefing .body {
+    color: var(--text);
+    font-size: 0.92rem;
+  }
+  .briefing .body em {
+    color: var(--accent-dim);
+    font-style: italic;
+  }
+  .briefing .body p { margin-top: 0.5rem; }
+
+  /* ── Discoveries strip ── */
+  .discoveries {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    font-size: 0.85rem;
+  }
+  .discoveries .pip {
+    width: 20px; height: 20px;
+    border: 1px solid var(--text-dim);
+    border-radius: 4px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  .discoveries .pip.active {
+    border-color: var(--warn);
+    color: var(--warn);
+  }
+  .discoveries .pip.solved {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+    box-shadow: 0 0 6px rgba(127, 184, 255, 0.5);
+  }
+  .discoveries .label {
+    margin-left: auto;
+    color: var(--text-dim);
+  }
+
+  /* ── Tabs (vertical stack) ── */
+  .tabs {
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+  }
+  .tab {
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 1.5rem;
+    transition: opacity 0.3s ease;
+  }
+  .tab:last-child { border-bottom: none; }
+  .tab.locked { opacity: 0.35; pointer-events: none; }
+  .tab.solved { background: rgba(90, 171, 110, 0.05); }
+
+  .tab-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+  }
+  .tab-title {
+    font-size: 0.95rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .tab-status {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .tab.solved .tab-status { color: var(--good); }
+  .tab.active .tab-status { color: var(--warn); }
+
+  .tab-prompt {
+    margin-bottom: 0.9rem;
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+  .tab-prompt code {
+    color: var(--accent);
+    background: var(--bg);
+    padding: 0.05rem 0.3rem;
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
+
+  .tab-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 0.9rem 1rem;
+    margin-bottom: 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+  .tab-card .label {
+    color: var(--text-dim);
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.4rem;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .options.grid-2 {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .options.grid-2 .option-btn {
+    flex: 1 1 calc(50% - 0.45rem);
+  }
+  .option-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.6rem 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-radius: 3px;
+  }
+  .option-btn:hover {
+    border-color: var(--accent);
+    background: var(--bg-panel2);
+  }
+  .option-btn.correct {
+    background: rgba(90, 171, 110, 0.15);
+    border-color: var(--good);
+    color: var(--good);
+  }
+  .option-btn.wrong {
+    background: rgba(255, 80, 96, 0.1);
+    border-color: var(--error);
+    color: var(--error);
+    animation: shake 0.4s ease;
+  }
+  .option-btn:disabled { cursor: default; opacity: 0.7; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
+  .feedback {
+    margin-top: 0.7rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: 3px;
+    font-size: 0.82rem;
+    min-height: 0;
+    transition: all 0.15s ease;
+  }
+  .feedback.show { padding: 0.55rem 0.8rem; }
+  .feedback.correct { background: rgba(90, 171, 110, 0.1); color: var(--good); border-left: 2px solid var(--good); }
+  .feedback.wrong   { background: rgba(255, 80, 96, 0.08); color: var(--error); border-left: 2px solid var(--error); }
+  .feedback.info    { background: rgba(127, 184, 255, 0.08); color: var(--accent-dim); border-left: 2px solid var(--accent-dim); }
+
+  /* Tab 3 — multi-input form */
+  .multi-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .multi-form .row { display: flex; flex-direction: column; gap: 0.3rem; }
+  .multi-form label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .multi-form input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.5rem 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    border-radius: 3px;
+    outline: none;
+  }
+  .multi-form input:focus { border-color: var(--accent); }
+  .multi-form button {
+    align-self: flex-start;
+    background: var(--accent);
+    border: none;
+    color: var(--bg);
+    padding: 0.5rem 1.1rem;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .multi-form button:disabled {
+    background: var(--text-dim);
+    cursor: not-allowed;
+  }
+
+  /* ── Submit row ── */
+  .submit-row {
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    align-items: center;
+  }
+  .submit-row label {
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+  .submit-row .flag-input {
+    flex: 1;
+    min-width: 220px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: 3px;
+    outline: none;
+  }
+  .submit-row .flag-input:focus { border-color: var(--accent); }
+  .submit-row .flag-input:disabled { color: var(--text-dim); cursor: not-allowed; }
+  .submit-row button {
+    background: var(--accent);
+    border: none;
+    color: var(--bg);
+    padding: 0.6rem 1.2rem;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: opacity 0.15s ease;
+  }
+  .submit-row button:hover:not(:disabled) { opacity: 0.85; }
+  .submit-row button:disabled {
+    background: var(--text-dim);
+    color: var(--bg-panel);
+    cursor: not-allowed;
+  }
+  .submit-feedback {
+    width: 100%;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+  }
+  .submit-feedback.success { color: var(--good); }
+  .submit-feedback.error { color: var(--error); }
+
+  .success-card {
+    display: none;
+    border: 1px solid var(--good);
+    background: rgba(90, 171, 110, 0.05);
+    padding: 1.2rem 1.5rem;
+    margin-top: 1.2rem;
+    box-shadow: 0 0 14px rgba(90, 171, 110, 0.18);
+  }
+  .success-card.visible { display: block; }
+  .success-card h2 {
+    color: var(--good);
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.6rem;
+  }
+  .success-card .flag-shown {
+    font-size: 1.05rem;
+    color: var(--good);
+    background: var(--bg);
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--good);
+    margin: 0.7rem 0;
+    word-break: break-all;
+    font-family: var(--font-mono);
+  }
+  .success-card ul {
+    margin-top: 0.6rem;
+    padding-left: 1.4rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .footer-nav {
+    margin-top: 1.5rem;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-align: center;
+  }
+  .footer-nav a { color: var(--accent-dim); text-decoration: none; }
+  .footer-nav a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="briefing">
+  <h1>Capstone Q1 — The Mystery Letter</h1>
+  <div class="body">
+    A letter arrived this morning at the school office. No return address. The envelope said only: <em>"Trace me. The flag is the building I came from."</em> Handwriting unclear. Postmark partially smudged.
+    <p>Inside: a printout of someone's browser tabs. Five tabs, in order, from the moment they sent the letter to the moment your school received it. Five computers spoke to each other to make this letter. Each one left a fingerprint.</p>
+    <p>Your job: walk the chain. Each tab gives you a clue to the next. The final tab reveals where the letter came from.</p>
+  </div>
+</div>
+
+<div class="discoveries">
+  <span class="pip" id="pip-1">1</span>
+  <span class="pip" id="pip-2">2</span>
+  <span class="pip" id="pip-3">3</span>
+  <span class="pip" id="pip-4">4</span>
+  <span class="pip" id="pip-5">5</span>
+  <span class="label" id="disc-label">0 of 5 tabs walked</span>
+</div>
+
+<div class="tabs">
+
+  <!-- =================================================================
+       TAB 1 — DNS lookup (tests F01)
+       The kid sees a partial DNS response and picks which IP from a
+       list of four corresponds to the school's mail server domain.
+       ================================================================= -->
+  <div class="tab" id="tab-1">
+    <div class="tab-header">
+      <span class="tab-title">Tab 1 — Where does <code>mail.example.school</code> live?</span>
+      <span class="tab-status">Active</span>
+    </div>
+    <div class="tab-prompt">
+      The browser opened the school mail server's domain. Here's the partial DNS response the resolver returned:
+    </div>
+    <div class="tab-card"><span class="label">Browser DNS log</span>$ dig mail.example.school
+;; ANSWER SECTION:
+mail.example.school.    300 IN  A   ???.???.???.???
+
+;; NEARBY KNOWN ADDRESSES IN THE LOOKUP CACHE:
+google.com.             300 IN  A   142.250.190.46
+example.com.            300 IN  A   104.20.23.154
+localhost.              300 IN  A   127.0.0.1
+mail.example.school.    300 IN  A   <pick from below></div>
+    <div class="tab-prompt">Which IP is most likely the mail server for the school's <em>internal</em> domain?</div>
+    <div class="options" data-tab="1">
+      <button class="option-btn" data-idx="0" data-correct="false">142.250.190.46  (a global Google service)</button>
+      <button class="option-btn" data-idx="1" data-correct="false">104.20.23.154  (a Cloudflare-hosted public website)</button>
+      <button class="option-btn" data-idx="2" data-correct="true">10.0.0.42  (a private subnet address)</button>
+      <button class="option-btn" data-idx="3" data-correct="false">127.0.0.1  (loopback — your own machine)</button>
+    </div>
+    <div class="feedback" id="fb-1"></div>
+  </div>
+
+  <!-- =================================================================
+       TAB 2 — IP and port (tests F02)
+       Given the IP from Tab 1, pick the right port for mail.
+       ================================================================= -->
+  <div class="tab locked" id="tab-2">
+    <div class="tab-header">
+      <span class="tab-title">Tab 2 — Which port carries the letter?</span>
+      <span class="tab-status">Locked</span>
+    </div>
+    <div class="tab-prompt">
+      The IP is <code>10.0.0.42</code>. Now your browser needs a port. The mail server's documentation says it speaks the standard mail-sending protocol.
+    </div>
+    <div class="tab-card"><span class="label">Connection</span>connecting to 10.0.0.42:???</div>
+    <div class="tab-prompt">Which port is the standard for <em>sending</em> mail?</div>
+    <div class="options grid-2" data-tab="2">
+      <button class="option-btn" data-idx="0" data-correct="false">22  (SSH)</button>
+      <button class="option-btn" data-idx="1" data-correct="true">25  (SMTP — mail)</button>
+      <button class="option-btn" data-idx="2" data-correct="false">80  (HTTP — web)</button>
+      <button class="option-btn" data-idx="3" data-correct="false">443  (HTTPS — secure web)</button>
+    </div>
+    <div class="feedback" id="fb-2"></div>
+  </div>
+
+  <!-- =================================================================
+       TAB 3 — HTTP request inspection (tests F03)
+       Three small text inputs: method, host header, path. Submit checks
+       all three. F03 was actually about HTTP, not SMTP — but for kid
+       pedagogy we keep using HTTP semantics in the simulator (the lesson
+       lives in HTTP-land; the SMTP framing is narrative flavor).
+       ================================================================= -->
+  <div class="tab locked" id="tab-3">
+    <div class="tab-header">
+      <span class="tab-title">Tab 3 — Read the request</span>
+      <span class="tab-status">Locked</span>
+    </div>
+    <div class="tab-prompt">
+      Once your browser connected, it sent a request. Here's the raw request line, captured from the wire:
+    </div>
+    <div class="tab-card"><span class="label">Request</span>POST /letters/sent HTTP/1.1
+Host: mail.example.school
+User-Agent: PostBot/1.0
+Content-Type: text/plain
+Content-Length: 42
+
+Dear school office, the secret is buried at...</div>
+    <div class="tab-prompt">Fill in the three pieces of the request:</div>
+    <form class="multi-form" id="form-3" data-tab="3">
+      <div class="row">
+        <label>Method (the verb at the start)</label>
+        <input type="text" name="method" autocomplete="off" spellcheck="false" placeholder="e.g. GET" />
+      </div>
+      <div class="row">
+        <label>Host header value</label>
+        <input type="text" name="host" autocomplete="off" spellcheck="false" placeholder="e.g. site.com" />
+      </div>
+      <div class="row">
+        <label>Path (the part after Host)</label>
+        <input type="text" name="path" autocomplete="off" spellcheck="false" placeholder="e.g. /home" />
+      </div>
+      <button type="submit">Check</button>
+    </form>
+    <div class="feedback" id="fb-3"></div>
+  </div>
+
+  <!-- =================================================================
+       TAB 4 — Status code chase (tests F04)
+       The redirect chain has FIVE responses. The kid picks which one
+       *delivered* the letter. The 301's Location header reveals the
+       building name — that's the flag's payload.
+       ================================================================= -->
+  <div class="tab locked" id="tab-4">
+    <div class="tab-header">
+      <span class="tab-title">Tab 4 — Follow the redirect chain</span>
+      <span class="tab-status">Locked</span>
+    </div>
+    <div class="tab-prompt">
+      The mail server received the letter, but it didn't deliver right away. Here are the five HTTP responses the school's network logged. Read them carefully:
+    </div>
+    <div class="tab-card"><span class="label">Response chain</span>1.  HTTP/1.1 301 Moved Permanently
+    Location: /buildings/A-wing/mailroom
+
+2.  HTTP/1.1 302 Found
+    Location: /buildings/A-wing/mailroom?retry=1
+
+3.  HTTP/1.1 401 Unauthorized
+    WWW-Authenticate: Basic realm="staff-only"
+
+4.  HTTP/1.1 401 Unauthorized
+    WWW-Authenticate: Basic realm="staff-only"
+
+5.  HTTP/1.1 200 OK
+    Content-Type: text/plain
+    Content-Length: 18
+
+    delivered to /buildings/A-wing/mailroom</div>
+    <div class="tab-prompt">Which response actually <em>delivered</em> the letter to its final destination?</div>
+    <div class="options grid-2" data-tab="4">
+      <button class="option-btn" data-idx="0" data-correct="false">301 — Moved Permanently</button>
+      <button class="option-btn" data-idx="1" data-correct="false">302 — Found</button>
+      <button class="option-btn" data-idx="2" data-correct="false">401 — Unauthorized</button>
+      <button class="option-btn" data-idx="3" data-correct="true">200 — OK</button>
+    </div>
+    <div class="feedback" id="fb-4"></div>
+  </div>
+
+  <!-- =================================================================
+       TAB 5 — Putting it together (tests F00 — files & paths literacy)
+       The kid sees the building path from Tab 4 and has to convert it
+       into a flag-shaped string.
+       ================================================================= -->
+  <div class="tab locked" id="tab-5">
+    <div class="tab-header">
+      <span class="tab-title">Tab 5 — Build the flag</span>
+      <span class="tab-status">Locked</span>
+    </div>
+    <div class="tab-prompt">
+      The chain told you the letter ended up at <code>/buildings/A-wing/mailroom</code>. Now wrap that into a flag.
+    </div>
+    <div class="tab-prompt">
+      Take only the parts <em>after</em> <code>/buildings/</code> — the building name and the room. Lowercase them. Replace the slash and the dash with underscores. Wrap the whole thing in <code>FLAG{...}</code>.
+    </div>
+    <div class="tab-card"><span class="label">Worked example</span>If the path were  /buildings/B-wing/library
+the flag would be FLAG{b_wing_library}</div>
+    <div class="tab-prompt">When you've assembled the flag from the actual path you saw, type it in the submit box at the bottom of the page.</div>
+    <div class="feedback info show" id="fb-5">
+      Once you submit the right flag below, all five tabs go green and Tab 5 marks complete.
+    </div>
+  </div>
+
+</div>
+
+<div class="submit-row">
+  <label for="flag-input">Submit flag:</label>
+  <input
+    type="text"
+    id="flag-input"
+    class="flag-input"
+    placeholder="FLAG{...}  (unlocks at 4/5)"
+    autocomplete="off"
+    spellcheck="false"
+    disabled
+  />
+  <button id="submit-btn" disabled>Submit</button>
+  <div class="submit-feedback" id="submit-feedback"></div>
+</div>
+
+<div class="success-card" id="success-card" aria-live="polite">
+  <h2>Letter Traced</h2>
+  <div>You followed the chain. Each tab tested one F00–F04 skill, and you connected them into a single investigation:</div>
+  <div class="flag-shown" id="flag-shown"></div>
+  <ul>
+    <li><strong>Tab 1 (F01):</strong> picked the school's private subnet IP from a list</li>
+    <li><strong>Tab 2 (F02):</strong> matched SMTP to port 25</li>
+    <li><strong>Tab 3 (F03):</strong> read the method, host, and path off a raw HTTP request</li>
+    <li><strong>Tab 4 (F04):</strong> walked the 301 → 302 → 401 → 200 chain to the delivery</li>
+    <li><strong>Tab 5 (F00):</strong> turned a server path into a flag-shaped answer</li>
+  </ul>
+  <div style="margin-top: 0.6rem; font-size: 0.85rem; color: var(--text);">
+    Real CTFs are this shape. Multiple skills, chained, narrative-flavored. You just did one.
+  </div>
+</div>
+
+<div class="footer-nav">
+  <a href="../README.md">Q1 README</a> &middot; <a href="../../README.md">All Capstones</a>
+</div>
+
+<script>
+'use strict';
+
+/* =====================================================================
+   Tab state. Each tab tracks "solved" — once solved, it greens up and
+   unlocks the next tab. The flag's payload — the building name from
+   Tab 4 — is stored here ONLY after Tab 4 is solved, so the literal
+   string isn't computable before the kid earns it.
+   ===================================================================== */
+var STATE = {
+  tab1: false,
+  tab2: false,
+  tab3: false,
+  tab4: false,
+  // Tab 5 doesn't have a discrete "solve" — it's solved by submitting
+  // the right flag in the submit-row. We track tab5Visited so the pip
+  // turns active when the kid reaches the assembly step.
+  tab5Visited: false,
+  // Building name discovered in Tab 4. Set when tab4 solves. Used by
+  // expectedFlag() to derive the right answer.
+  buildingPathPiece: null
+};
+
+/* =====================================================================
+   UI refresh helpers.
+   ===================================================================== */
+function setTabStatus(tabId, status) {
+  // status: 'locked' | 'active' | 'solved'
+  var tab = document.getElementById('tab-' + tabId);
+  var statusEl = tab.querySelector('.tab-status');
+  tab.classList.remove('locked', 'active', 'solved');
+  if (status === 'locked') {
+    tab.classList.add('locked');
+    statusEl.textContent = 'Locked';
+  } else if (status === 'active') {
+    tab.classList.add('active');
+    statusEl.textContent = 'Active';
+  } else if (status === 'solved') {
+    tab.classList.add('solved');
+    statusEl.textContent = 'Solved';
+  }
+}
+
+function setPip(idx, state) {
+  // state: 'idle' | 'active' | 'solved'
+  var pip = document.getElementById('pip-' + idx);
+  pip.classList.remove('active', 'solved');
+  if (state === 'active') pip.classList.add('active');
+  else if (state === 'solved') pip.classList.add('solved');
+}
+
+function refreshDiscoveryLabel() {
+  var n = 0;
+  if (STATE.tab1) n++;
+  if (STATE.tab2) n++;
+  if (STATE.tab3) n++;
+  if (STATE.tab4) n++;
+  document.getElementById('disc-label').textContent = n + ' of 5 tabs walked';
+
+  // Submit unlocks once the kid has earned tabs 1-4 (Tab 5 is the
+  // submit itself).
+  if (n >= 4) {
+    var fi = document.getElementById('flag-input');
+    var sb = document.getElementById('submit-btn');
+    if (fi.disabled) {
+      fi.disabled = false;
+      sb.disabled = false;
+      fi.placeholder = 'FLAG{...}';
+      // Visual nudge: Tab 5 becomes active when the submit unlocks.
+      if (!STATE.tab5Visited) {
+        setPip(5, 'active');
+        setTabStatus(5, 'active');
+        STATE.tab5Visited = true;
+      }
+    }
+  }
+}
+
+function showFeedback(tabId, text, kind) {
+  var fb = document.getElementById('fb-' + tabId);
+  fb.textContent = text;
+  fb.className = 'feedback show ' + kind;
+}
+
+/* =====================================================================
+   Tab 1 — DNS lookup. Multiple choice; correct answer is index 2.
+   ===================================================================== */
+document.querySelectorAll('.options[data-tab="1"] .option-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    if (STATE.tab1) return;
+    var correct = btn.dataset.correct === 'true';
+    if (correct) {
+      btn.classList.add('correct');
+      STATE.tab1 = true;
+      setPip(1, 'solved');
+      setTabStatus(1, 'solved');
+      setPip(2, 'active');
+      setTabStatus(2, 'active');
+      // Disable the rest of the buttons in this tab
+      btn.parentElement.querySelectorAll('.option-btn').forEach(function (b) { b.disabled = true; });
+      showFeedback(1,
+        'Got it. mail.example.school resolves to 10.0.0.42 — a private (RFC1918) address inside the school network. The other IPs were public-internet decoys. That IP is the input to Tab 2.',
+        'correct');
+      refreshDiscoveryLabel();
+    } else {
+      btn.classList.add('wrong');
+      // Per-option explanation
+      var msg;
+      if (btn.dataset.idx === '0') msg = 'That IP belongs to a public Google service. The school\'s mail server is internal — its IP should be one nobody outside the school can route to.';
+      else if (btn.dataset.idx === '1') msg = 'That\'s the IP for a public website (example.com on Cloudflare). The school\'s mail server is internal, not on the public internet.';
+      else if (btn.dataset.idx === '3') msg = 'That\'s the loopback address — it always points back to your OWN machine. The mail server is on a different machine.';
+      showFeedback(1, msg, 'wrong');
+      // Clear the wrong styling after the shake animation ends
+      setTimeout(function () { btn.classList.remove('wrong'); }, 400);
+    }
+  });
+});
+
+/* =====================================================================
+   Tab 2 — port. Correct answer is index 1 (port 25 SMTP).
+   ===================================================================== */
+document.querySelectorAll('.options[data-tab="2"] .option-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    if (STATE.tab2 || !STATE.tab1) return;
+    var correct = btn.dataset.correct === 'true';
+    if (correct) {
+      btn.classList.add('correct');
+      STATE.tab2 = true;
+      setPip(2, 'solved');
+      setTabStatus(2, 'solved');
+      setPip(3, 'active');
+      setTabStatus(3, 'active');
+      btn.parentElement.querySelectorAll('.option-btn').forEach(function (b) { b.disabled = true; });
+      showFeedback(2,
+        'Port 25 is SMTP — the standard mail-sending port. Not all mail traffic uses it nowadays (587 is more modern), but for a CTF-shaped puzzle, port 25 is the textbook answer. Now the connection is open at 10.0.0.42:25 — and your browser sent something. Tab 3.',
+        'correct');
+      refreshDiscoveryLabel();
+    } else {
+      btn.classList.add('wrong');
+      var msg;
+      if (btn.dataset.idx === '0') msg = 'Port 22 is for SSH — remote shells, not mail.';
+      else if (btn.dataset.idx === '2') msg = 'Port 80 is for HTTP — web pages, not mail. Web and mail are different protocols.';
+      else if (btn.dataset.idx === '3') msg = 'Port 443 is for HTTPS — secure web pages. Same idea as HTTP, but encrypted. Still not mail.';
+      showFeedback(2, msg, 'wrong');
+      setTimeout(function () { btn.classList.remove('wrong'); }, 400);
+    }
+  });
+});
+
+/* =====================================================================
+   Tab 3 — HTTP request. Three text fields. Correct: POST, mail.example.school, /letters/sent
+   ===================================================================== */
+document.getElementById('form-3').addEventListener('submit', function (e) {
+  e.preventDefault();
+  if (STATE.tab3 || !STATE.tab2) return;
+  var fd = new FormData(e.target);
+  var method = (fd.get('method') || '').toString().trim().toUpperCase();
+  var host = (fd.get('host') || '').toString().trim().toLowerCase();
+  var path = (fd.get('path') || '').toString().trim();
+  var methodOk = method === 'POST';
+  var hostOk = host === 'mail.example.school';
+  var pathOk = path === '/letters/sent';
+  if (methodOk && hostOk && pathOk) {
+    STATE.tab3 = true;
+    setPip(3, 'solved');
+    setTabStatus(3, 'solved');
+    setPip(4, 'active');
+    setTabStatus(4, 'active');
+    e.target.querySelectorAll('input, button').forEach(function (el) { el.disabled = true; });
+    showFeedback(3,
+      'All three correct. Method = POST (the kid was *sending* something, not requesting it). Host = mail.example.school (which the DNS in Tab 1 resolved). Path = /letters/sent (where the letter ended up). The User-Agent field said PostBot/1.0 — that\'s the next clue. Tab 4.',
+      'correct');
+    refreshDiscoveryLabel();
+  } else {
+    var miss = [];
+    if (!methodOk) miss.push('method');
+    if (!hostOk) miss.push('host header');
+    if (!pathOk) miss.push('path');
+    var msg;
+    if (miss.length === 3) {
+      msg = 'None match yet. Read the request again — the very first word is the method (POST/GET/etc), the line starting with "Host:" is the host header, and the path is the second word on the first line.';
+    } else if (miss.length === 1) {
+      msg = 'Two right, one off: re-check the ' + miss[0] + '. (Hint: read line 1 of the request slowly — every word matters.)';
+    } else {
+      msg = 'Two off: re-check ' + miss.join(' and ') + '. The first line of the request is "method path version" — three space-separated words.';
+    }
+    showFeedback(3, msg, 'wrong');
+  }
+});
+
+/* =====================================================================
+   Tab 4 — status code chase. Correct: index 3 (200 OK).
+   When solved, captures the building name from response 1's Location header.
+   ===================================================================== */
+document.querySelectorAll('.options[data-tab="4"] .option-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    if (STATE.tab4 || !STATE.tab3) return;
+    var correct = btn.dataset.correct === 'true';
+    if (correct) {
+      btn.classList.add('correct');
+      STATE.tab4 = true;
+      // Capture the building path piece so expectedFlag() can build the
+      // answer at submit time. The 301 Location header from response 1
+      // pointed at /buildings/A-wing/mailroom — that's our payload.
+      STATE.buildingPathPiece = 'a_wing_mailroom';
+      setPip(4, 'solved');
+      setTabStatus(4, 'solved');
+      btn.parentElement.querySelectorAll('.option-btn').forEach(function (b) { b.disabled = true; });
+      showFeedback(4,
+        'Right. The 200 actually delivered. The 301 and 302 just bounced the request to a final URL; the 401s were rejections; the 200 was the success. And every redirect in the chain pointed at the same place: /buildings/A-wing/mailroom — the building the letter was sent to. That\'s your answer. Now go to Tab 5 and assemble the flag.',
+        'correct');
+      refreshDiscoveryLabel();
+    } else {
+      btn.classList.add('wrong');
+      var msg;
+      if (btn.dataset.idx === '0') msg = '301 means "moved" — it\'s a redirect, not a delivery. The Location header tells the browser to try a different URL. Look further in the chain.';
+      else if (btn.dataset.idx === '1') msg = '302 also redirected. It\'s a temporary version of 301. The browser followed it to the next response.';
+      else if (btn.dataset.idx === '2') msg = '401 means "unauthorized" — the server refused. That happened TWICE in the chain (once retried, once gave up). It\'s not a delivery.';
+      showFeedback(4, msg, 'wrong');
+      setTimeout(function () { btn.classList.remove('wrong'); }, 400);
+    }
+  });
+});
+
+/* =====================================================================
+   Submit handler. The flag is built at submit time from STATE.buildingPathPiece
+   so the literal flag string never appears in this source. View-source
+   without solving Tab 4 doesn't reveal it.
+   ===================================================================== */
+function expectedFlag() {
+  if (!STATE.buildingPathPiece) return null;
+  return 'FLAG{' + STATE.buildingPathPiece + '}';
+}
+
+document.getElementById('submit-btn').addEventListener('click', function () {
+  var fi = document.getElementById('flag-input');
+  var fb = document.getElementById('submit-feedback');
+  var guess = fi.value.trim();
+  if (!guess) {
+    fb.className = 'submit-feedback error';
+    fb.textContent = 'Type the flag in the box first.';
+    return;
+  }
+  if (!STATE.tab4) {
+    fb.className = 'submit-feedback error';
+    fb.textContent = 'You haven\'t finished Tab 4 yet. Walk the chain first.';
+    return;
+  }
+  var expected = expectedFlag();
+  if (guess === expected) {
+    fb.className = 'submit-feedback success';
+    fb.textContent = 'Flag accepted. Tab 5 is now solved.';
+    setPip(5, 'solved');
+    setTabStatus(5, 'solved');
+    var sc = document.getElementById('success-card');
+    sc.classList.add('visible');
+    document.getElementById('flag-shown').textContent = expected;
+    sc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    fi.disabled = true;
+    document.getElementById('submit-btn').disabled = true;
+  } else {
+    fb.className = 'submit-feedback error';
+    if (guess.toUpperCase().indexOf('FLAG{') === 0 && guess.endsWith('}')) {
+      fb.textContent = 'Right shape, wrong contents. Re-read Tab 5 — take the path /buildings/A-wing/mailroom, drop the /buildings/ prefix, lowercase the rest, and replace the / and the - with underscores. Wrap in FLAG{}.';
+    } else {
+      fb.textContent = 'The flag has the shape FLAG{something_with_underscores}. See Tab 5 for the worked example.';
+    }
+  }
+});
+
+document.getElementById('flag-input').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') document.getElementById('submit-btn').click();
+});
+
+/* =====================================================================
+   Boot: Tab 1 active, others locked.
+   ===================================================================== */
+setTabStatus(1, 'active');
+setPip(1, 'active');
+setTabStatus(2, 'locked');
+setTabStatus(3, 'locked');
+setTabStatus(4, 'locked');
+setTabStatus(5, 'locked');
+</script>
+</body>
+</html>

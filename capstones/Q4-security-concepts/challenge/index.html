@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Capstone Q4 — The Final Drive (Coming Soon)</title>
+<style>
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --bg: #07101e;
+    --panel: #0a1628;
+    --border: #1f3a5c;
+    --accent: #7fb8ff;
+    --text: #d0e2ff;
+    --text-dim: #6a90c0;
+    --font-mono: 'SF Mono', Menlo, 'Courier New', Courier, monospace;
+  }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--font-mono); font-size: 14px; line-height: 1.6;
+    min-height: 100vh;
+  }
+  body { padding: 2rem 1.5rem; max-width: 720px; margin: 0 auto; }
+  .header {
+    border: 1px solid var(--border); background: var(--panel);
+    padding: 1.5rem; margin-bottom: 1.5rem;
+  }
+  h1 {
+    color: var(--accent);
+    font-size: 1.1rem; font-weight: normal;
+    text-transform: uppercase; letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+  }
+  .tier { color: var(--text-dim); font-size: 0.85rem; }
+  .body p { margin: 0.8rem 0; }
+  .body ul { margin: 0.8rem 0 0.8rem 1.5rem; }
+  .body li { margin: 0.3rem 0; }
+  .body code {
+    color: var(--accent);
+    background: var(--panel);
+    padding: 0.05rem 0.3rem;
+    border-radius: 2px;
+  }
+  .footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>Capstone Q4 — The Final Drive</h1>
+    <div class="tier">Tier 4 · Security Concepts · gates after F12–F16</div>
+  </div>
+
+  <div class="body">
+    <p><strong>Coming soon.</strong></p>
+    <p>This is the foundation track's graduation capstone. It will require you to chain the five skills you built in Tier 4 (Security Concepts):</p>
+    <ul>
+      <li><strong>F12</strong> — memory and the stack</li>
+      <li><strong>F13</strong> — HTML, CSS, and JavaScript layers</li>
+      <li><strong>F14</strong> — hashing and file integrity</li>
+      <li><strong>F15</strong> — EXIF metadata and steganography</li>
+      <li><strong>F16</strong> — the unix shell toolbox</li>
+    </ul>
+    <p>The challenge: investigate a leaked drive. A webpage references a file by its SHA-256 hash; one of the files on the drive matches; that file is a steganographically-modified photo whose EXIF GPS points to an offset in a binary; the binary has the flag at that offset. Five steps. All five tools.</p>
+    <p>For now, the tier is here but the chained challenge isn't built yet. Come back after the other capstones land — Q1 (Fundamentals) is fully playable in the meantime.</p>
+  </div>
+
+  <div class="footer">
+    <a href="../../Q1-fundamentals/challenge/index.html">← Try Q1 (live)</a> &middot;
+    <a href="../README.md">Q4 README</a> &middot;
+    <a href="../../README.md">All Capstones</a>
+  </div>
+</body>
+</html>

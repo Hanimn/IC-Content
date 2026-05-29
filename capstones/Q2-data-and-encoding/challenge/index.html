@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Capstone Q2 — Repair the Artifact (Coming Soon)</title>
+<style>
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --bg: #0a0f0a;
+    --panel: #0d1a0d;
+    --border: #1a3a1a;
+    --accent: #33ff33;
+    --text: #c8e8c8;
+    --text-dim: #6aaa6a;
+    --font-mono: 'SF Mono', Menlo, 'Courier New', Courier, monospace;
+  }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--font-mono); font-size: 14px; line-height: 1.6;
+    min-height: 100vh;
+  }
+  body { padding: 2rem 1.5rem; max-width: 720px; margin: 0 auto; }
+  .header {
+    border: 1px solid var(--border); background: var(--panel);
+    padding: 1.5rem; margin-bottom: 1.5rem;
+  }
+  h1 {
+    color: var(--accent);
+    font-size: 1.1rem; font-weight: normal;
+    text-transform: uppercase; letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+  }
+  .tier { color: var(--text-dim); font-size: 0.85rem; }
+  .body p { margin: 0.8rem 0; }
+  .body ul { margin: 0.8rem 0 0.8rem 1.5rem; }
+  .body li { margin: 0.3rem 0; }
+  .body code {
+    color: var(--accent);
+    background: var(--panel);
+    padding: 0.05rem 0.3rem;
+    border-radius: 2px;
+  }
+  .footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>Capstone Q2 — Repair the Artifact</h1>
+    <div class="tier">Tier 2 · Data &amp; Encoding · gates after F05–F08</div>
+  </div>
+
+  <div class="body">
+    <p><strong>Coming soon.</strong></p>
+    <p>This capstone will require you to combine the four skills you built in Tier 2 (Data &amp; Encoding):</p>
+    <ul>
+      <li><strong>F05</strong> — binary, decimal, hex conversions</li>
+      <li><strong>F06</strong> — reading hex dumps</li>
+      <li><strong>F07</strong> — file magic bytes and what makes a PNG a PNG</li>
+      <li><strong>F08</strong> — ASCII tables and Base64</li>
+    </ul>
+    <p>The challenge: a corrupted file with the wrong magic byte. You'll need to spot the corruption in a hex dump (F06), figure out what file type it claims to be vs. what it actually is (F07), apply the fix (F06 + F05), then decode an ASCII or Base64 payload hidden inside (F08).</p>
+    <p>For now, the lesson tier is here but the chained challenge isn't built yet. Come back after the other capstones land — Q1 (Fundamentals) is fully playable in the meantime.</p>
+  </div>
+
+  <div class="footer">
+    <a href="../../Q1-fundamentals/challenge/index.html">← Try Q1 (live)</a> &middot;
+    <a href="../README.md">Q2 README</a> &middot;
+    <a href="../../README.md">All Capstones</a>
+  </div>
+</body>
+</html>

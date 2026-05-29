@@ -26,6 +26,7 @@ const ROOT = process.cwd();
 const TRACK_DIRS = [
   { label: "foundation", dir: path.join(ROOT, "foundation") },
   { label: "modules",    dir: path.join(ROOT, "modules") },
+  { label: "capstones",  dir: path.join(ROOT, "capstones") },
 ];
 
 // Match the literal filename. Any markdown link or bare reference to the

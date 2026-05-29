@@ -39,6 +39,7 @@ const ROOT = process.cwd();
 const TRACK_DIRS = [
   { label: "foundation", dir: path.join(ROOT, "foundation") },
   { label: "modules",    dir: path.join(ROOT, "modules") },
+  { label: "capstones",  dir: path.join(ROOT, "capstones") },
 ];
 const SCAN_NAMES = ["lesson.md", "concept-cards.md", "README.md"];
 
